@@ -1,10 +1,8 @@
 // src/app/api/register/route.ts
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../../lib/prisma";
 
-const prisma = new PrismaClient();
-
-// simple slug cleaner: "Hoi Lam (Lynn) Zhang" -> "hoi-lam-lynn-zhang"
+// server-side safety: normalize slug like the client does
 function toSlug(input: string) {
   return input
     .toLowerCase()
@@ -15,49 +13,78 @@ function toSlug(input: string) {
     .replace(/^-|-$/g, "");
 }
 
-export async function GET() {
-  return NextResponse.json({ ok: true, route: "/api/register" });
-}
-
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => null)) as
-      | { name?: string; email?: string; slug?: string; note?: string }
-      | null;
+    const body = await req.json();
+    const name = (body?.name ?? "").toString().trim();
+    const email = (body?.email ?? "").toString().trim();
+    const rawSlug = (body?.slug ?? "").toString();
+    const note = (body?.note ?? "").toString().trim();
 
-    if (!body?.name || !body?.email || !body?.slug) {
+    if (!name || !email || !rawSlug) {
       return NextResponse.json(
-        { error: "Missing required fields: name, email, slug" },
+        { error: "Missing name, email, or slug" },
         { status: 400 }
       );
     }
 
-    const name = body.name.trim();
-    const email = body.email.trim().toLowerCase();
-    const slug = toSlug(body.slug);
-
+    const slug = toSlug(rawSlug);
     if (!slug) {
       return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
     }
-    if (!/^[a-z0-9-]{2,64}$/.test(slug)) {
-      return NextResponse.json({ error: "Slug format invalid" }, { status: 400 });
-    }
 
-    const invite = await prisma.pendingInvite.upsert({
+    // If there is already a PendingInvite for this email, update it.
+    // (Your schema has unique email and unique slug.)
+    const existingForEmail = await prisma.pendingInvite.findUnique({
       where: { email },
-      update: { name, slug, note: body.note ?? null, status: "PENDING" },
-      create: { email, name, slug, note: body.note ?? null, status: "PENDING" },
+      select: { id: true, email: true },
     });
 
-    return NextResponse.json({ ok: true, invite });
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-    if (msg.includes("Unique constraint failed")) {
+    // Make sure the slug isn’t already used by a DIFFERENT email’s invite
+    const existingForSlug = await prisma.pendingInvite.findUnique({
+      where: { slug },
+      select: { id: true, email: true },
+    });
+
+    if (existingForSlug && existingForSlug.email !== email) {
       return NextResponse.json(
-        { error: "Email or slug already pending/used" },
+        { error: "That slug is already requested by another email." },
         { status: 409 }
       );
     }
-    return NextResponse.json({ error: msg }, { status: 500 });
+
+    if (existingForEmail) {
+      // Update existing invite for this email (reset to PENDING)
+      await prisma.pendingInvite.update({
+        where: { email },
+        data: {
+          name,
+          slug,
+          note,                // store the “note to PI”
+          status: "PENDING",
+          requestedAt: new Date(),
+          decidedAt: null,     // clear any previous decision
+        },
+      });
+    } else {
+      // Create a new invite
+      await prisma.pendingInvite.create({
+        data: {
+          name,
+          email,
+          slug,
+          note,                // store the “note to PI”
+          status: "PENDING",
+          requestedAt: new Date(),
+        },
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: String(err?.message || err) },
+      { status: 500 }
+    );
   }
 }
