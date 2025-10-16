@@ -1,20 +1,37 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    await signIn("credentials", {
+    setErr(null);
+    setLoading(true);
+
+    const fd = new FormData(e.currentTarget);
+    // Read actual values that the browser (or autofill) put in the DOM
+    const email = String(fd.get("email") || "").trim().toLowerCase();
+    const password = String(fd.get("password") || "").trim();
+
+    const res = await signIn("credentials", {
       email,
       password,
-      redirect: true,
-      callbackUrl: "/members",
+      redirect: false, // we'll control navigation
     });
+
+    setLoading(false);
+
+    if (!res || res.error) {
+      setErr("Incorrect email or password.");
+      return;
+    }
+    router.push("/members");
   }
 
   return (
@@ -24,24 +41,33 @@ export default function LoginPage() {
         <label>
           Email
           <input
+            name="email"                // IMPORTANT for FormData + autofill
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            inputMode="email"
+            autoComplete="username"     // help autofill target the right field
+            autoCapitalize="none"
+            spellCheck={false}
             style={{ width: "100%" }}
+            // leave this UNCONTROLLED (no value/onChange)
           />
         </label>
+
         <label>
           Password
           <input
+            name="password"             // IMPORTANT for FormData + autofill
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            autoComplete="current-password"
             style={{ width: "100%" }}
+            // leave this UNCONTROLLED
           />
         </label>
-        <button type="submit">Sign in</button>
+
+        {err && <p style={{ color: "crimson" }}>{err}</p>}
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
       </form>
     </div>
   );
