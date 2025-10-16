@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  ADMIN
+  PI
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  role         Role     @default(MEMBER)
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  about        String?
+}
+
+model PendingInvite {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  slug        String   @unique // desired public URL part, e.g. "lynn-zhang"
+  note        String?          // optional message from the requester
+  status      InviteStatus @default(PENDING)
+  requestedAt DateTime  @default(now())
+  decidedAt   DateTime?        // when approved/denied
+  decidedById String?          // User.id of the approver (ADMIN or PI)
+}
+
+enum InviteStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
