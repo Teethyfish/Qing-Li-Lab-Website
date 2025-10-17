@@ -1,44 +1,47 @@
-// src/app/people/[slug]/page.tsx
-import { PrismaClient } from "@prisma/client";
-import { PEOPLE } from "@/data/people";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
-type Props = { params: { slug: string } };
+// In Next.js 15, PageProps expects `params` to be a Promise for RSC.
+// We await it to get the slug.
+type Props = {
+  params: Promise<{ slug: string }>;
+};
 
-const prisma = new PrismaClient();
+export default async function PersonPage({ params }: Props) {
+  const { slug } = await params;
 
-export default async function PersonPublicPage({ params }: Props) {
-  const person = PEOPLE.find(p => p.slug === params.slug);
+  if (!slug) notFound();
 
-  if (!person) {
-    return (
-      <main style={{ padding: 24 }}>
-        <h1>Not found</h1>
-        <p>No person with slug: {params.slug}</p>
-      </main>
-    );
-  }
+  // Adjust fields to match your schema
+  const user = await prisma.user.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      email: true,
+      about: true,
+      // add more fields if you have them (e.g., avatarUrl)
+    },
+  });
 
-  // Try to load a public bio from DB if we have an email on file
-  let about: string | null = null;
-  if (person.email) {
-    const u = await prisma.user.findUnique({
-      where: { email: person.email.toLowerCase() },
-      select: { about: true, name: true },
-    });
-    // If the DB has a preferred display name, use it
-    if (u?.name) person.name = u.name;
-    about = u?.about ?? null;
+  if (!user) {
+    notFound();
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 720 }}>
-      <h1>{person.name}</h1>
-      {about ? (
-        <article style={{ whiteSpace: "pre-wrap", marginTop: 12 }}>{about}</article>
+    <main className="max-w-3xl space-y-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold">{user.name || slug}</h1>
+        {user.email && (
+          <p className="text-sm text-gray-600">{user.email}</p>
+        )}
+      </header>
+
+      {user.about ? (
+        <section className="prose prose-sm max-w-none">
+          <p>{user.about}</p>
+        </section>
       ) : (
-        <p style={{ marginTop: 12, color: "#666" }}>
-          Bio coming soon.
-        </p>
+        <p className="text-gray-500">No bio yet.</p>
       )}
     </main>
   );
