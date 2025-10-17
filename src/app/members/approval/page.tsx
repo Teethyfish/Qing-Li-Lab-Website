@@ -5,6 +5,7 @@ import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { prisma } from "../../../lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { sendMail } from "../../../lib/mailer";
 
 function fmtUTC(d: Date | string | null | undefined) {
   if (!d) return "—";
@@ -38,7 +39,8 @@ async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: str
   return { PENDING: pending, APPROVED: approved, REJECTED: rejected };
 }
 
-// ---------------------- Server actions ----------------------
+/* ---------------------- Server actions ---------------------- */
+
 async function approveAction(formData: FormData) {
   "use server";
   const id = String(formData.get("id") || "");
@@ -65,7 +67,7 @@ async function approveAction(formData: FormData) {
       name: invite.name ?? null,
       role: "MEMBER",
       passwordHash,
-      // If your User model has slug/about, you can map from invite:
+      // If your User model has slug/about, you could map from invite:
       // slug: invite.slug ?? null,
       // about: invite.note ?? null,
     },
@@ -73,7 +75,7 @@ async function approveAction(formData: FormData) {
 
   const appendedNote = `${invite.note ? invite.note + " | " : ""}TEMP_PW: ${tempPassword}`;
 
-  // Use SQL so we always hit the right enum label in DB
+  // Update status using the exact DB enum label, and append temp PW to note
   await prisma.$executeRawUnsafe(
     `UPDATE "PendingInvite"
      SET "status" = $1::"InviteStatus",
@@ -84,6 +86,51 @@ async function approveAction(formData: FormData) {
     appendedNote,
     id
   );
+
+  // --- Send approval email with temporary password ---
+  // --- Send approval email with temporary password + reset link ---
+  // --- Send approval email with temporary password + reset link ---
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const resetUrl = `${baseUrl}/reset-password?email=${encodeURIComponent(invite.email)}`;
+
+    await sendMail({
+      to: invite.email,
+      subject: "Your Lab Website Account Approved",
+      html: `
+        <p>Hello ${invite.name || ""},</p>
+        <p>Your lab website account has been approved.</p>
+        <p><b>Temporary password:</b> <code>${tempPassword}</code></p>
+        <p>Please set a new password here:</p>
+        <p>
+          <a href="${resetUrl}">Reset password</a><br/>
+          <small>If the button/link is hidden, copy & paste this URL:</small><br/>
+          <code>${resetUrl}</code>
+        </p>
+        <hr/>
+        <p><small>This is an automated message from ${process.env.SMTP_FROM}</small></p>
+      `,
+      text: [
+        `Hello ${invite.name || ""},`,
+        ``,
+        `Your lab website account has been approved.`,
+        ``,
+        `Temporary password: ${tempPassword}`,
+        ``,
+        `Set a new password here:`,
+        `${resetUrl}`,
+        ``,
+        `--`,
+        `This is an automated message from ${process.env.SMTP_FROM}`,
+      ].join("\n"),
+    });
+
+  console.log("✅ Email sent to", invite.email, "with reset link:", resetUrl);
+} catch (e) {
+  console.error("❌ Failed to send approval email:", e);
+}
+
+
 
   revalidatePath("/members/approval");
 }
@@ -112,7 +159,7 @@ async function rejectAction(formData: FormData) {
          "decidedAt" = NOW(),
          "slug" = $2
      WHERE "id" = $3`,
-    labels.REJECTED, // this will be your DB's exact "DENIED"/"REJECTED"
+    labels.REJECTED, // will be your DB's exact "DENIED"/"REJECTED"
     freedSlug,
     id
   );
@@ -154,7 +201,8 @@ async function deleteInviteAction(formData: FormData) {
   revalidatePath("/members/approval");
 }
 
-// ---------------------- Page ----------------------
+/* ---------------------- Page ---------------------- */
+
 export default async function ApprovalPage() {
   const session = await getServerSession(authOptions);
   const role = (session?.user as any)?.role;
@@ -183,7 +231,7 @@ export default async function ApprovalPage() {
       COALESCE("decidedAt","requestedAt") DESC
   `;
 
-  // Dynamic button text for rejected state (DENY vs REJECT)
+  // Dynamic UI wording (DENY vs REJECT)
   const rejectedLabel = labels.REJECTED.toUpperCase();
   const denyVerb = rejectedLabel.includes("DENY") ? "Deny" : "Reject";
 
@@ -191,7 +239,7 @@ export default async function ApprovalPage() {
     <main className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Approval Dashboard</h1>
       <p className="text-sm text-gray-600">
-        Approve creates a User with a temporary password. {denyVerb} frees the slug.
+        Approve creates a User with a temporary password and emails it to them. {denyVerb} frees the slug.
         Decided rows stay visible but are grayed out. Reset only shows for {denyVerb.toLowerCase()}ed rows.
       </p>
 
@@ -221,9 +269,8 @@ export default async function ApprovalPage() {
               invites.map((x) => {
                 const isPending = x.status === labels.PENDING;
                 const isRejected = x.status === labels.REJECTED;
-                const isApproved = x.status === labels.APPROVED;
 
-                // Extract temp PW (appended to note after approval)
+                // Extract temp PW (we appended to note on approval)
                 let tempPw: string | null = null;
                 if (x.note && x.note.includes("TEMP_PW: ")) {
                   tempPw = x.note.split("TEMP_PW: ").pop() ?? null;
@@ -232,10 +279,7 @@ export default async function ApprovalPage() {
                 const applicantNote = x.note?.replace(/\s*\|\s*TEMP_PW:.*$/, "") ?? null;
 
                 return (
-                  <tr
-                    key={x.id}
-                    className={`border-t ${!isPending ? "opacity-60" : ""}`}
-                  >
+                  <tr key={x.id} className={`border-t ${!isPending ? "opacity-60" : ""}`}>
                     <td className="px-3 py-2">{x.email}</td>
                     <td className="px-3 py-2">{x.slug ?? <em className="text-gray-500">—</em>}</td>
                     <td className="px-3 py-2">{x.name ?? <em className="text-gray-500">—</em>}</td>
@@ -262,7 +306,7 @@ export default async function ApprovalPage() {
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-2">
-                        {/* Approve/Reject visible only while PENDING */}
+                        {/* Approve / Reject only while PENDING */}
                         {isPending && (
                           <>
                             <form action={approveAction}>
@@ -280,7 +324,7 @@ export default async function ApprovalPage() {
                           </>
                         )}
 
-                        {/* Reset ONLY after reject/deny (not after approve) */}
+                        {/* Reset only for rejected/denied rows */}
                         {isRejected && (
                           <form action={resetInviteAction}>
                             <input type="hidden" name="id" value={x.id} />
@@ -293,7 +337,7 @@ export default async function ApprovalPage() {
                           </form>
                         )}
 
-                        {/* Delete is always available */}
+                        {/* Delete always available */}
                         <form action={deleteInviteAction}>
                           <input type="hidden" name="id" value={x.id} />
                           <button className="px-3 py-1 rounded bg-gray-700 text-white">

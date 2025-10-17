@@ -3,8 +3,23 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "../../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
+/** Case-insensitive lookup of the most recent TEMP_PW for this email */
+async function getLatestTempPw(email: string): Promise<string | null> {
+  const rows = await prisma.$queryRaw<{ note: string }[]>`
+    SELECT "note"
+    FROM "PendingInvite"
+    WHERE LOWER("email") = LOWER(${email})
+      AND "note" ILIKE '%TEMP_PW:%'
+    ORDER BY COALESCE("decidedAt","requestedAt") DESC
+    LIMIT 1
+  `;
+  const note = rows?.[0]?.note ?? "";
+  const m = note.match(/TEMP_PW:\s*([^\s|]+)/i);
+  return m?.[1] ?? null;
+}
+
 export const authOptions = {
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt" as const },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -12,73 +27,49 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        // --- normalize inputs
-        const rawEmail = (credentials?.email ?? "").toString().trim();
-        const rawPassword = (credentials?.password ?? "").toString();
+      authorize: async (credentials) => {
+        const email = String(credentials?.email || "").trim();
+        const password = String(credentials?.password || "");
+        if (!email || !password) return null;
 
-        if (!rawEmail || !rawPassword) {
-          throw new Error("Missing credentials");
-        }
-
-        // --- case-insensitive email lookup
-        const user = await prisma.user.findFirst({
-          where: {
-            email: {
-              equals: rawEmail,
-              mode: "insensitive",
-            },
-          },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            role: true,
-            passwordHash: true,
-          },
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, email: true, name: true, role: true, passwordHash: true },
         });
+        if (!user?.passwordHash) return null;
 
-        if (!user) {
-          throw new Error("No user found with that email");
-        }
+        const ok = await bcrypt.compare(password, user.passwordHash);
+        if (!ok) return null;
 
-        const storedHash = user.passwordHash ?? "";
-        if (!storedHash) {
-          throw new Error("No password set for this account");
-        }
-
-        const ok = await bcrypt.compare(rawPassword, storedHash);
-        if (!ok) {
-          throw new Error("Invalid password");
-        }
+        const latestTemp = await getLatestTempPw(email);
+        const needsPwReset = !!latestTemp && latestTemp === password;
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
-        };
+          needsPwReset,
+        } as any;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) (token as any).role = (user as any).role;
-      if (!(token as any).role && token.email) {
-        const dbUser = await prisma.user.findFirst({
-          where: { email: { equals: token.email as string, mode: "insensitive" } },
-          select: { role: true },
-        });
-        (token as any).role = dbUser?.role || "MEMBER";
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.role = user.role;
+        token.needsPwReset = !!user.needsPwReset;
+        token.email = user.email;
       }
       return token;
     },
-    async session({ session, token }) {
-      if (session.user) (session.user as any).role = (token as any).role || "MEMBER";
+    async session({ session, token }: any) {
+      (session.user as any).role = token.role;
+      (session.user as any).needsPwReset = !!token.needsPwReset;
       return session;
     },
   },
-};
+} satisfies Parameters<typeof NextAuth>[0];
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
