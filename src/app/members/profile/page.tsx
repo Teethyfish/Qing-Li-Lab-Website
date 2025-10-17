@@ -1,12 +1,13 @@
+// src/app/members/profile/page.tsx
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";            // ✅ correct import
 import { prisma } from "../../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
-  const email = (session?.user as any)?.email as string | undefined;
+  const email = session?.user?.email as string | undefined;
   if (!email) redirect("/login");
 
   const user = await prisma.user.findUnique({
@@ -17,9 +18,13 @@ export default async function ProfilePage() {
   // ---- server actions ----
   async function updateNameAction(formData: FormData) {
     "use server";
+    const s = await getServerSession(authOptions);
+    const e = s?.user?.email;
+    if (!e) redirect("/login");
+
     const newName = String(formData.get("name") || "").trim();
     await prisma.user.update({
-      where: { email: email.toLowerCase() },
+      where: { email: e.toLowerCase() },
       data: { name: newName || null },
     });
     revalidatePath("/members/profile");
@@ -27,9 +32,13 @@ export default async function ProfilePage() {
 
   async function updateAboutAction(formData: FormData) {
     "use server";
+    const s = await getServerSession(authOptions);
+    const e = s?.user?.email;
+    if (!e) redirect("/login");
+
     const newAbout = String(formData.get("about") || "").trim();
     await prisma.user.update({
-      where: { email: email.toLowerCase() },
+      where: { email: e.toLowerCase() },
       data: { about: newAbout || null },
     });
     revalidatePath("/members/profile");
@@ -61,7 +70,7 @@ export default async function ProfilePage() {
             className="w-full border rounded p-2 outline-none focus:ring focus:ring-blue-200"
           />
           <button className="px-4 py-2 rounded bg-blue-600 text-white">
-            Save
+            Save Name
           </button>
         </form>
       </section>
@@ -81,7 +90,7 @@ export default async function ProfilePage() {
             className="w-full border rounded p-2 outline-none focus:ring focus:ring-blue-200"
           />
           <button className="px-4 py-2 rounded bg-blue-600 text-white">
-            Save
+            Save About
           </button>
         </form>
       </section>
