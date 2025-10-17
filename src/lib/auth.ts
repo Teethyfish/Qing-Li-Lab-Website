@@ -24,10 +24,7 @@ export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
+      credentials: { email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" } },
       authorize: async (credentials) => {
         const email = String(credentials?.email || "").trim();
         const password = String(credentials?.password || "");
@@ -45,13 +42,7 @@ export const authOptions = {
         const latestTemp = await getLatestTempPw(email);
         const needsPwReset = !!latestTemp && latestTemp === password;
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          needsPwReset,
-        } as any;
+        return { id: user.id, email: user.email, name: user.name, role: user.role, needsPwReset } as any;
       },
     }),
   ],

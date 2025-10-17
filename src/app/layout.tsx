@@ -3,7 +3,8 @@ import "./globals.css";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import NavBar from "../components/NavBar";
 import { getServerSession } from "next-auth";
-import { authOptions } from "./api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
