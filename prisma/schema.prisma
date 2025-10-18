@@ -26,6 +26,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   about        String?
+  slug         String?   @unique
 }
 
 model PendingInvite {
