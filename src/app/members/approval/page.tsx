@@ -43,61 +43,71 @@ async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: str
 
 /* ---------------------- Server actions ---------------------- */
 
-  async function approveAction(formData: FormData) {
-    "use server";
-    const id = String(formData.get("id") || "");
-    if (!id) return;
+async function approveAction(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id") || "");
+  if (!id) return;
 
-    const invite = await prisma.pendingInvite.findUnique({
-      where: { id },
-      select: { email: true, slug: true, name: true, status: true, note: true },
-    });
-    if (!invite || invite.status !== "PENDING") return;
+  const labels = await getInviteStatusLabels();
 
-    // 1) generate temp password + hash
-    const tempPassword = genTempPassword(); // your helper
-    const passwordHash = await bcrypt.hash(tempPassword, 10);
+  const invite = await prisma.pendingInvite.findUnique({
+    where: { id },
+    select: { email: true, slug: true, name: true, status: true, note: true },
+  });
+  if (!invite || invite.status !== labels.PENDING) return;
 
-    // 2) create/update the user with the slug from the invite
-    const email = invite.email.toLowerCase();
-    await prisma.user.upsert({
-      where: { email },
-      update: { name: invite.name ?? null, slug: invite.slug, passwordHash },
-      create: {
-        email,
-        name: invite.name ?? null,
-        role: "MEMBER",
-        slug: invite.slug,             // ✅ ensure slug is set
-        passwordHash,
-      },
-    });
+  // 1) generate temp password + hash
+  const tempPassword = genTempPassword();
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-    // 3) mark invite approved + append TEMP_PW to note
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    await prisma.pendingInvite.update({
-      where: { id },
-      data: {
-        status: "APPROVED",
-        decidedAt: new Date(),
-        note: `${invite.note ?? ""} | TEMP_PW: ${tempPassword} | LINK: ${base}/reset-password`,
-      },
-    });
+  // 2) create/update the user with the slug from the invite
+  const email = invite.email.toLowerCase();
+  await prisma.user.upsert({
+    where: { email },
+    update: {
+      name: invite.name ?? null,
+      slug: invite.slug,
+      passwordHash,
+      mustResetPassword: true, // <-- force reset on next login
+    },
+    create: {
+      email,
+      name: invite.name ?? null,
+      role: "MEMBER",
+      slug: invite.slug, // ensure slug is set
+      passwordHash,
+      mustResetPassword: true, // <-- force reset on next login
+    },
+  });
 
-    // 4) email the user
-    await sendMail({
-      to: invite.email,
-      subject: "Your Account For Qing Li Lab has been Approved",
-      html: `
-        <p>Hello ${invite.name ?? ""},</p>
-        <p>Your lab website account has been approved.</p>
-        <p><b>Temporary password:</b> ${tempPassword}</p>
-        <p>Please set a new password here:<br>
-        <a href="${base}/reset-password">${base}/reset-password</a></p>
-      `,
-    });
+  // 3) mark invite approved + append TEMP_PW to note
+  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  await prisma.pendingInvite.update({
+    where: { id },
+    data: {
+      status: labels.APPROVED,
+      decidedAt: new Date(),
+      note: `${invite.note ?? ""} | TEMP_PW: ${tempPassword} | LINK: ${base}/reset-password`,
+    },
+  });
 
-    revalidatePath("/members/approval");
-  }
+  // 4) email the user
+  await sendMail({
+    to: invite.email,
+    subject: "Qing Li Lab — DO NOT REPLY — Account Approved",
+    html: `
+      <p>Hello ${invite.name ?? ""},</p>
+      <p>Your lab website account has been approved.</p>
+      <p><b>Temporary password:</b> ${tempPassword}</p>
+      <p>Please set a new password here:<br>
+      <a href="${base}/reset-password">${base}/reset-password</a></p>
+      <hr/>
+      <p style="font-size:12px;color:#666">This is an automated message from Qing Li Lab. Please do not reply.</p>
+    `,
+  });
+
+  revalidatePath("/members/approval");
+}
 
 async function rejectAction(formData: FormData) {
   "use server";
