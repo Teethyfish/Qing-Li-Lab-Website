@@ -1,26 +1,59 @@
-@import "tailwindcss";
-
+/* === Theming utilities (reads CSS vars set in layout) === */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Safe fallbacks in case the DB theme hasn't loaded yet */
+  --color-bg: #ffffff;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-primary: #2563eb;
+  --color-accent: #059669;
+
+  --font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-size: 16px;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Links use primary color by default */
+a { color: var(--color-primary); }
+a:hover { text-decoration: underline; }
+
+/* Cards */
+.card {
+  background: #fff;
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) 12%, transparent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  border-radius: var(--radius-md);
+  padding: .5rem .875rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 15%, transparent);
+  background: #fff;
+  color: var(--color-text);
+}
+.btn:hover { background: color-mix(in oklab, var(--color-primary) 8%, #fff); }
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border-color: transparent;
+}
+.btn-primary:hover {
+  background: color-mix(in oklab, var(--color-primary) 87%, white);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Text helpers */
+.muted { color: var(--color-muted); }
+
+/* Radius helpers */
+.round-sm { border-radius: var(--radius-sm); }
+.round-md { border-radius: var(--radius-md); }
+.round-lg { border-radius: var(--radius-lg); }
