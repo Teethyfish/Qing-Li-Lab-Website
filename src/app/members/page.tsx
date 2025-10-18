@@ -53,32 +53,6 @@ export default async function MembersPage() {
 
   const tiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
 
-  const tileStyle: React.CSSProperties = {
-    display: "block",
-    background: "var(--color-card)",
-    border:
-      "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-    borderRadius: 12,
-    padding: "1rem",
-    color: "inherit",
-    textDecoration: "none",
-    transition: "background 120ms ease",
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: "1.05rem",
-    fontWeight: 600,
-    lineHeight: 1.3,
-    margin: 0,
-  };
-
-  const descStyle: React.CSSProperties = {
-    marginTop: 6,
-    color: "var(--color-muted)",
-    fontSize: "0.92rem",
-    lineHeight: 1.4,
-  };
-
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
@@ -90,14 +64,12 @@ export default async function MembersPage() {
 
       <section
         className="grid gap-4"
-        style={{
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        }}
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}
       >
         {tiles.map((t) => (
-          <Link key={t.href} href={t.href} style={tileStyle}>
-            <h3 style={titleStyle}>{t.title}</h3>
-            {t.description ? <p style={descStyle}>{t.description}</p> : null}
+          <Link key={t.href} href={t.href} className="tile">
+            <h3>{t.title}</h3>
+            {t.description ? <p>{t.description}</p> : null}
           </Link>
         ))}
       </section>
