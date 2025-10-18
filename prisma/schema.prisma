@@ -27,6 +27,7 @@ model User {
   updatedAt    DateTime @updatedAt
   about        String?
   slug         String?   @unique
+  mustResetPassword Boolean @default(false)
 }
 
 model PendingInvite {
