@@ -10,9 +10,15 @@ type MailArgs = {
 
 async function sendViaResend(args: MailArgs) {
   const key = process.env.RESEND_API_KEY;
-  if (!key) return { ok: false as const, skipped: true as const, reason: "no_resend_key" };
-
   const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+
+  if (!key || !from) {
+    return {
+      ok: false as const,
+      skipped: true as const,
+      reason: "missing_resend_envs",
+    };
+  }
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -35,15 +41,22 @@ async function sendViaResend(args: MailArgs) {
   }
 
   let data: any = {};
-  try { data = bodyText ? JSON.parse(bodyText) : {}; } catch {}
+  try {
+    data = bodyText ? JSON.parse(bodyText) : {};
+  } catch {}
 
   return { ok: true as const, id: data?.id ?? null, transport: "resend" as const };
 }
 
 async function sendViaSmtp(args: MailArgs) {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
-    return { ok: false as const, skipped: true as const, reason: "missing_smtp_envs" };
+    return {
+      ok: false as const,
+      skipped: true as const,
+      reason: "missing_smtp_envs",
+    };
   }
 
   const transporter = nodemailer.createTransport({
@@ -53,8 +66,10 @@ async function sendViaSmtp(args: MailArgs) {
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
 
+  const fromWithLabel = `"DO NOT REPLY" <${SMTP_FROM}>`;
+
   const info = await transporter.sendMail({
-    from: SMTP_FROM,
+    from: fromWithLabel,
     to: args.to,
     subject: args.subject,
     text: args.text,
@@ -65,10 +80,19 @@ async function sendViaSmtp(args: MailArgs) {
 }
 
 export async function sendMail(args: MailArgs) {
-  // If Resend is configured, **use it and do not fall back**.
-  if (process.env.RESEND_API_KEY) {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+  const smtpReady =
+    SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM;
+
+  if (smtpReady) {
+    return await sendViaSmtp(args);
+  }
+
+  if (process.env.RESEND_API_KEY && process.env.RESEND_FROM) {
     return await sendViaResend(args);
   }
-  // Otherwise try SMTP.
-  return await sendViaSmtp(args);
+
+  throw new Error(
+    "No email transport configured. Set either SMTP_* or RESEND_* environment variables."
+  );
 }
