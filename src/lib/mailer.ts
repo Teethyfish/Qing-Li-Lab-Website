@@ -1,5 +1,5 @@
 // src/lib/mailer.ts
-// Sends email via Resend (HTTP) if RESEND_API_KEY is set; otherwise falls back to SMTP (nodemailer).
+// Prefer Resend (HTTP) if RESEND_API_KEY is set; otherwise fall back to SMTP.
 import nodemailer from "nodemailer";
 
 type MailArgs = {
@@ -13,7 +13,9 @@ async function sendViaResend(args: MailArgs) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { ok: false as const, skipped: true as const, reason: "no_resend_key" };
 
-  const from = process.env.SMTP_FROM || "Lab Website <no-reply@lab.local>";
+  // Use a safe default that works without domain verification
+  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -45,11 +47,10 @@ async function sendViaSmtp(args: MailArgs) {
     return { ok: false as const, skipped: true as const, reason: "missing_smtp_envs" };
   }
 
-  // Use STARTTLS on 587; Gmail works with this.
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
+    secure: Number(SMTP_PORT) === 465, // 465=SSL, 587=STARTTLS
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
 
@@ -64,22 +65,13 @@ async function sendViaSmtp(args: MailArgs) {
   return { ok: true as const, id: info.messageId, transport: "smtp" as const };
 }
 
-/** Public helper used across the app */
 export async function sendMail(args: MailArgs) {
-  // Prefer Resend in production (HTTP-based; no DNS/port issues)
   if (process.env.RESEND_API_KEY) {
     try {
       return await sendViaResend(args);
     } catch (err) {
-      console.error("sendMail via Resend failed, will try SMTP next:", err);
+      console.error("sendMail via Resend failed, falling back to SMTP:", err);
     }
   }
-
-  // Fallback to SMTP (works locally)
-  try {
-    return await sendViaSmtp(args);
-  } catch (err) {
-    console.error("sendMail via SMTP failed:", err);
-    throw err;
-  }
+  return await sendViaSmtp(args);
 }
