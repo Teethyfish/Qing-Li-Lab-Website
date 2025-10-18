@@ -74,22 +74,24 @@ async function approveAction(formData: FormData) {
       email,
       name: invite.name ?? null,
       role: "MEMBER",
-      slug: invite.slug, // ensure slug is set
+      slug: invite.slug,
       passwordHash,
       mustResetPassword: true, // <-- force reset on next login
     },
   });
 
-  // 3) mark invite approved + append TEMP_PW to note
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  await prisma.pendingInvite.update({
-    where: { id },
-    data: {
-      status: labels.APPROVED,
-      decidedAt: new Date(),
-      note: `${invite.note ?? ""} | TEMP_PW: ${tempPassword} | LINK: ${base}/reset-password`,
-    },
-  });
+  // 3) mark invite approved + append TEMP_PW to note (via SQL cast to enum)
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  await prisma.$executeRawUnsafe(
+    `UPDATE "PendingInvite"
+     SET "status" = $1::"InviteStatus",
+         "decidedAt" = NOW(),
+         "note" = COALESCE("note",'') || $2
+     WHERE "id" = $3`,
+    labels.APPROVED,
+    ` | TEMP_PW: ${tempPassword} | LINK: ${base}/reset-password`,
+    id
+  );
 
   // 4) email the user
   await sendMail({
@@ -133,7 +135,7 @@ async function rejectAction(formData: FormData) {
          "decidedAt" = NOW(),
          "slug" = $2
      WHERE "id" = $3`,
-    labels.REJECTED, // will be your DB's exact "DENIED"/"REJECTED"
+    labels.REJECTED, // exact DB enum label (REJECTED/DENIED)
     freedSlug,
     id
   );
