@@ -1,4 +1,6 @@
 // src/app/members/profile/page.tsx
+export const runtime = "nodejs";
+
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";

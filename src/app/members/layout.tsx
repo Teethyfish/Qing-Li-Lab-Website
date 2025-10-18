@@ -1,4 +1,6 @@
 // src/app/members/layout.tsx
+export const runtime = "nodejs";
+
 import type { ReactNode } from "react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
