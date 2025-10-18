@@ -53,17 +53,16 @@ export default async function MembersPage() {
 
   const tiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
 
-  // Shared card style (matches theme variables)
-  const cardStyle: React.CSSProperties = {
+  const tileStyle: React.CSSProperties = {
+    display: "block",
     background: "var(--color-card)",
     border:
       "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
     borderRadius: 12,
     padding: "1rem",
-    textDecoration: "none",
     color: "inherit",
-    boxShadow:
-      "0 1px 0 color-mix(in oklab, var(--color-text) 8%, transparent)",
+    textDecoration: "none",
+    transition: "background 120ms ease",
   };
 
   const titleStyle: React.CSSProperties = {
@@ -96,7 +95,7 @@ export default async function MembersPage() {
         }}
       >
         {tiles.map((t) => (
-          <Link key={t.href} href={t.href} className="card" style={cardStyle}>
+          <Link key={t.href} href={t.href} style={tileStyle}>
             <h3 style={titleStyle}>{t.title}</h3>
             {t.description ? <p style={descStyle}>{t.description}</p> : null}
           </Link>
