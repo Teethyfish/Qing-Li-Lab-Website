@@ -85,7 +85,7 @@ export default async function HomePage() {
     orderBy: { name: "asc" },
   });
 
-  // --- styles (no Tailwind, no styled-jsx) ---
+  // --- styles (no client handlers) ---
   const grid: React.CSSProperties = {
     display: "grid",
     gridTemplateColumns: "1fr",
@@ -116,7 +116,6 @@ export default async function HomePage() {
     padding: "0.75rem",
     textDecoration: "none",
     color: "inherit",
-    transition: "background 120ms ease",
   };
 
   return (
@@ -265,13 +264,6 @@ export default async function HomePage() {
                     key={m.slug || m.name || Math.random()}
                     href={m.slug ? `/people/${m.slug}` : "#"}
                     style={personCard}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background =
-                        "color-mix(in oklab, var(--color-primary) 6%, white)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
-                    }
                   >
                     <div
                       style={{
@@ -317,13 +309,6 @@ export default async function HomePage() {
                     key={`${a.slug || a.name || i}-al`}
                     href={a.slug ? `/people/${a.slug}` : "#"}
                     style={personCard}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background =
-                        "color-mix(in oklab, var(--color-primary) 6%, white)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
-                    }
                   >
                     <div
                       style={{
@@ -379,13 +364,6 @@ export default async function HomePage() {
                     key={`${c.slug || c.name || i}-co`}
                     href={c.slug ? `/people/${c.slug}` : "#"}
                     style={personCard}
-                    onMouseEnter={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background =
-                        "color-mix(in oklab, var(--color-primary) 6%, white)")
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
-                    }
                   >
                     <div
                       style={{
