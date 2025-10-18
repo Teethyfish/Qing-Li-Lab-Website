@@ -33,7 +33,7 @@ function NavItem({
 
   const active: React.CSSProperties = {
     background:
-      "color-mix(in oklab, var(--color-text) 90%, transparent)", // dark bg
+      "color-mix(in oklab, var(--color-text) 90%, transparent)",
     color: "white",
   };
 
@@ -113,7 +113,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
     padding: "0.45rem 0.8rem",
     borderRadius: "0.5rem",
     background:
-      "color-mix(in oklab, var(--color-text) 90%, transparent)", // dark
+      "color-mix(in oklab, var(--color-text) 90%, transparent)",
     color: "white",
     border: "none",
     cursor: "pointer",
@@ -138,6 +138,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
             Qing Li Lab
           </Link>
 
+          {/* Desktop links (default visible) */}
           <div className="nav-desktop" style={{ ...rowStyle, marginLeft: "0.5rem" }}>
             {items
               .filter((i) => i.show)
@@ -164,7 +165,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
                   style={{
                     color: "var(--color-muted)",
                     fontSize: "0.85rem",
-                    display: "none",
+                    display: "inline",
                   }}
                   className="email-desktop"
                 >
@@ -191,7 +192,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
         </div>
       </div>
 
-      {/* mobile row */}
+      {/* Mobile row (default hidden) */}
       <div className="nav-mobile" style={{ borderTop: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)" }}>
         <div style={{ ...rowStyle, padding: "0.5rem" }}>
           {items
@@ -210,22 +211,18 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
         </div>
       </div>
 
-      {/* simple breakpoint rules */}
+      {/* updated breakpoint rules:
+         - Desktop visible by default
+         - Mobile hidden by default
+         - On small screens, flip them
+      */}
       <style jsx>{`
-        /* hide mobile links on >=640px, show email on >=640px */
-        @media (min-width: 640px) {
-          .nav-mobile {
-            display: none;
-          }
-          .email-desktop {
-            display: inline;
-          }
-        }
-        /* show desktop links only on >=640px */
+        .nav-desktop { display: flex; }
+        .nav-mobile { display: none; }
+
         @media (max-width: 639px) {
-          .nav-desktop {
-            display: none;
-          }
+          .nav-desktop { display: none; }
+          .nav-mobile { display: block; }
         }
       `}</style>
     </nav>
