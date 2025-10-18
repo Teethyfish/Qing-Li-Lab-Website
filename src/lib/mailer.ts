@@ -1,5 +1,4 @@
 // src/lib/mailer.ts
-// Prefer Resend (HTTP) if RESEND_API_KEY is set; otherwise fall back to SMTP.
 import nodemailer from "nodemailer";
 
 type MailArgs = {
@@ -13,7 +12,6 @@ async function sendViaResend(args: MailArgs) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { ok: false as const, skipped: true as const, reason: "no_resend_key" };
 
-  // Use a safe default that works without domain verification
   const from = process.env.RESEND_FROM || "onboarding@resend.dev";
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -31,18 +29,19 @@ async function sendViaResend(args: MailArgs) {
     }),
   });
 
+  const bodyText = await res.text().catch(() => "");
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Resend error: ${res.status} ${res.statusText} ${body}`);
+    throw new Error(`Resend ${res.status} ${res.statusText} :: ${bodyText}`);
   }
 
-  const data = (await res.json().catch(() => ({}))) as any;
+  let data: any = {};
+  try { data = bodyText ? JSON.parse(bodyText) : {}; } catch {}
+
   return { ok: true as const, id: data?.id ?? null, transport: "resend" as const };
 }
 
 async function sendViaSmtp(args: MailArgs) {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
-
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
     return { ok: false as const, skipped: true as const, reason: "missing_smtp_envs" };
   }
@@ -50,7 +49,7 @@ async function sendViaSmtp(args: MailArgs) {
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
     port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465, // 465=SSL, 587=STARTTLS
+    secure: Number(SMTP_PORT) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
 
@@ -66,12 +65,10 @@ async function sendViaSmtp(args: MailArgs) {
 }
 
 export async function sendMail(args: MailArgs) {
+  // If Resend is configured, **use it and do not fall back**.
   if (process.env.RESEND_API_KEY) {
-    try {
-      return await sendViaResend(args);
-    } catch (err) {
-      console.error("sendMail via Resend failed, falling back to SMTP:", err);
-    }
+    return await sendViaResend(args);
   }
+  // Otherwise try SMTP.
   return await sendViaSmtp(args);
 }
