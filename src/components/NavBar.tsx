@@ -32,8 +32,7 @@ function NavItem({
   };
 
   const active: React.CSSProperties = {
-    background:
-      "color-mix(in oklab, var(--color-text) 90%, transparent)",
+    background: "color-mix(in oklab, var(--color-text) 90%, transparent)",
     color: "white",
   };
 
@@ -45,17 +44,7 @@ function NavItem({
     <Link
       href={href}
       style={{ ...base, ...(current ? active : inactive) }}
-      onMouseEnter={(e) => {
-        if (!current) {
-          (e.currentTarget as HTMLAnchorElement).style.background =
-            "color-mix(in oklab, var(--color-text) 10%, transparent)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!current) {
-          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-        }
-      }}
+      // no hover handlers (keep it simple/SSR-safe)
     >
       {label}
     </Link>
@@ -131,7 +120,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
 
   return (
     <nav style={containerStyle}>
-      <div style={innerStyle} className="nav-inner">
+      <div style={innerStyle}>
         {/* left: brand + desktop links */}
         <div style={rowStyle}>
           <Link href="/" style={brandStyle}>
@@ -167,7 +156,6 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
                     fontSize: "0.85rem",
                     display: "inline",
                   }}
-                  className="email-desktop"
                 >
                   {email}
                 </span>
@@ -192,7 +180,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
         </div>
       </div>
 
-      {/* Mobile row (default hidden) */}
+      {/* Mobile row (default hidden; shown via global CSS at <640px) */}
       <div className="nav-mobile" style={{ borderTop: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)" }}>
         <div style={{ ...rowStyle, padding: "0.5rem" }}>
           {items
@@ -210,21 +198,6 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
             ))}
         </div>
       </div>
-
-      {/* updated breakpoint rules:
-         - Desktop visible by default
-         - Mobile hidden by default
-         - On small screens, flip them
-      */}
-      <style jsx>{`
-        .nav-desktop { display: flex; }
-        .nav-mobile { display: none; }
-
-        @media (max-width: 639px) {
-          .nav-desktop { display: none; }
-          .nav-mobile { display: block; }
-        }
-      `}</style>
     </nav>
   );
 }

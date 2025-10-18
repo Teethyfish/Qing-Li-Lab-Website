@@ -66,3 +66,11 @@ a:hover { text-decoration: underline; }
     margin-bottom: 1.5rem;
   }
 }
+/* NavBar responsive controls: desktop default, mobile <640px */
+.nav-desktop { display: flex; }
+.nav-mobile { display: none; }
+
+@media (max-width: 639px) {
+  .nav-desktop { display: none; }
+  .nav-mobile { display: block; }
+}
