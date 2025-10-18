@@ -7,7 +7,6 @@ import { prisma } from "@/lib/prisma";
 
 type AppRow = { value: string };
 
-// Tiny helper to read JSON config blocks from AppConfig
 async function getConfig<T = unknown>(key: string): Promise<T | null> {
   try {
     const rows = await prisma.$queryRawUnsafe<AppRow[]>(
@@ -21,15 +20,7 @@ async function getConfig<T = unknown>(key: string): Promise<T | null> {
   }
 }
 
-/**
- * Optional config shape for a simple "tiles" members dashboard.
- * You can expand this later in the page builder.
- */
-type Tile = {
-  href: string;
-  title: string;
-  description?: string;
-};
+type Tile = { href: string; title: string; description?: string };
 type MembersPageConfig = {
   heading?: string;
   subheading?: string;
@@ -41,7 +32,6 @@ export default async function MembersPage() {
   const email = (session?.user as any)?.email as string | undefined;
   if (!email) redirect("/login");
 
-  // 1) Try to load a config (for future page-builder)
   const cfg =
     (await getConfig<MembersPageConfig>("members.page")) ??
     ({
@@ -61,45 +51,57 @@ export default async function MembersPage() {
       ],
     } as MembersPageConfig);
 
-  const tiles: Tile[] = Array.isArray(cfg.tiles) ? cfg.tiles : [];
+  const tiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
+
+  // Shared card style (matches theme variables)
+  const cardStyle: React.CSSProperties = {
+    background: "var(--color-card)",
+    border:
+      "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+    borderRadius: 12,
+    padding: "1rem",
+    textDecoration: "none",
+    color: "inherit",
+    boxShadow:
+      "0 1px 0 color-mix(in oklab, var(--color-text) 8%, transparent)",
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: "1.05rem",
+    fontWeight: 600,
+    lineHeight: 1.3,
+    margin: 0,
+  };
+
+  const descStyle: React.CSSProperties = {
+    marginTop: 6,
+    color: "var(--color-muted)",
+    fontSize: "0.92rem",
+    lineHeight: 1.4,
+  };
 
   return (
-    <main className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">{cfg.heading || "Members Area"}</h1>
+    <main className="mx-auto max-w-5xl p-6 space-y-6">
+      <header>
+        <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
+          {cfg.heading || "Members Area"}
+        </h1>
         <p className="muted">{cfg.subheading || `Welcome, ${email}`}</p>
       </header>
 
-      {tiles.length > 0 ? (
-        <section
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          }}
-        >
-          {tiles.map((t) => (
-            <Link
-              key={t.href}
-              href={t.href}
-              className="card"
-              style={{
-                padding: "1rem",
-                textDecoration: "none",
-                color: "inherit",
-              }}
-            >
-              <h2 className="font-semibold">{t.title}</h2>
-              {t.description ? (
-                <p className="muted text-sm" style={{ marginTop: 6 }}>
-                  {t.description}
-                </p>
-              ) : null}
-            </Link>
-          ))}
-        </section>
-      ) : (
-        <p className="muted">No items configured yet.</p>
-      )}
+      <section
+        className="grid gap-4"
+        style={{
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        }}
+      >
+        {tiles.map((t) => (
+          <Link key={t.href} href={t.href} className="card" style={cardStyle}>
+            <h3 style={titleStyle}>{t.title}</h3>
+            {t.description ? <p style={descStyle}>{t.description}</p> : null}
+          </Link>
+        ))}
+      </section>
     </main>
   );
 }
