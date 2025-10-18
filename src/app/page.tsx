@@ -4,24 +4,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Config keys this page reads (so the future Page Builder can edit them):
- *  - "pi": {
- *      "name": "Qing X. Li",
- *      "titleLines": [
- *        "Department of Molecular Biosciences and Bioengineering",
- *        "Proteomics Center",
- *        "University of Hawai‘i at Mānoa"
- *      ],
- *      "email": "qingli@hawaii.edu",
- *      "phone": "",
- *      "office": "",
- *      "imageUrl": "",
- *      "intro": "Short intro paragraph…"
- *    }
- *  - "home.announcement": { "title": "…", "href": "/…" }
- *  - "home.welcome": "Welcome paragraph…"
- *  - "home.alumni": [{ name, slug?, role?, imageUrl? }, …]
- *  - "home.collaborators": [{ name, slug?, role?, imageUrl? }, …]
+ * Config keys this page reads:
+ *  - "pi": { name, titleLines[], email, phone, office, imageUrl, intro }
+ *  - "home.announcement": { title, href }
+ *  - "home.welcome": string
+ *  - "home.alumni": [{ name, slug?, role?, imageUrl? }]
+ *  - "home.collaborators": [{ name, slug?, role?, imageUrl? }]
  */
 
 type AppRow = { value: string };
@@ -97,10 +85,10 @@ export default async function HomePage() {
     orderBy: { name: "asc" },
   });
 
-  // --- styles (no Tailwind) ---
+  // --- styles (no Tailwind, no styled-jsx) ---
   const grid: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "1fr", // stacked by default (mobile)
+    gridTemplateColumns: "1fr",
     gap: "2rem",
   };
   const twoCols: React.CSSProperties = {
@@ -141,12 +129,11 @@ export default async function HomePage() {
         <div className="muted">{pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}</div>
       </header>
 
-      {/* ===== Below header: two-column layout (PI sidebar on the left) ===== */}
+      {/* ===== Two-column block (PI sidebar on the left) ===== */}
       <section style={twoCols} className="home-two-cols">
         {/* Sidebar: PI card */}
         <aside className="card" style={cardPad}>
           <div style={{ display: "flex", gap: "1rem" }}>
-            {/* image / initials */}
             <div style={{ flexShrink: 0 }}>
               {pi.imageUrl ? (
                 <div
@@ -442,18 +429,6 @@ export default async function HomePage() {
           </section>
         </div>
       </section>
-
-      {/* responsive rules for the two-column block */}
-      <style jsx>{`
-        @media (max-width: 1023px) {
-          .home-two-cols {
-            display: block !important;
-          }
-          .home-two-cols > aside {
-            margin-bottom: 1.5rem;
-          }
-        }
-      `}</style>
     </main>
   );
 }
