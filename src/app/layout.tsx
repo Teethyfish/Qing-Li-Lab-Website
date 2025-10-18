@@ -5,6 +5,8 @@ import NavBar from "../components/NavBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
+// src/app/layout.tsx
+export const viewport = { width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
   title: "Qing Li Lab — Internal",
