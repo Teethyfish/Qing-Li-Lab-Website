@@ -12,8 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // session is optional here; remove if you don't need it
-  await getServerSession(authOptions); // keep if your NavBar checks cookies/session internally
+  // Get session to derive navbar props
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email ?? null;
+  const role = (session?.user as any)?.role ?? null;
+  const isAuthed = !!email;
+  const isAdmin = typeof role === "string" && role.toUpperCase() === "ADMIN";
 
   // Load theme from DB and inject as CSS variables
   const theme = await getTheme();
@@ -33,8 +37,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Inject CSS variables for the whole site */}
         <style id="theme">{cssVars}</style>
 
-        {/* Global nav (no props required) */}
-        <NavBar />
+        {/* Global nav expects props */}
+        <NavBar isAuthed={isAuthed} isAdmin={isAdmin} />
 
         {/* Page content */}
         <div className="mx-auto max-w-5xl p-6">{children}</div>
