@@ -4,30 +4,24 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 /**
- * We read structured homepage content from AppConfig so this page
- * can later be edited by your Page Builder without touching code.
- *
- * Expected AppConfig keys (all optional, we fall back gracefully):
- * - "pi": {
- *     "name": "Qing X. Li",
- *     "titleLines": [
- *       "Department of Molecular Biosciences and Bioengineering",
- *       "Proteomics Center",
- *       "University of Hawai‘i at Mānoa"
- *     ],
- *     "email": "qingli@hawaii.edu",
- *     "phone": "(808) 555-1234",
- *     "office": "Gilmore 123",
- *     "imageUrl": "https://…/pi.jpg",
- *     "intro": "Short intro paragraph about PI / research focus."
- *   }
- * - "home.announcement": {
- *     "title": "New preprint out on XYZ proteins!",
- *     "href": "/pages/announcements/new-preprint"  // or external URL
- *   }
- * - "home.welcome": "Welcome! Intro paragraph about the lab …"
- * - "home.alumni": [{ "name":"A. Alum", "slug":"a-alum", "role":"Alumni", "imageUrl":"" }, ...]
- * - "home.collaborators": [{ "name":"C. Collab", "slug":null, "role":"Collaborator", "imageUrl":"" }, ...]
+ * Config keys this page reads (so the future Page Builder can edit them):
+ *  - "pi": {
+ *      "name": "Qing X. Li",
+ *      "titleLines": [
+ *        "Department of Molecular Biosciences and Bioengineering",
+ *        "Proteomics Center",
+ *        "University of Hawai‘i at Mānoa"
+ *      ],
+ *      "email": "qingli@hawaii.edu",
+ *      "phone": "",
+ *      "office": "",
+ *      "imageUrl": "",
+ *      "intro": "Short intro paragraph…"
+ *    }
+ *  - "home.announcement": { "title": "…", "href": "/…" }
+ *  - "home.welcome": "Welcome paragraph…"
+ *  - "home.alumni": [{ name, slug?, role?, imageUrl? }, …]
+ *  - "home.collaborators": [{ name, slug?, role?, imageUrl? }, …]
  */
 
 type AppRow = { value: string };
@@ -52,7 +46,7 @@ function initials(name?: string | null) {
 }
 
 export default async function HomePage() {
-  // --- Config-driven content (future Page Builder can write these) ---
+  // --- Config-driven content ---
   const pi =
     (await getConfig<{
       name?: string;
@@ -96,220 +90,370 @@ export default async function HomePage() {
       "home.collaborators"
     )) || [];
 
-  // --- Live members from DB (role = MEMBER) ---
+  // --- Live members from DB (current members only) ---
   const members = await prisma.user.findMany({
     where: { role: "MEMBER" as any },
     select: { name: true, slug: true },
     orderBy: { name: "asc" },
   });
 
+  // --- styles (no Tailwind) ---
+  const grid: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "1fr", // stacked by default (mobile)
+    gap: "2rem",
+  };
+  const twoCols: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "320px 1fr",
+    gap: "2rem",
+    alignItems: "start",
+  };
+  const sectionTitle: React.CSSProperties = { fontSize: "1.125rem", fontWeight: 600 };
+  const cardPad: React.CSSProperties = { padding: "1rem" };
+  const thinBar: React.CSSProperties = {
+    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+    borderRadius: "var(--radius-md)",
+    padding: "0.5rem 0.75rem",
+    background: "var(--color-bg)",
+  };
+  const peopleGrid: React.CSSProperties = {
+    display: "grid",
+    gap: "1rem",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  };
+  const personCard: React.CSSProperties = {
+    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+    borderRadius: "var(--radius-lg)",
+    padding: "0.75rem",
+    textDecoration: "none",
+    color: "inherit",
+    transition: "background 120ms ease",
+  };
+
   return (
-    <main className="grid gap-8 md:grid-cols-[320px,1fr]">
-      {/* ===== Left sidebar: PI card ===== */}
-      <aside className="card self-start">
-        <div className="flex items-start gap-4">
-          {/* PI image (optional) */}
-          <div className="shrink-0">
-            {pi.imageUrl ? (
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border">
-                <Image
-                  src={pi.imageUrl}
-                  alt={pi.name || "PI"}
-                  fill
-                  sizes="96px"
-                  className="object-cover"
-                />
+    <main style={grid}>
+      {/* ===== Big header at the top ===== */}
+      <header>
+        <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
+        <div className="muted">{pi.titleLines?.[0] || "Department of Molecular Biosciences and Bioengineering"}</div>
+        <div className="muted">{pi.titleLines?.[1] || "Proteomics Center"}</div>
+        <div className="muted">{pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}</div>
+      </header>
+
+      {/* ===== Below header: two-column layout (PI sidebar on the left) ===== */}
+      <section style={twoCols} className="home-two-cols">
+        {/* Sidebar: PI card */}
+        <aside className="card" style={cardPad}>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            {/* image / initials */}
+            <div style={{ flexShrink: 0 }}>
+              {pi.imageUrl ? (
+                <div
+                  style={{
+                    position: "relative",
+                    width: 96,
+                    height: 96,
+                    overflow: "hidden",
+                    borderRadius: "9999px",
+                    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                  }}
+                >
+                  <Image
+                    src={pi.imageUrl}
+                    alt={pi.name || "PI"}
+                    fill
+                    sizes="96px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    width: 96,
+                    height: 96,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "9999px",
+                    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                    fontWeight: 600,
+                    fontSize: "1.125rem",
+                  }}
+                >
+                  {initials(pi.name)}
+                </div>
+              )}
+            </div>
+
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ fontSize: "1.125rem", fontWeight: 600 }}>
+                {pi.name || "Principal Investigator"}
+              </h2>
+
+              <div style={{ marginTop: 4, lineHeight: 1.4, fontSize: 14 }} className="muted">
+                {(pi.titleLines || []).map((line, i) => (
+                  <div key={i}>{line}</div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 8, fontSize: 14 }}>
+                {pi.email && (
+                  <div>
+                    <span className="muted">Email: </span>
+                    <a href={`mailto:${pi.email}`}>{pi.email}</a>
+                  </div>
+                )}
+                {pi.phone && (
+                  <div>
+                    <span className="muted">Phone: </span>
+                    <span>{pi.phone}</span>
+                  </div>
+                )}
+                {pi.office && (
+                  <div>
+                    <span className="muted">Office: </span>
+                    <span>{pi.office}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {pi.intro && (
+            <p style={{ marginTop: 12, fontSize: 14, lineHeight: 1.6, color: "var(--color-text)" }}>
+              {pi.intro}
+            </p>
+          )}
+        </aside>
+
+        {/* Main column */}
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {/* announcement bar */}
+          <div style={thinBar}>
+            {announcement?.title ? (
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", fontSize: 14 }}>
+                <span
+                  style={{
+                    background: "color-mix(in oklab, var(--color-primary) 20%, white)",
+                    color: "var(--color-text)",
+                    borderRadius: "9999px",
+                    padding: "0.1rem 0.5rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Announcement
+                </span>
+                {announcement.href ? (
+                  <Link href={announcement.href} style={{ textDecoration: "underline" }}>
+                    {announcement.title}
+                  </Link>
+                ) : (
+                  <span>{announcement.title}</span>
+                )}
               </div>
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border text-xl font-semibold">
-                {initials(pi.name)}
+              <div className="muted" style={{ fontSize: 14 }}>
+                No announcements yet.
               </div>
             )}
           </div>
 
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold">
-              {pi.name || "Principal Investigator"}
-            </h2>
-            <div className="mt-1 space-y-0.5 text-sm text-gray-600">
-              {(pi.titleLines || []).map((line, i) => (
-                <div key={i}>{line}</div>
-              ))}
-            </div>
-
-            <div className="mt-3 space-y-1 text-sm">
-              {pi.email && (
-                <div>
-                  <span className="muted">Email: </span>
-                  <a href={`mailto:${pi.email}`}>{pi.email}</a>
-                </div>
-              )}
-              {pi.phone && (
-                <div>
-                  <span className="muted">Phone: </span>
-                  <span>{pi.phone}</span>
-                </div>
-              )}
-              {pi.office && (
-                <div>
-                  <span className="muted">Office: </span>
-                  <span>{pi.office}</span>
-                </div>
-              )}
-            </div>
+          {/* welcome card */}
+          <div className="card" style={cardPad}>
+            <h2 style={sectionTitle}>Welcome!</h2>
+            <p style={{ marginTop: 8, lineHeight: 1.75, color: "var(--color-text)" }}>{welcome}</p>
           </div>
-        </div>
 
-        {pi.intro && (
-          <p className="mt-4 text-sm leading-6 text-gray-700">{pi.intro}</p>
-        )}
-      </aside>
-
-      {/* ===== Main column ===== */}
-      <section className="space-y-8">
-        {/* Header block with institution lines */}
-        <header className="space-y-1">
-          <h1 className="text-3xl font-bold">Qing X. Li&apos;s Lab</h1>
-          <div className="muted">
-            {pi.titleLines?.[0] || "Department of Molecular Biosciences and Bioengineering"}
-          </div>
-          <div className="muted">{pi.titleLines?.[1] || "Proteomics Center"}</div>
-          <div className="muted">
-            {pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}
-          </div>
-        </header>
-
-        {/* Announcements bar (thin) */}
-        <div className="rounded border px-3 py-2">
-          {announcement?.title ? (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="inline-block rounded bg-yellow-100 px-2 py-0.5 text-yellow-900">
-                Announcement
-              </span>
-              {announcement.href ? (
-                <Link href={announcement.href} className="underline">
-                  {announcement.title}
-                </Link>
+          {/* members */}
+          <section>
+            <h3 style={sectionTitle}>Lab Members</h3>
+            <div style={{ height: 8 }} />
+            <div style={peopleGrid}>
+              {members.length === 0 ? (
+                <div className="muted">No members yet.</div>
               ) : (
-                <span>{announcement.title}</span>
-              )}
-            </div>
-          ) : (
-            <div className="muted text-sm">No announcements yet.</div>
-          )}
-        </div>
-
-        {/* Welcome / intro */}
-        <div className="card">
-          <h2 className="mb-2 text-lg font-semibold">Welcome!</h2>
-          <p className="text-gray-700 leading-7">{welcome}</p>
-        </div>
-
-        {/* Members grid */}
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Lab Members</h3>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {members.length === 0 ? (
-              <div className="muted">No members yet.</div>
-            ) : (
-              members.map((m) => (
-                <Link
-                  key={m.slug || m.name || Math.random()}
-                  href={m.slug ? `/people/${m.slug}` : "#"}
-                  className="group rounded border p-3 transition hover:bg-gray-50"
-                >
-                  <div className="mx-auto mb-2 h-20 w-20 overflow-hidden rounded-full border">
-                    {/* Placeholder circle with initials (you'll add profile images later) */}
-                    <div className="flex h-full w-full items-center justify-center bg-gray-100 text-lg font-semibold text-gray-700">
+                members.map((m) => (
+                  <Link
+                    key={m.slug || m.name || Math.random()}
+                    href={m.slug ? `/people/${m.slug}` : "#"}
+                    style={personCard}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background =
+                        "color-mix(in oklab, var(--color-primary) 6%, white)")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
+                    }
+                  >
+                    <div
+                      style={{
+                        margin: "0 auto 0.5rem",
+                        width: 80,
+                        height: 80,
+                        overflow: "hidden",
+                        borderRadius: "9999px",
+                        border:
+                          "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                        color: "var(--color-text)",
+                        fontWeight: 600,
+                      }}
+                    >
                       {initials(m.name)}
                     </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium">{m.name || "Unnamed"}</div>
-                    <div className="muted text-xs">Member</div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* Alumni grid (from config) */}
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Alumni</h3>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {alumni.length === 0 ? (
-              <div className="muted">No alumni listed yet.</div>
-            ) : (
-              alumni.map((a, i) => (
-                <Link
-                  key={`${a.slug || a.name || i}-al`}
-                  href={a.slug ? `/people/${a.slug}` : "#"}
-                  className="group rounded border p-3 transition hover:bg-gray-50"
-                >
-                  <div className="mx-auto mb-2 h-20 w-20 overflow-hidden rounded-full border">
-                    {a.imageUrl ? (
-                      <Image
-                        src={a.imageUrl}
-                        alt={a.name}
-                        width={80}
-                        height={80}
-                        className="h-20 w-20 object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gray-100 text-lg font-semibold text-gray-700">
-                        {initials(a.name)}
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontWeight: 600 }}>{m.name || "Unnamed"}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        Member
                       </div>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium">{a.name}</div>
-                    <div className="muted text-xs">{a.role || "Alumni"}</div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
 
-        {/* Collaborators grid (from config) */}
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Collaborators</h3>
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {collaborators.length === 0 ? (
-              <div className="muted">No collaborators listed yet.</div>
-            ) : (
-              collaborators.map((c, i) => (
-                <Link
-                  key={`${c.slug || c.name || i}-co`}
-                  href={c.slug ? `/people/${c.slug}` : "#"}
-                  className="group rounded border p-3 transition hover:bg-gray-50"
-                >
-                  <div className="mx-auto mb-2 h-20 w-20 overflow-hidden rounded-full border">
-                    {c.imageUrl ? (
-                      <Image
-                        src={c.imageUrl}
-                        alt={c.name}
-                        width={80}
-                        height={80}
-                        className="h-20 w-20 object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gray-100 text-lg font-semibold text-gray-700">
-                        {initials(c.name)}
+          {/* alumni */}
+          <section>
+            <h3 style={sectionTitle}>Alumni</h3>
+            <div style={{ height: 8 }} />
+            <div style={peopleGrid}>
+              {alumni.length === 0 ? (
+                <div className="muted">No alumni listed yet.</div>
+              ) : (
+                alumni.map((a, i) => (
+                  <Link
+                    key={`${a.slug || a.name || i}-al`}
+                    href={a.slug ? `/people/${a.slug}` : "#"}
+                    style={personCard}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background =
+                        "color-mix(in oklab, var(--color-primary) 6%, white)")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
+                    }
+                  >
+                    <div
+                      style={{
+                        margin: "0 auto 0.5rem",
+                        width: 80,
+                        height: 80,
+                        overflow: "hidden",
+                        borderRadius: "9999px",
+                        border:
+                          "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                        color: "var(--color-text)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {a.imageUrl ? (
+                        <Image
+                          src={a.imageUrl}
+                          alt={a.name}
+                          width={80}
+                          height={80}
+                          style={{ objectFit: "cover", borderRadius: "9999px" }}
+                        />
+                      ) : (
+                        initials(a.name)
+                      )}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontWeight: 600 }}>{a.name}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {a.role || "Alumni"}
                       </div>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium">{c.name}</div>
-                    <div className="muted text-xs">{c.role || "Collaborator"}</div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* collaborators */}
+          <section>
+            <h3 style={sectionTitle}>Collaborators</h3>
+            <div style={{ height: 8 }} />
+            <div style={peopleGrid}>
+              {collaborators.length === 0 ? (
+                <div className="muted">No collaborators listed yet.</div>
+              ) : (
+                collaborators.map((c, i) => (
+                  <Link
+                    key={`${c.slug || c.name || i}-co`}
+                    href={c.slug ? `/people/${c.slug}` : "#"}
+                    style={personCard}
+                    onMouseEnter={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background =
+                        "color-mix(in oklab, var(--color-primary) 6%, white)")
+                    }
+                    onMouseLeave={(e) =>
+                      ((e.currentTarget as HTMLAnchorElement).style.background = "transparent")
+                    }
+                  >
+                    <div
+                      style={{
+                        margin: "0 auto 0.5rem",
+                        width: 80,
+                        height: 80,
+                        overflow: "hidden",
+                        borderRadius: "9999px",
+                        border:
+                          "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                        color: "var(--color-text)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {c.imageUrl ? (
+                        <Image
+                          src={c.imageUrl}
+                          alt={c.name}
+                          width={80}
+                          height={80}
+                          style={{ objectFit: "cover", borderRadius: "9999px" }}
+                        />
+                      ) : (
+                        initials(c.name)
+                      )}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontWeight: 600 }}>{c.name}</div>
+                      <div className="muted" style={{ fontSize: 12 }}>
+                        {c.role || "Collaborator"}
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
       </section>
+
+      {/* responsive rules for the two-column block */}
+      <style jsx>{`
+        @media (max-width: 1023px) {
+          .home-two-cols {
+            display: block !important;
+          }
+          .home-two-cols > aside {
+            margin-bottom: 1.5rem;
+          }
+        }
+      `}</style>
     </main>
   );
 }
