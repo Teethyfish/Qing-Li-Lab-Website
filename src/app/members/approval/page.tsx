@@ -41,99 +41,61 @@ async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: str
 
 /* ---------------------- Server actions ---------------------- */
 
-async function approveAction(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  if (!id) return;
+  async function approveAction(formData: FormData) {
+    "use server";
+    const id = String(formData.get("id") || "");
+    if (!id) return;
 
-  const labels = await getInviteStatusLabels();
+    const invite = await prisma.pendingInvite.findUnique({
+      where: { id },
+      select: { email: true, slug: true, name: true, status: true, note: true },
+    });
+    if (!invite || invite.status !== "PENDING") return;
 
-  // Load invite
-  const invite = await prisma.pendingInvite.findUnique({
-    where: { id },
-    select: { email: true, slug: true, status: true, name: true, note: true },
-  });
-  if (!invite || invite.status !== labels.PENDING) return;
+    // 1) generate temp password + hash
+    const tempPassword = genTempPassword(); // your helper
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-  // Create temp password + user
-  const tempPassword = genTempPassword();
-  const passwordHash = await bcrypt.hash(tempPassword, 10);
+    // 2) create/update the user with the slug from the invite
+    const email = invite.email.toLowerCase();
+    await prisma.user.upsert({
+      where: { email },
+      update: { name: invite.name ?? null, slug: invite.slug, passwordHash },
+      create: {
+        email,
+        name: invite.name ?? null,
+        role: "MEMBER",
+        slug: invite.slug,             // ✅ ensure slug is set
+        passwordHash,
+      },
+    });
 
-  await prisma.user.upsert({
-    where: { email: invite.email },
-    update: { passwordHash },
-    create: {
-      email: invite.email,
-      name: invite.name ?? null,
-      role: "MEMBER",
-      passwordHash,
-      // If your User model has slug/about, you could map from invite:
-      // slug: invite.slug ?? null,
-      // about: invite.note ?? null,
-    },
-  });
+    // 3) mark invite approved + append TEMP_PW to note
+    const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    await prisma.pendingInvite.update({
+      where: { id },
+      data: {
+        status: "APPROVED",
+        decidedAt: new Date(),
+        note: `${invite.note ?? ""} | TEMP_PW: ${tempPassword} | LINK: ${base}/reset-password`,
+      },
+    });
 
-  const appendedNote = `${invite.note ? invite.note + " | " : ""}TEMP_PW: ${tempPassword}`;
-
-  // Update status using the exact DB enum label, and append temp PW to note
-  await prisma.$executeRawUnsafe(
-    `UPDATE "PendingInvite"
-     SET "status" = $1::"InviteStatus",
-         "decidedAt" = NOW(),
-         "note" = $2
-     WHERE "id" = $3`,
-    labels.APPROVED,
-    appendedNote,
-    id
-  );
-
-  // --- Send approval email with temporary password ---
-  // --- Send approval email with temporary password + reset link ---
-  // --- Send approval email with temporary password + reset link ---
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const resetUrl = `${baseUrl}/reset-password?email=${encodeURIComponent(invite.email)}`;
-
+    // 4) email the user
     await sendMail({
       to: invite.email,
       subject: "Your Lab Website Account Approved",
       html: `
-        <p>Hello ${invite.name || ""},</p>
+        <p>Hello ${invite.name ?? ""},</p>
         <p>Your lab website account has been approved.</p>
-        <p><b>Temporary password:</b> <code>${tempPassword}</code></p>
-        <p>Please set a new password here:</p>
-        <p>
-          <a href="${resetUrl}">Reset password</a><br/>
-          <small>If the button/link is hidden, copy & paste this URL:</small><br/>
-          <code>${resetUrl}</code>
-        </p>
-        <hr/>
-        <p><small>This is an automated message from ${process.env.SMTP_FROM}</small></p>
+        <p><b>Temporary password:</b> ${tempPassword}</p>
+        <p>Please set a new password here:<br>
+        <a href="${base}/reset-password">${base}/reset-password</a></p>
       `,
-      text: [
-        `Hello ${invite.name || ""},`,
-        ``,
-        `Your lab website account has been approved.`,
-        ``,
-        `Temporary password: ${tempPassword}`,
-        ``,
-        `Set a new password here:`,
-        `${resetUrl}`,
-        ``,
-        `--`,
-        `This is an automated message from ${process.env.SMTP_FROM}`,
-      ].join("\n"),
     });
 
-  console.log("✅ Email sent to", invite.email, "with reset link:", resetUrl);
-} catch (e) {
-  console.error("❌ Failed to send approval email:", e);
-}
-
-
-
-  revalidatePath("/members/approval");
-}
+    revalidatePath("/members/approval");
+  }
 
 async function rejectAction(formData: FormData) {
   "use server";
