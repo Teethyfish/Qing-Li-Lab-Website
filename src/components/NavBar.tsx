@@ -40,21 +40,14 @@ function NavItem({
     color: "var(--color-text)",
   };
 
-  return (
-    <Link
-      href={href}
-      style={{ ...base, ...(current ? active : inactive) }}
-      // no hover handlers (keep it simple/SSR-safe)
-    >
-      {label}
-    </Link>
-  );
+  return <Link href={href} style={{ ...base, ...(current ? active : inactive) }}>{label}</Link>;
 }
 
 export default function NavBar({ isAuthed, isAdmin, email }: Props) {
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
 
+  // Single list of links. No duplicate “mobile” vs “desktop” rows.
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: "Home", show: true },
     { href: "/members", label: "Members", show: isAuthed },
@@ -66,22 +59,22 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
   ];
 
   const containerStyle: React.CSSProperties = {
-    borderBottom:
-      "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+    borderBottom: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
     background: "var(--color-bg)",
     position: "sticky",
     top: 0,
     zIndex: 40,
   };
 
+  // Single grid row that naturally wraps the center links on small screens
   const innerStyle: React.CSSProperties = {
     maxWidth: "80rem",
     margin: "0 auto",
     padding: "0.75rem 1rem",
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "auto 1fr auto",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: "1rem",
+    gap: "0.75rem",
   };
 
   const brandStyle: React.CSSProperties = {
@@ -91,18 +84,33 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
     whiteSpace: "nowrap",
   };
 
-  const rowStyle: React.CSSProperties = {
+  const linksRow: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
-    flexWrap: "wrap",
+    flexWrap: "wrap", // wraps on narrow screens so we never need a second bar
+  };
+
+  const rightRow: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    justifyContent: "flex-end",
+  };
+
+  const emailStyle: React.CSSProperties = {
+    color: "var(--color-muted)",
+    fontSize: "0.85rem",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "38ch",
   };
 
   const logoutBtn: React.CSSProperties = {
     padding: "0.45rem 0.8rem",
     borderRadius: "0.5rem",
-    background:
-      "color-mix(in oklab, var(--color-text) 90%, transparent)",
+    background: "color-mix(in oklab, var(--color-text) 90%, transparent)",
     color: "white",
     border: "none",
     cursor: "pointer",
@@ -121,68 +129,11 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
   return (
     <nav style={containerStyle}>
       <div style={innerStyle}>
-        {/* left: brand + desktop links */}
-        <div style={rowStyle}>
-          <Link href="/" style={brandStyle}>
-            Qing Li Lab
-          </Link>
+        {/* Brand */}
+        <Link href="/" style={brandStyle}>Qing Li Lab</Link>
 
-          {/* Desktop links (default visible) */}
-          <div className="nav-desktop" style={{ ...rowStyle, marginLeft: "0.5rem" }}>
-            {items
-              .filter((i) => i.show)
-              .map((i) => (
-                <NavItem
-                  key={i.href}
-                  href={i.href}
-                  label={i.label}
-                  current={
-                    pathname === i.href ||
-                    (i.href !== "/" && (pathname || "").startsWith(i.href))
-                  }
-                />
-              ))}
-          </div>
-        </div>
-
-        {/* right: email + auth button */}
-        <div style={rowStyle}>
-          {isAuthed ? (
-            <>
-              {email && (
-                <span
-                  style={{
-                    color: "var(--color-muted)",
-                    fontSize: "0.85rem",
-                    display: "inline",
-                  }}
-                >
-                  {email}
-                </span>
-              )}
-              <button
-                onClick={async () => {
-                  setBusy(true);
-                  await signOut({ callbackUrl: "/" });
-                  setBusy(false);
-                }}
-                disabled={busy}
-                style={logoutBtn}
-              >
-                {busy ? "Signing out…" : "Logout"}
-              </button>
-            </>
-          ) : (
-            <Link href="/login" style={loginLink}>
-              Login
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile row (default hidden; shown via global CSS at <640px) */}
-      <div className="nav-mobile" style={{ borderTop: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)" }}>
-        <div style={{ ...rowStyle, padding: "0.5rem" }}>
+        {/* Single links row (center column) */}
+        <div style={linksRow}>
           {items
             .filter((i) => i.show)
             .map((i) => (
@@ -196,6 +147,28 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
                 }
               />
             ))}
+        </div>
+
+        {/* Right side: email + logout / login */}
+        <div style={rightRow}>
+          {isAuthed ? (
+            <>
+              {email && <span style={emailStyle} title={email}>{email}</span>}
+              <button
+                onClick={async () => {
+                  setBusy(true);
+                  await signOut({ callbackUrl: "/" });
+                  setBusy(false);
+                }}
+                disabled={busy}
+                style={logoutBtn}
+              >
+                {busy ? "Signing out…" : "Logout"}
+              </button>
+            </>
+          ) : (
+            <Link href="/login" style={loginLink}>Login</Link>
+          )}
         </div>
       </div>
     </nav>
