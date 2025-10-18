@@ -1,36 +1,42 @@
 // src/lib/mailer.ts
 import nodemailer from "nodemailer";
 
-// throw a clear error if any required env is missing
-function req(name: string, v?: string) {
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
-}
-
-const host = req("SMTP_HOST", process.env.SMTP_HOST);
-const port = Number(process.env.SMTP_PORT || 587);
-const user = req("SMTP_USER", process.env.SMTP_USER);
-const pass = req("SMTP_PASS", process.env.SMTP_PASS);
-const from = req("SMTP_FROM", process.env.SMTP_FROM);
-
-export const transporter = nodemailer.createTransport({
-  host,
-  port,
-  secure: port === 465, // true for 465, false for 587/25
-  auth: { user, pass },
-});
-
-export async function sendMail(opts: {
+type MailArgs = {
   to: string;
   subject: string;
-  text?: string;
   html?: string;
-}) {
-  return transporter.sendMail({
-    from,
-    to: opts.to,
-    subject: opts.subject,
-    text: opts.text,
-    html: opts.html,
+  text?: string;
+};
+
+/**
+ * Sends an email using SMTP env vars.
+ * If SMTP envs are missing (e.g., on local/preview builds), it logs and no-ops instead of crashing.
+ */
+export async function sendMail({ to, subject, html, text }: MailArgs) {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+
+  // Gracefully skip if not configured (prevents build-time crashes)
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
+    console.warn(
+      "sendMail skipped: missing SMTP env vars (SMTP_HOST/PORT/USER/PASS/FROM)."
+    );
+    return { ok: false, skipped: true as const };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: Number(SMTP_PORT) === 465, // 465 = SSL
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
+
+  const info = await transporter.sendMail({
+    from: SMTP_FROM,
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  return { ok: true as const, messageId: info.messageId };
 }
