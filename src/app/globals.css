@@ -57,3 +57,12 @@ a:hover { text-decoration: underline; }
 .round-sm { border-radius: var(--radius-sm); }
 .round-md { border-radius: var(--radius-md); }
 .round-lg { border-radius: var(--radius-lg); }
+/* Home: stack the two-column section on small screens */
+@media (max-width: 1023px) {
+  .home-two-cols {
+    display: block !important;
+  }
+  .home-two-cols > aside {
+    margin-bottom: 1.5rem;
+  }
+}

@@ -48,9 +48,7 @@ export default async function HomePage() {
     ({
       name: "Qing X. Li",
       titleLines: [
-        "Department of Molecular Biosciences and Bioengineering",
-        "Proteomics Center",
-        "University of Hawai‘i at Mānoa",
+        "Graduate Chair",
       ],
       email: "",
       phone: "",
@@ -124,7 +122,7 @@ export default async function HomePage() {
       <header>
         <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
         <div className="muted">{pi.titleLines?.[0] || "Department of Molecular Biosciences and Bioengineering"}</div>
-        <div className="muted">{pi.titleLines?.[1] || "Proteomics Center"}</div>
+        <div className="muted">{pi.titleLines?.[1] || "Proteomics Core Facility"}</div>
         <div className="muted">{pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}</div>
       </header>
 
