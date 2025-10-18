@@ -1,27 +1,13 @@
 // src/lib/auth.ts
 import type { NextAuthOptions } from "next-auth";
-import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-/** Case-insensitive lookup of most recent TEMP_PW for this email */
-async function getLatestTempPw(email: string): Promise<string | null> {
-  const rows = await prisma.$queryRaw<{ note: string }[]>`
-    SELECT "note"
-    FROM "PendingInvite"
-    WHERE LOWER("email") = LOWER(${email})
-      AND "note" ILIKE '%TEMP_PW:%'
-    ORDER BY COALESCE("decidedAt","requestedAt") DESC
-    LIMIT 1
-  `;
-  const note = rows?.[0]?.note ?? "";
-  const m = note.match(/TEMP_PW:\s*([^\s|]+)/i);
-  return m?.[1] ?? null;
-}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -29,10 +15,9 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (credentials) => {
-        const email = String(credentials?.email || "").trim();
-        const password = String(credentials?.password || "");
-        if (!email || !password) return null;
+      async authorize(creds) {
+        const email = (creds?.email || "").toLowerCase().trim();
+        const password = creds?.password || "";
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -42,6 +27,7 @@ export const authOptions: NextAuthOptions = {
             name: true,
             role: true,
             passwordHash: true,
+            mustResetPassword: true, // <-- boolean column in User
           },
         });
         if (!user?.passwordHash) return null;
@@ -49,31 +35,48 @@ export const authOptions: NextAuthOptions = {
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
 
-        const latestTemp = await getLatestTempPw(email);
-        const needsPwReset = !!latestTemp && latestTemp === password;
-
+        // Attach minimal user payload. We'll mirror mustResetPassword to the JWT.
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: user.name ?? undefined,
           role: user.role,
-          needsPwReset,
+          needsPwReset: !!user.mustResetPassword,
         } as any;
       },
     }),
   ],
+
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }) {
+      // On initial sign-in, copy flags from user
       if (user) {
-        token.role = user.role;
-        token.needsPwReset = !!user.needsPwReset;
         token.email = user.email;
+        (token as any).role = (user as any).role;
+        (token as any).needsPwReset = Boolean((user as any).needsPwReset);
+        return token;
+      }
+
+      // On subsequent requests, refresh needsPwReset from DB (cheap, keeps middleware accurate)
+      if (token?.email) {
+        const db = await prisma.user.findUnique({
+          where: { email: String(token.email).toLowerCase() },
+          select: { mustResetPassword: true, role: true },
+        });
+        if (db) {
+          (token as any).needsPwReset = Boolean(db.mustResetPassword);
+          (token as any).role = db.role;
+        }
       }
       return token;
     },
-    async session({ session, token }: any) {
-      (session.user as any).role = token.role;
-      (session.user as any).needsPwReset = !!token.needsPwReset;
+
+    async session({ session, token }) {
+      // Expose the flags/role to the client when needed
+      if (session.user) {
+        (session.user as any).role = (token as any)?.role ?? "MEMBER";
+        (session as any).needsPwReset = Boolean((token as any)?.needsPwReset);
+      }
       return session;
     },
   },

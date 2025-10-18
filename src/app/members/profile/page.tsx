@@ -66,7 +66,7 @@ export default async function ProfilePage() {
           <input
             name="name"
             defaultValue={user?.name ?? ""}
-            placeholder="e.g., Lynn Zhang"
+            placeholder="e.g., John Smith"
             className="w-full border rounded p-2 outline-none focus:ring focus:ring-blue-200"
           />
           <button className="px-4 py-2 rounded bg-blue-600 text-white">

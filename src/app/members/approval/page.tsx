@@ -86,7 +86,7 @@ async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: str
     // 4) email the user
     await sendMail({
       to: invite.email,
-      subject: "Your Lab Website Account Approved",
+      subject: "Your Account For Qing Li Lab has been Approved",
       html: `
         <p>Hello ${invite.name ?? ""},</p>
         <p>Your lab website account has been approved.</p>
