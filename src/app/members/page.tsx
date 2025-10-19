@@ -67,7 +67,11 @@ export default async function MembersPage() {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}
       >
         {tiles.map((t) => (
-          <Link key={t.href} href={t.href} style={{ textDecoration: "none" }}>
+          <Link
+            key={t.href}
+            href={t.href}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
             <article className="tile">
               <h3>{t.title}</h3>
               {t.description ? <p>{t.description}</p> : null}
@@ -78,13 +82,3 @@ export default async function MembersPage() {
     </main>
   );
 }
-<Link
-  key={t.href}
-  href={t.href}
-  style={{ textDecoration: "none", color: "inherit" }} // ← add color: "inherit"
->
-  <article className="tile">
-    <h3>{t.title}</h3>
-    {t.description ? <p>{t.description}</p> : null}
-  </article>
-</Link>
