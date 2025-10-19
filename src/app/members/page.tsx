@@ -78,3 +78,13 @@ export default async function MembersPage() {
     </main>
   );
 }
+<Link
+  key={t.href}
+  href={t.href}
+  style={{ textDecoration: "none", color: "inherit" }} // ← add color: "inherit"
+>
+  <article className="tile">
+    <h3>{t.title}</h3>
+    {t.description ? <p>{t.description}</p> : null}
+  </article>
+</Link>
