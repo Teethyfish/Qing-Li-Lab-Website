@@ -103,3 +103,83 @@ a:hover { text-decoration: underline; }
   font-size: 0.92rem;
   line-height: 1.4;
 }
+/* === THEME: Button tokens (with sensible fallbacks) === */
+:root {
+  /* shape */
+  --btn-radius: 10px;
+  --btn-py: 0.55rem;
+  --btn-px: 0.9rem;
+  --btn-weight: 600;
+
+  /* primary (matches your nav look) */
+  --btn-primary-bg: color-mix(in oklab, var(--color-text) 90%, transparent);
+  --btn-primary-fg: #fff;
+  --btn-primary-hover-bg: color-mix(in oklab, var(--color-text) 100%, transparent);
+
+  /* accent (maps to your accent color) */
+  --btn-accent-bg: var(--color-accent, #2563eb);
+  --btn-accent-fg: #fff;
+  --btn-accent-hover-bg: color-mix(in oklab, var(--color-accent) 90%, white 10%);
+
+  /* muted / secondary */
+  --btn-muted-bg: color-mix(in oklab, var(--color-text) 8%, var(--color-card));
+  --btn-muted-fg: var(--color-text);
+  --btn-muted-hover-bg: color-mix(in oklab, var(--color-text) 12%, var(--color-card));
+  --btn-muted-border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent);
+}
+
+/* === Base button === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--btn-py) var(--btn-px);
+  border-radius: var(--btn-radius);
+  font-weight: var(--btn-weight);
+  text-decoration: none;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background-color 120ms ease, box-shadow 120ms ease, transform 60ms ease;
+  border: none;
+}
+
+/* remove default button quirks */
+button.btn { background: none; border: none; }
+
+/* Sizes (optional) */
+.btn.sm { --btn-py: 0.4rem; --btn-px: 0.7rem; font-size: 0.9rem; }
+.btn.lg { --btn-py: 0.7rem; --btn-px: 1.05rem; font-size: 1.05rem; }
+
+/* Variants */
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+}
+.btn-primary:hover { background: var(--btn-primary-hover-bg); }
+
+.btn-accent {
+  background: var(--btn-accent-bg);
+  color: var(--btn-accent-fg);
+}
+.btn-accent:hover { background: var(--btn-accent-hover-bg); }
+
+.btn-muted {
+  background: var(--btn-muted-bg);
+  color: var(--btn-muted-fg);
+  border: var(--btn-muted-border);
+}
+.btn-muted:hover { background: var(--btn-muted-hover-bg); }
+
+/* Subtle press feedback */
+.btn:active { transform: translateY(1px); }
+
+/* Icon-only circle (optional) */
+.btn.icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+  border-radius: 999px;
+}
