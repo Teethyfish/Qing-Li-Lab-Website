@@ -76,6 +76,9 @@ a:hover { text-decoration: underline; }
 }
 /* Safe, decoration-free tile */
 .tile {
+  position: relative;        /* anchor any absolutely positioned children */
+  isolation: isolate;        /* prevent pseudo/background bleed from ancestors */
+  overflow: clip;            /* keep stray visuals inside */
   background: var(--color-card);
   border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
   border-radius: 12px;
