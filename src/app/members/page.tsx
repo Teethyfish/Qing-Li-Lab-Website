@@ -67,9 +67,11 @@ export default async function MembersPage() {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}
       >
         {tiles.map((t) => (
-          <Link key={t.href} href={t.href} className="tile">
-            <h3>{t.title}</h3>
-            {t.description ? <p>{t.description}</p> : null}
+          <Link key={t.href} href={t.href} style={{ textDecoration: "none" }}>
+            <article className="tile">
+              <h3>{t.title}</h3>
+              {t.description ? <p>{t.description}</p> : null}
+            </article>
           </Link>
         ))}
       </section>
