@@ -22,7 +22,7 @@ function genTempPassword(len = 12) {
   return out;
 }
 
-/** Read the *actual* enum labels from Postgres (handles DBs that use DENIED instead of REJECTED) */
+/** Get actual enum labels from DB (handles DENIED vs REJECTED) */
 async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: string; REJECTED: string }> {
   const rows = await prisma.$queryRaw<Array<{ enumlabel: string; enumsortorder: number }>>`
     SELECT e.enumlabel, e.enumsortorder
@@ -56,11 +56,11 @@ async function approveAction(formData: FormData) {
   });
   if (!invite || invite.status !== labels.PENDING) return;
 
-  // 1) generate temp password + hash
+  // 1) temp pw + hash
   const tempPassword = genTempPassword();
   const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-  // 2) create/update the user with the slug from the invite
+  // 2) create/update user, force reset
   const email = invite.email.toLowerCase();
   await prisma.user.upsert({
     where: { email },
@@ -68,7 +68,7 @@ async function approveAction(formData: FormData) {
       name: invite.name ?? null,
       slug: invite.slug,
       passwordHash,
-      mustResetPassword: true, // <-- force reset on next login
+      mustResetPassword: true,
     },
     create: {
       email,
@@ -76,11 +76,11 @@ async function approveAction(formData: FormData) {
       role: "MEMBER",
       slug: invite.slug,
       passwordHash,
-      mustResetPassword: true, // <-- force reset on next login
+      mustResetPassword: true,
     },
   });
 
-  // 3) mark invite approved + append TEMP_PW to note (via SQL cast to enum)
+  // 3) mark approved + append TEMP_PW to note
   const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
   await prisma.$executeRawUnsafe(
     `UPDATE "PendingInvite"
@@ -93,7 +93,7 @@ async function approveAction(formData: FormData) {
     id
   );
 
-  // 4) email the user
+  // 4) email
   await sendMail({
     to: invite.email,
     subject: "Qing Li Lab — DO NOT REPLY — Account Approved",
@@ -118,14 +118,12 @@ async function rejectAction(formData: FormData) {
 
   const labels = await getInviteStatusLabels();
 
-  // Need the current slug + status
   const row = await prisma.pendingInvite.findUnique({
     where: { id },
     select: { slug: true, status: true },
   });
   if (!row || row.status !== labels.PENDING) return;
 
-  // Free original slug by renaming (column is NOT nullable)
   const suffix = Date.now().toString(36).slice(-4);
   const freedSlug = `${row.slug}-rej-${suffix}`;
 
@@ -135,7 +133,7 @@ async function rejectAction(formData: FormData) {
          "decidedAt" = NOW(),
          "slug" = $2
      WHERE "id" = $3`,
-    labels.REJECTED, // exact DB enum label (REJECTED/DENIED)
+    labels.REJECTED,
     freedSlug,
     id
   );
@@ -150,7 +148,6 @@ async function resetInviteAction(formData: FormData) {
 
   const labels = await getInviteStatusLabels();
 
-  // Only allow reset if the row is REJECTED/DENIED (not after APPROVED)
   const row = await prisma.pendingInvite.findUnique({
     where: { id },
     select: { status: true },
@@ -187,7 +184,6 @@ export default async function ApprovalPage() {
 
   const labels = await getInviteStatusLabels();
 
-  // Show ALL rows (pending + decided). Pending first, then most recent decided.
   const invites = await prisma.$queryRaw<
     Array<{
       id: string;
@@ -207,14 +203,13 @@ export default async function ApprovalPage() {
       COALESCE("decidedAt","requestedAt") DESC
   `;
 
-  // Dynamic UI wording (DENY vs REJECT)
   const rejectedLabel = labels.REJECTED.toUpperCase();
   const denyVerb = rejectedLabel.includes("DENY") ? "Deny" : "Reject";
 
   return (
     <main className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Approval Dashboard</h1>
-      <p className="text-sm text-gray-600">
+      <p className="muted">
         Approve creates a User with a temporary password and emails it to them. {denyVerb} frees the slug.
         Decided rows stay visible but are grayed out. Reset only shows for {denyVerb.toLowerCase()}ed rows.
       </p>
@@ -237,7 +232,7 @@ export default async function ApprovalPage() {
           <tbody>
             {invites.length === 0 ? (
               <tr>
-                <td className="px-3 py-3 text-gray-500" colSpan={9}>
+                <td className="px-3 py-3 muted" colSpan={9}>
                   No invites yet.
                 </td>
               </tr>
@@ -246,7 +241,6 @@ export default async function ApprovalPage() {
                 const isPending = x.status === labels.PENDING;
                 const isRejected = x.status === labels.REJECTED;
 
-                // Extract temp PW (we appended to note on approval)
                 let tempPw: string | null = null;
                 if (x.note && x.note.includes("TEMP_PW: ")) {
                   tempPw = x.note.split("TEMP_PW: ").pop() ?? null;
@@ -257,8 +251,8 @@ export default async function ApprovalPage() {
                 return (
                   <tr key={x.id} className={`border-t ${!isPending ? "opacity-60" : ""}`}>
                     <td className="px-3 py-2">{x.email}</td>
-                    <td className="px-3 py-2">{x.slug ?? <em className="text-gray-500">—</em>}</td>
-                    <td className="px-3 py-2">{x.name ?? <em className="text-gray-500">—</em>}</td>
+                    <td className="px-3 py-2">{x.slug ?? <em className="muted">—</em>}</td>
+                    <td className="px-3 py-2">{x.name ?? <em className="muted">—</em>}</td>
                     <td className="px-3 py-2">{x.status}</td>
                     <td className="px-3 py-2">
                       <time dateTime={new Date(x.requestedAt).toISOString()}>
@@ -274,51 +268,39 @@ export default async function ApprovalPage() {
                       {applicantNote ? (
                         <span className="whitespace-pre-wrap">{applicantNote}</span>
                       ) : (
-                        <span className="text-gray-500">—</span>
+                        <span className="muted">—</span>
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      {tempPw ? <code>{tempPw}</code> : <span className="text-gray-500">—</span>}
+                      {tempPw ? <code>{tempPw}</code> : <span className="muted">—</span>}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-2">
-                        {/* Approve / Reject only while PENDING */}
                         {isPending && (
                           <>
                             <form action={approveAction}>
                               <input type="hidden" name="id" value={x.id} />
-                              <button className="px-3 py-1 rounded bg-green-600 text-white">
-                                Approve
-                              </button>
+                              <button className="btn btn-success">Approve</button>
                             </form>
                             <form action={rejectAction}>
                               <input type="hidden" name="id" value={x.id} />
-                              <button className="px-3 py-1 rounded bg-red-600 text-white">
-                                {denyVerb}
-                              </button>
+                              <button className="btn btn-danger">{denyVerb}</button>
                             </form>
                           </>
                         )}
 
-                        {/* Reset only for rejected/denied rows */}
                         {isRejected && (
                           <form action={resetInviteAction}>
                             <input type="hidden" name="id" value={x.id} />
-                            <button
-                              className="px-3 py-1 rounded bg-yellow-600 text-white"
-                              title="Set back to PENDING (keeps note)"
-                            >
+                            <button className="btn btn-warning" title="Set back to PENDING (keeps note)">
                               Reset
                             </button>
                           </form>
                         )}
 
-                        {/* Delete always available */}
                         <form action={deleteInviteAction}>
                           <input type="hidden" name="id" value={x.id} />
-                          <button className="px-3 py-1 rounded bg-gray-700 text-white">
-                            Delete
-                          </button>
+                          <button className="btn btn-neutral">Delete</button>
                         </form>
                       </div>
                     </td>
