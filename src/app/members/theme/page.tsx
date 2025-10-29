@@ -7,17 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-/**
- * We store the theme in AppConfig as JSON under key "theme".
- * The JSON is a flat map of CSS variable name -> value.
- * Example:
- * {
- *   "--color-bg": "#ffffff",
- *   "--btn-radius": "10px",
- *   ...
- * }
- */
-
+/** Theme is a flat map of CSS var -> value, stored in AppConfig under key "theme". */
 type KV = Record<string, string>;
 type Row = { value: string };
 
@@ -28,8 +18,7 @@ async function readTheme(): Promise<KV> {
     );
     if (!rows?.[0]?.value) return {};
     const parsed = JSON.parse(rows[0].value) as KV;
-    if (parsed && typeof parsed === "object") return parsed;
-    return {};
+    return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
     return {};
   }
@@ -44,14 +33,13 @@ const DEFAULTS: KV = {
   "--color-card": "#ffffff",
 
   // === Buttons ===
-  // shape
   "--btn-radius": "10px",
   "--btn-py": "0.55rem",
   "--btn-px": "0.9rem",
   "--btn-weight": "600",
 
   // primary
-  "--btn-primary-bg": "oklab(0.35 0 0)", // fallback: dark mix of text; can be overridden
+  "--btn-primary-bg": "oklab(0.35 0 0)",
   "--btn-primary-fg": "#ffffff",
   "--btn-primary-hover-bg": "oklab(0.30 0 0)",
 
@@ -67,7 +55,6 @@ const DEFAULTS: KV = {
   "--btn-muted-border": "1px solid #e5e7eb",
 };
 
-// Field config for rendering the form
 type Field =
   | { var: string; label: string; type: "color"; help?: string }
   | { var: string; label: string; type: "text"; help?: string; placeholder?: string }
@@ -114,7 +101,7 @@ export default async function ThemeEditorPage() {
   const isAdmin = role && role.toUpperCase() === "ADMIN";
   if (!isAdmin) redirect("/");
 
-  // Load existing theme and merge defaults
+  // Merge defaults with saved values
   const current = await readTheme();
   const theme: KV = { ...DEFAULTS, ...current };
 
@@ -122,7 +109,6 @@ export default async function ThemeEditorPage() {
   async function saveTheme(formData: FormData) {
     "use server";
     const incoming: KV = {};
-    // Collect all fields we render
     const all = [
       ...COLOR_FIELDS,
       ...SHAPE_FIELDS,
@@ -135,11 +121,9 @@ export default async function ThemeEditorPage() {
       if (raw) incoming[f.var] = raw;
     }
 
-    // Keep any unknown/existing keys so upgrades don't nuke them
     const existing = await readTheme();
     const merged: KV = { ...existing, ...incoming };
 
-    // Upsert AppConfig
     await prisma.$executeRawUnsafe(
       `INSERT INTO "AppConfig" (key, value)
        VALUES ($1, $2)
@@ -148,31 +132,29 @@ export default async function ThemeEditorPage() {
       JSON.stringify(merged)
     );
 
-    // Revalidate so the layout picks up updated CSS vars
     revalidatePath("/", "layout");
     revalidatePath("/members/theme");
   }
 
-  // Simple labeled control
+  // Small helper to render labeled inputs
   const FieldRow = (f: Field) => {
     const base: React.CSSProperties = { display: "grid", gap: "0.4rem" };
     const inputBase: React.CSSProperties = {
       width: "100%",
       padding: "0.55rem 0.7rem",
       borderRadius: 10,
-      border:
-        "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+      border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
       background: "var(--color-card)",
     };
     return (
       <label className="tile" style={{ ...base, padding: "0.9rem" }}>
         <div>
           <div style={{ fontWeight: 600 }}>{f.label}</div>
-          {f.help && (
+          {"help" in f && f.help ? (
             <div className="muted" style={{ fontSize: "0.85rem", marginTop: 2 }}>
               {f.help}
             </div>
-          )}
+          ) : null}
         </div>
         {f.type === "color" ? (
           <input type="color" name={f.var} defaultValue={theme[f.var] ?? "#000000"} />
@@ -181,7 +163,7 @@ export default async function ThemeEditorPage() {
             type="text"
             name={f.var}
             defaultValue={theme[f.var] ?? ""}
-            placeholder={(f as any).placeholder ?? ""}
+            placeholder={("placeholder" in f && f.placeholder) || ""}
             style={inputBase}
           />
         )}
@@ -195,72 +177,50 @@ export default async function ThemeEditorPage() {
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
           Theme Editor
         </h1>
-        <p className="muted">
-          Tweak global colors and button styles. Changes apply site-wide.
-        </p>
+        <p className="muted">Tweak global colors and button styles. Changes apply site-wide.</p>
       </header>
 
       <form action={saveTheme} className="space-y-6">
         {/* Colors */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Site colors</h2>
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
-          >
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {COLOR_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
           </div>
         </section>
 
-        {/* Buttons: Shape */}
+        {/* Buttons: shape */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Buttons — shape</h2>
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
-          >
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {SHAPE_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
           </div>
         </section>
 
-        {/* Buttons: Colors */}
+        {/* Buttons: colors */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Buttons — colors</h2>
 
+          {/* Preview — use buttons (no onClick) so it’s legal in a Server Component */}
           <div className="tile" style={{ padding: "1rem" }}>
             <div className="muted" style={{ marginBottom: 8, fontSize: "0.9rem" }}>
               Preview
             </div>
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <a className="btn btn-primary" href="#" onClick={(e) => e.preventDefault()}>
-                Primary
-              </a>
-              <a className="btn btn-accent" href="#" onClick={(e) => e.preventDefault()}>
-                Accent
-              </a>
-              <a className="btn btn-muted" href="#" onClick={(e) => e.preventDefault()}>
-                Muted
-              </a>
-              <button className="btn btn-primary sm" type="button">
-                Small
-              </button>
-              <button className="btn btn-accent lg" type="button">
-                Large
-              </button>
-              <button className="btn btn-muted icon" type="button" aria-label="icon">
-                •
-              </button>
+              <button className="btn btn-primary" type="button">Primary</button>
+              <button className="btn btn-accent"  type="button">Accent</button>
+              <button className="btn btn-muted"   type="button">Muted</button>
+              <button className="btn btn-primary sm" type="button">Small</button>
+              <button className="btn btn-accent  lg" type="button">Large</button>
+              <button className="btn btn-muted  icon" type="button" aria-label="icon">•</button>
             </div>
           </div>
 
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}
-          >
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {PRIMARY_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
@@ -274,7 +234,7 @@ export default async function ThemeEditorPage() {
         </section>
 
         <div>
-          <button className="btn btn-accent">Save theme</button>
+          <button className="btn btn-accent" type="submit">Save theme</button>
         </div>
       </form>
     </main>
