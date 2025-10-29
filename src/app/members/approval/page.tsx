@@ -16,14 +16,19 @@ function fmtUTC(d: Date | string | null | undefined) {
 }
 
 function genTempPassword(len = 12) {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@$%*?";
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@$%*?";
   let out = "";
   for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
 
-/** Get actual enum labels from DB (handles DENIED vs REJECTED) */
-async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: string; REJECTED: string }> {
+/** Read actual enum labels from Postgres (handles REJECTED vs DENIED) */
+async function getInviteStatusLabels(): Promise<{
+  PENDING: string;
+  APPROVED: string;
+  REJECTED: string;
+}> {
   const rows = await prisma.$queryRaw<Array<{ enumlabel: string; enumsortorder: number }>>`
     SELECT e.enumlabel, e.enumsortorder
     FROM pg_type t
@@ -31,13 +36,23 @@ async function getInviteStatusLabels(): Promise<{ PENDING: string; APPROVED: str
     WHERE t.typname = 'InviteStatus'
     ORDER BY e.enumsortorder
   `;
-  const byLower = new Map(rows.map(r => [r.enumlabel.toLowerCase(), r.enumlabel]));
-  const pending  = byLower.get("pending")  ?? rows.find(r => /pend/i.test(r.enumlabel))?.enumlabel ?? rows[0]?.enumlabel ?? "PENDING";
-  const approved = byLower.get("approved") ?? rows.find(r => /approv/i.test(r.enumlabel))?.enumlabel ?? rows[1]?.enumlabel ?? "APPROVED";
-  const rejected = byLower.get("rejected")
-                  ?? byLower.get("denied")
-                  ?? rows.find(r => /reject|deni/i.test(r.enumlabel))?.enumlabel
-                  ?? rows[2]?.enumlabel ?? "REJECTED";
+  const byLower = new Map(rows.map((r) => [r.enumlabel.toLowerCase(), r.enumlabel]));
+  const pending =
+    byLower.get("pending") ??
+    rows.find((r) => /pend/i.test(r.enumlabel))?.enumlabel ??
+    rows[0]?.enumlabel ??
+    "PENDING";
+  const approved =
+    byLower.get("approved") ??
+    rows.find((r) => /approv/i.test(r.enumlabel))?.enumlabel ??
+    rows[1]?.enumlabel ??
+    "APPROVED";
+  const rejected =
+    byLower.get("rejected") ??
+    byLower.get("denied") ??
+    rows.find((r) => /reject|deni/i.test(r.enumlabel))?.enumlabel ??
+    rows[2]?.enumlabel ??
+    "REJECTED";
   return { PENDING: pending, APPROVED: approved, REJECTED: rejected };
 }
 
@@ -60,7 +75,7 @@ async function approveAction(formData: FormData) {
   const tempPassword = genTempPassword();
   const passwordHash = await bcrypt.hash(tempPassword, 10);
 
-  // 2) create/update user, force reset
+  // 2) upsert user, force reset on first login
   const email = invite.email.toLowerCase();
   await prisma.user.upsert({
     where: { email },
@@ -81,7 +96,10 @@ async function approveAction(formData: FormData) {
   });
 
   // 3) mark approved + append TEMP_PW to note
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
+    /\/$/,
+    ""
+  );
   await prisma.$executeRawUnsafe(
     `UPDATE "PendingInvite"
      SET "status" = $1::"InviteStatus",
@@ -207,32 +225,45 @@ export default async function ApprovalPage() {
   const denyVerb = rejectedLabel.includes("DENY") ? "Deny" : "Reject";
 
   return (
-    <main className="p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Approval Dashboard</h1>
+    <main style={{ padding: 24, display: "grid", gap: 12 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 600 }}>Approval Dashboard</h1>
       <p className="muted">
-        Approve creates a User with a temporary password and emails it to them. {denyVerb} frees the slug.
-        Decided rows stay visible but are grayed out. Reset only shows for {denyVerb.toLowerCase()}ed rows.
+        Approve creates a User with a temporary password and emails it to them.{" "}
+        {denyVerb} frees the slug. Decided rows stay visible but are grayed out.
+        Reset only shows for {denyVerb.toLowerCase()}ed rows.
       </p>
 
-      <div className="overflow-x-auto rounded border">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-left">
-            <tr>
-              <th className="px-3 py-2">Email</th>
-              <th className="px-3 py-2">Slug</th>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Requested</th>
-              <th className="px-3 py-2">Decided</th>
-              <th className="px-3 py-2">Applicant Note</th>
-              <th className="px-3 py-2">Temp PW</th>
-              <th className="px-3 py-2">Actions</th>
+      <div
+        style={{
+          overflowX: "auto",
+          border: "1px solid var(--border)",
+          borderRadius: 10,
+        }}
+      >
+        <table style={{ minWidth: "100%", fontSize: 14, borderCollapse: "separate", borderSpacing: 0 }}>
+          <thead>
+            <tr style={{ textAlign: "left", background: "color-mix(in oklab, var(--fg) 6%, var(--bg))" }}>
+              {[
+                "Email",
+                "Slug",
+                "Name",
+                "Status",
+                "Requested",
+                "Decided",
+                "Applicant Note",
+                "Temp PW",
+                "Actions",
+              ].map((h) => (
+                <th key={h} style={{ padding: "10px 12px" }}>
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {invites.length === 0 ? (
               <tr>
-                <td className="px-3 py-3 muted" colSpan={9}>
+                <td className="muted" style={{ padding: 12 }} colSpan={9}>
                   No invites yet.
                 </td>
               </tr>
@@ -244,38 +275,56 @@ export default async function ApprovalPage() {
                 let tempPw: string | null = null;
                 if (x.note && x.note.includes("TEMP_PW: ")) {
                   tempPw = x.note.split("TEMP_PW: ").pop() ?? null;
-                  if (tempPw && tempPw.includes(" | ")) tempPw = tempPw.split(" | ")[0];
+                  if (tempPw && tempPw.includes(" | "))
+                    tempPw = tempPw.split(" | ")[0];
                 }
-                const applicantNote = x.note?.replace(/\s*\|\s*TEMP_PW:.*$/, "") ?? null;
+                const applicantNote =
+                  x.note?.replace(/\s*\|\s*TEMP_PW:.*$/, "") ?? null;
 
                 return (
-                  <tr key={x.id} className={`border-t ${!isPending ? "opacity-60" : ""}`}>
-                    <td className="px-3 py-2">{x.email}</td>
-                    <td className="px-3 py-2">{x.slug ?? <em className="muted">—</em>}</td>
-                    <td className="px-3 py-2">{x.name ?? <em className="muted">—</em>}</td>
-                    <td className="px-3 py-2">{x.status}</td>
-                    <td className="px-3 py-2">
+                  <tr
+                    key={x.id}
+                    style={{
+                      borderTop: "1px solid var(--border)",
+                      opacity: isPending ? 1 : 0.6,
+                    }}
+                  >
+                    <td style={{ padding: "8px 12px" }}>{x.email}</td>
+                    <td style={{ padding: "8px 12px" }}>
+                      {x.slug ?? <em className="muted">—</em>}
+                    </td>
+                    <td style={{ padding: "8px 12px" }}>
+                      {x.name ?? <em className="muted">—</em>}
+                    </td>
+                    <td style={{ padding: "8px 12px" }}>{x.status}</td>
+                    <td style={{ padding: "8px 12px" }}>
                       <time dateTime={new Date(x.requestedAt).toISOString()}>
                         {fmtUTC(x.requestedAt)}
                       </time>
                     </td>
-                    <td className="px-3 py-2">
-                      <time dateTime={x.decidedAt ? new Date(x.decidedAt).toISOString() : undefined}>
+                    <td style={{ padding: "8px 12px" }}>
+                      <time
+                        dateTime={
+                          x.decidedAt ? new Date(x.decidedAt).toISOString() : undefined
+                        }
+                      >
                         {fmtUTC(x.decidedAt)}
                       </time>
                     </td>
-                    <td className="px-3 py-2">
+                    <td style={{ padding: "8px 12px" }}>
                       {applicantNote ? (
-                        <span className="whitespace-pre-wrap">{applicantNote}</span>
+                        <span style={{ whiteSpace: "pre-wrap" }}>
+                          {applicantNote}
+                        </span>
                       ) : (
                         <span className="muted">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2">
+                    <td style={{ padding: "8px 12px" }}>
                       {tempPw ? <code>{tempPw}</code> : <span className="muted">—</span>}
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-wrap gap-2">
+                    <td style={{ padding: "8px 12px" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                         {isPending && (
                           <>
                             <form action={approveAction}>
@@ -292,7 +341,10 @@ export default async function ApprovalPage() {
                         {isRejected && (
                           <form action={resetInviteAction}>
                             <input type="hidden" name="id" value={x.id} />
-                            <button className="btn btn-warning" title="Set back to PENDING (keeps note)">
+                            <button
+                              className="btn btn-warning"
+                              title="Set back to PENDING (keeps note)"
+                            >
                               Reset
                             </button>
                           </form>
