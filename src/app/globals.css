@@ -183,3 +183,57 @@ button.btn { background: none; border: none; }
   justify-content: center;
   border-radius: 999px;
 }
+/* ===== Theme-aware buttons (no Tailwind) =====
+   Default state is already visible; hover is a small shade tweak.
+   Uses your existing vars when present; safe fallbacks otherwise. */
+
+:root{
+  /* map to your existing scheme */
+  --primary: var(--link, #2563eb);
+  --on-primary: var(--onLink, #ffffff);
+  --primary-hover: color-mix(in srgb, var(--primary), #000 10%);
+
+  --muted: var(--border, #e5e7eb);
+  --on-muted: var(--fg, #111827);
+  --muted-hover: color-mix(in srgb, var(--muted), #000 8%);
+
+  --radius-md: var(--radius, 8px);
+  --btn-pad: 10px 14px;
+  --btn-fs: 14px;
+  --btn-tr: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+/* Solid primary button — visible by default */
+.btn, a.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
+  padding:var(--btn-pad);
+  border-radius:var(--radius-md);
+  border:1px solid var(--primary);
+  background:var(--primary);
+  color:var(--on-primary);
+  font-size:var(--btn-fs); line-height:1.2;
+  text-decoration:none; cursor:pointer;
+  transition:var(--btn-tr);
+}
+.btn:hover, a.btn:hover{ background:var(--primary-hover); border-color:var(--primary-hover); }
+
+/* Muted button that is STILL visible before hover */
+.btn-outline, a.btn-outline{
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
+  padding:var(--btn-pad);
+  border-radius:var(--radius-md);
+  /* visible baseline */
+  border:1px solid var(--muted);
+  background: color-mix(in srgb, var(--muted), #fff 85%); /* faint, but visible */
+  color:var(--on-muted);
+  font-size:var(--btn-fs); line-height:1.2;
+  text-decoration:none; cursor:pointer;
+  transition:var(--btn-tr);
+}
+.btn-outline:hover, a.btn-outline:hover{
+  background: var(--muted-hover);
+  border-color: var(--muted-hover);
+}
+
+/* Disabled look */
+button:disabled, .btn[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; }

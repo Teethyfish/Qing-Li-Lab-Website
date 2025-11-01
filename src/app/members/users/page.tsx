@@ -45,8 +45,7 @@ export default async function UsersAdminPage() {
   const isAdmin = role && role.toUpperCase() === "ADMIN";
   if (!isAdmin) redirect("/");
 
-  const cfg =
-    (await getConfig<UsersPageCfg>("members.users.page")) ?? {};
+  const cfg = (await getConfig<UsersPageCfg>("members.users.page")) ?? {};
 
   const users = (await prisma.user.findMany({
     orderBy: [{ role: "desc" }, { email: "asc" }],
@@ -82,10 +81,12 @@ export default async function UsersAdminPage() {
     revalidatePath("/members/users");
   }
 
+  // 🔒 Require typing DELETE to proceed (server-side check, no client JS needed)
   async function deleteUser(formData: FormData) {
     "use server";
     const id = String(formData.get("id") || "");
-    if (!id) return;
+    const confirm = String(formData.get("confirm") || "");
+    if (!id || confirm !== "DELETE") return; // silently ignore if not confirmed
     await prisma.user.delete({ where: { id } });
     revalidatePath("/members/users");
   }
@@ -134,16 +135,18 @@ export default async function UsersAdminPage() {
                     )}
                     <td style={{ padding: "8px" }}>{u.role}</td>
                     {cfg.showResetCol !== false && (
-                      <td style={{ padding: "8px" }}>
-                        {u.mustResetPassword ? "Yes" : "No"}
-                      </td>
+                      <td style={{ padding: "8px" }}>{u.mustResetPassword ? "Yes" : "No"}</td>
                     )}
                     <td style={{ padding: "8px" }}>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                         {/* Promote / Demote */}
                         <form action={setRole}>
                           <input type="hidden" name="id" value={u.id} />
-                          <input type="hidden" name="role" value={u.role === "ADMIN" ? "MEMBER" : "ADMIN"} />
+                          <input
+                            type="hidden"
+                            name="role"
+                            value={u.role === "ADMIN" ? "MEMBER" : "ADMIN"}
+                          />
                           <button className="btn btn-muted" type="submit">
                             {u.role === "ADMIN" ? "Demote to MEMBER" : "Promote to ADMIN"}
                           </button>
@@ -153,21 +156,35 @@ export default async function UsersAdminPage() {
                         {cfg.showResetCol !== false && (
                           <form action={toggleReset}>
                             <input type="hidden" name="id" value={u.id} />
-                            <input type="hidden" name="flag" value={(!u.mustResetPassword).toString()} />
+                            <input
+                              type="hidden"
+                              name="flag"
+                              value={(!u.mustResetPassword).toString()}
+                            />
                             <button className="btn btn-primary" type="submit">
                               {u.mustResetPassword ? "Clear reset flag" : "Require reset"}
                             </button>
                           </form>
                         )}
 
-                        {/* Delete */}
-                        <form action={deleteUser}>
+                        {/* Delete (with typed confirmation) */}
+                        <form action={deleteUser} style={{ display: "flex", gap: "0.4rem" }}>
                           <input type="hidden" name="id" value={u.id} />
-                          <button
-                            className="btn btn-accent"
-                            type="submit"
-                            title="Delete user"
-                          >
+                          <input
+                            name="confirm"
+                            placeholder='Type DELETE'
+                            aria-label="Type DELETE to confirm"
+                            style={{
+                              width: 120,
+                              padding: "0.5rem 0.6rem",
+                              borderRadius: 10,
+                              border:
+                                "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+                              background: "var(--color-card)",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                          <button className="btn btn-accent" type="submit" title="Delete user">
                             Delete
                           </button>
                         </form>

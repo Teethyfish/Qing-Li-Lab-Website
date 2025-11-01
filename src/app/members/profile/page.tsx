@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-/* ---------- tiny helpers shared with page-builder ---------- */
+/* optional: page-builder text */
 type AppRow = { value: string };
 async function getConfig<T = unknown>(key: string): Promise<T | null> {
   try {
@@ -21,42 +21,31 @@ async function getConfig<T = unknown>(key: string): Promise<T | null> {
     return null;
   }
 }
-
-type ProfilePageCfg = {
-  heading?: string;
-  intro?: string;
-  showEmail?: boolean;
-};
-/* ----------------------------------------------------------- */
+type ProfileCfg = { heading?: string; intro?: string };
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email?.toLowerCase();
   if (!email) redirect("/login");
 
-  // Load current user
   const me = await prisma.user.findUnique({
     where: { email },
-    select: { email: true, name: true, about: true, slug: true },
+    select: { email: true, name: true, about: true },
   });
-  if (!me) redirect("/");
 
-  // Optional builder config
-  const cfg =
-    (await getConfig<ProfilePageCfg>("members.profile.page")) ?? {};
+  const cfg = (await getConfig<ProfileCfg>("members.profile.page")) ?? {};
 
-  /* ---- server action: save profile ---- */
+  // --- server action (no client JS needed) ---
   async function saveProfile(formData: FormData) {
     "use server";
-    const session2 = await getServerSession(authOptions);
-    const myEmail = session2?.user?.email?.toLowerCase();
-    if (!myEmail) redirect("/login");
-
+    const email = String(formData.get("email") || "");
     const name = String(formData.get("name") || "").trim();
     const about = String(formData.get("about") || "").trim();
 
+    if (!email) return;
+
     await prisma.user.update({
-      where: { email: myEmail },
+      where: { email: email.toLowerCase() },
       data: {
         name: name || null,
         about: about || null,
@@ -66,71 +55,59 @@ export default async function ProfilePage() {
     revalidatePath("/members/profile");
   }
 
-  /* -------------------- UI -------------------- */
+  // shared input style (prevents overflow)
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.55rem 0.7rem",
+    borderRadius: 10,
+    border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+    background: "var(--color-card)",
+    boxSizing: "border-box",
+  };
+
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
           {cfg.heading || "Edit your profile"}
         </h1>
-        {cfg.showEmail !== false && (
-          <p className="muted">{me.email}</p>
-        )}
-        {cfg.intro && (
-          <p className="muted" style={{ marginTop: 6 }}>
-            {cfg.intro}
-          </p>
-        )}
+        {cfg.intro && <p className="muted">{cfg.intro}</p>}
       </header>
 
-      <section className="tile" style={{ padding: "1rem" }}>
-        <form action={saveProfile} style={{ display: "grid", gap: "0.9rem" }}>
-          <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontWeight: 600 }}>Display name</label>
+      <form action={saveProfile} className="grid gap-4" style={{ gridTemplateColumns: "1fr" }}>
+        <input type="hidden" name="email" value={me?.email || ""} />
+
+        {/* Name */}
+        <div className="tile" style={{ padding: "1rem" }}>
+          <label style={{ display: "grid", gap: "0.4rem" }}>
+            <div style={{ fontWeight: 600 }}>Display name</div>
             <input
               name="name"
-              defaultValue={me.name ?? ""}
-              placeholder="Your name"
-              style={{
-                width: "100%",
-                padding: "0.6rem 0.8rem",
-                borderRadius: 10,
-                border:
-                  "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
-                background: "var(--color-card)",
-              }}
+              defaultValue={me?.name ?? ""}
+              placeholder="e.g. Lynn Zhang"
+              style={inputStyle}
             />
-          </div>
+          </label>
+        </div>
 
-          <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontWeight: 600 }}>About you</label>
+        {/* About */}
+        <div className="tile" style={{ padding: "1rem" }}>
+          <label style={{ display: "grid", gap: "0.4rem" }}>
+            <div style={{ fontWeight: 600 }}>About me</div>
             <textarea
               name="about"
-              defaultValue={me.about ?? ""}
+              defaultValue={me?.about ?? ""}
               rows={6}
-              placeholder="A short bio or anything you'd like to share."
-              style={{
-                width: "100%",
-                padding: "0.7rem 0.8rem",
-                borderRadius: 10,
-                border:
-                  "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
-                background: "var(--color-card)",
-                resize: "vertical",
-              }}
+              placeholder="A short bio, research interests, etc."
+              style={inputStyle}
             />
-            <div className="muted" style={{ fontSize: "0.85rem" }}>
-              This appears on your public profile page.
-            </div>
-          </div>
+          </label>
+        </div>
 
-          <div>
-            <button className="btn btn-accent" type="submit">
-              Save changes
-            </button>
-          </div>
-        </form>
-      </section>
+        <div>
+          <button className="btn btn-accent" type="submit">Save changes</button>
+        </div>
+      </form>
     </main>
   );
 }
