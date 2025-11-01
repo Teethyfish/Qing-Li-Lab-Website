@@ -237,3 +237,61 @@ button.btn { background: none; border: none; }
 
 /* Disabled look */
 button:disabled, .btn[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; }
+/* ==== THEMED BUTTONS (no Tailwind) ==== */
+.btn {
+  --_bg: var(--btn-bg, var(--color-primary, #2563eb));
+  --_fg: var(--btn-fg, #fff);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+
+  padding: .55rem .9rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in oklab, var(--color-text, #111) 20%, transparent);
+  background: var(--_bg);
+  color: var(--_fg);
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1.2;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
+}
+
+/* Visible at rest, slightly darker on hover */
+.btn:hover {
+  background: color-mix(in oklab, var(--_bg) 85%, #000);
+  border-color: color-mix(in oklab, var(--color-text, #111) 35%, transparent);
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Variants (fall back to your theme vars if button-specific vars are unset) */
+.btn-primary {
+  --btn-bg: var(--color-primary, #2563eb);
+  --btn-fg: var(--color-on-primary, #fff);
+}
+
+.btn-accent {
+  --btn-bg: var(--color-accent, #059669);
+  --btn-fg: var(--color-on-accent, #fff);
+}
+
+.btn-muted {
+  --btn-bg: var(--color-muted, #6b7280);
+  --btn-fg: var(--color-on-muted, #fff);
+}
+
+/* Optional: low-emphasis ghost button that’s STILL VISIBLE at rest */
+.btn-ghost {
+  --btn-bg: color-mix(in oklab, var(--color-primary, #2563eb) 12%, transparent);
+  --btn-fg: var(--color-primary, #2563eb);
+  border-color: color-mix(in oklab, var(--color-primary, #2563eb) 40%, transparent);
+}
+
+/* Make sure links styled as buttons don’t auto-blue themselves */
+a.btn { color: var(--_fg); }
