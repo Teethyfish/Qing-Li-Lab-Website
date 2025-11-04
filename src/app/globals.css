@@ -295,3 +295,66 @@ button:disabled, .btn[aria-disabled="true"]{ opacity:.55; cursor:not-allowed; }
 
 /* Make sure links styled as buttons don’t auto-blue themselves */
 a.btn { color: var(--_fg); }
+
+/* ==== HARD OVERRIDE: make buttons visible at rest, theme-aware ==== */
+
+/* Base: apply to <button>, <a class="btn">, and <input type=submit/reset/button> */
+button,
+a.btn,
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  --_bg: var(--btn-bg, var(--color-primary, #2563eb));
+  --_fg: var(--btn-fg, #fff);
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0.55rem 0.9rem !important;
+  border-radius: 10px !important;
+  border: 1px solid
+    color-mix(in oklab, var(--color-text, #111) 20%, transparent) !important;
+
+  background: var(--_bg) !important;
+  color: var(--_fg) !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  transition: background .15s, border-color .15s, color .15s, opacity .15s !important;
+}
+
+/* Hover: darker shade */
+button:hover,
+a.btn:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover,
+input[type="button"]:hover {
+  background: color-mix(in oklab, var(--_bg) 85%, #000) !important;
+  border-color: color-mix(in oklab, var(--color-text, #111) 35%, transparent) !important;
+}
+
+/* Disabled */
+button:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled,
+input[type="button"]:disabled {
+  opacity: .55 !important;
+  cursor: not-allowed !important;
+}
+
+/* Variants driven by class — keep your existing classNames like "btn btn-primary" */
+.btn { /* no-op: inherits base */ }
+.btn-primary { --btn-bg: var(--color-primary, #2563eb); --btn-fg: var(--color-on-primary, #fff); }
+.btn-accent  { --btn-bg: var(--color-accent,  #059669); --btn-fg: var(--color-on-accent,  #fff); }
+.btn-muted   { --btn-bg: var(--color-muted,   #6b7280); --btn-fg: var(--color-on-muted,   #fff); }
+
+/* “Ghost” still visible at rest */
+.btn-ghost {
+  --btn-bg: color-mix(in oklab, var(--color-primary, #2563eb) 12%, #fff);
+  --btn-fg: var(--color-primary, #2563eb);
+  border-color: color-mix(in oklab, var(--color-primary, #2563eb) 40%, transparent) !important;
+}
+
+/* Ensure links styled as buttons don’t turn browser-blue */
+a.btn { color: var(--_fg) !important; }
