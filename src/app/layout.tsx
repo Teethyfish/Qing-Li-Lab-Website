@@ -5,6 +5,7 @@ import NavBar from "../components/NavBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
+import { prisma } from "@/lib/prisma";
 // src/app/layout.tsx
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -20,6 +21,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const role = (session?.user as any)?.role ?? null;
   const isAuthed = !!email;
   const isAdmin = typeof role === "string" && role.toUpperCase() === "ADMIN";
+
+  // Get user's slug and imageUrl for profile link and navbar
+  let userSlug: string | null = null;
+  let userImageUrl: string | null = null;
+  let userName: string | null = null;
+  if (email) {
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { slug: true, imageUrl: true, name: true },
+    });
+    userSlug = user?.slug ?? null;
+    userImageUrl = user?.imageUrl ?? null;
+    userName = user?.name ?? null;
+  }
 
   // Load theme from DB and inject as CSS variables
   const theme = await getTheme();
@@ -40,7 +55,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <style id="theme">{cssVars}</style>
 
         {/* Global nav expects props */}
-        <NavBar isAuthed={isAuthed} isAdmin={isAdmin} />
+        <NavBar
+          isAuthed={isAuthed}
+          isAdmin={isAdmin}
+          userSlug={userSlug}
+          userImageUrl={userImageUrl}
+          userName={userName}
+        />
 
         {/* Page content */}
         <div className="mx-auto max-w-5xl p-6">{children}</div>

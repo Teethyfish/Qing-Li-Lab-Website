@@ -79,7 +79,7 @@ export default async function HomePage() {
   // --- Live members from DB (current members only) ---
   const members = await prisma.user.findMany({
     where: { role: "MEMBER" as any },
-    select: { name: true, slug: true },
+    select: { name: true, slug: true, imageUrl: true },
     orderBy: { name: "asc" },
   });
 
@@ -280,7 +280,17 @@ export default async function HomePage() {
                         fontWeight: 600,
                       }}
                     >
-                      {initials(m.name)}
+                      {m.imageUrl ? (
+                        <Image
+                          src={m.imageUrl}
+                          alt={m.name || "Member"}
+                          width={80}
+                          height={80}
+                          style={{ objectFit: "cover", borderRadius: "9999px" }}
+                        />
+                      ) : (
+                        initials(m.name)
+                      )}
                     </div>
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontWeight: 600 }}>{m.name || "Unnamed"}</div>

@@ -30,7 +30,7 @@ export default async function ProfilePage() {
 
   const me = await prisma.user.findUnique({
     where: { email },
-    select: { email: true, name: true, about: true },
+    select: { email: true, name: true, about: true, imageUrl: true },
   });
 
   const cfg = (await getConfig<ProfileCfg>("members.profile.page")) ?? {};
@@ -41,18 +41,37 @@ export default async function ProfilePage() {
     const email = String(formData.get("email") || "");
     const name = String(formData.get("name") || "").trim();
     const about = String(formData.get("about") || "").trim();
+    const imageFile = formData.get("image") as File | null;
 
     if (!email) return;
 
+    // Convert image to base64 if provided
+    let imageUrl: string | null = null;
+    if (imageFile && imageFile.size > 0) {
+      const bytes = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64 = buffer.toString("base64");
+      imageUrl = `data:${imageFile.type};base64,${base64}`;
+    }
+
+    // Build update data object
+    const updateData: any = {
+      name: name || null,
+      about: about || null,
+    };
+
+    // Only update imageUrl if a new image was uploaded
+    if (imageUrl) {
+      updateData.imageUrl = imageUrl;
+    }
+
     await prisma.user.update({
       where: { email: email.toLowerCase() },
-      data: {
-        name: name || null,
-        about: about || null,
-      },
+      data: updateData,
     });
 
     revalidatePath("/members/profile");
+    revalidatePath("/");
   }
 
   // shared input style (prevents overflow)
@@ -76,6 +95,59 @@ export default async function ProfilePage() {
 
       <form action={saveProfile} className="grid gap-4" style={{ gridTemplateColumns: "1fr" }}>
         <input type="hidden" name="email" value={me?.email || ""} />
+
+        {/* Profile Picture */}
+        <div className="tile" style={{ padding: "1rem" }}>
+          <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Profile picture</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "9999px",
+                overflow: "hidden",
+                border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                color: "var(--color-text)",
+                fontWeight: 600,
+                flexShrink: 0,
+              }}
+            >
+              {me?.imageUrl ? (
+                <img
+                  src={me.imageUrl}
+                  alt="Profile"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span style={{ fontSize: "1.5rem" }}>
+                  {me?.name
+                    ? me.name
+                        .trim()
+                        .split(/\s+/)
+                        .slice(0, 2)
+                        .map((p) => p[0]?.toUpperCase() ?? "")
+                        .join("") || "??"
+                    : "??"}
+                </span>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <input
+                type="file"
+                name="image"
+                accept="image/*"
+                style={inputStyle}
+              />
+              <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
+                Upload a new profile picture (JPG, PNG, etc.)
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Name */}
         <div className="tile" style={{ padding: "1rem" }}>

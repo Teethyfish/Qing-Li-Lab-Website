@@ -27,7 +27,13 @@ model User {
   updatedAt    DateTime @updatedAt
   about        String?
   slug         String?   @unique
+  imageUrl     String?
   mustResetPassword Boolean @default(false)
+}
+
+model AppConfig {
+  key   String @id
+  value String
 }
 
 model PendingInvite {

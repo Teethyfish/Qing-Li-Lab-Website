@@ -120,11 +120,14 @@ const WARNING_FIELDS: Field[] = [
   { var: "--btn-warning-border-color", label: "Warning Border Color", type: "color" },
 ];
 
-const NAVBAR_FIELDS: Field[] = [
+const NAVBAR_COLOR_FIELDS: Field[] = [
   { var: "--nav-bg", label: "Navbar Background", type: "color" },
-  { var: "--nav-opacity", label: "Navbar Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
   { var: "--nav-text", label: "Navbar Text", type: "color" },
   { var: "--nav-border", label: "Navbar Border", type: "color" },
+];
+
+const NAVBAR_SIZE_FIELDS: Field[] = [
+  { var: "--nav-opacity", label: "Navbar Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
   { var: "--nav-height", label: "Navbar Height", type: "range", min: 40, max: 80, step: 2, unit: "px" },
   { var: "--nav-blur", label: "Backdrop Blur", type: "range", min: 0, max: 20, step: 1, unit: "px" },
 ];
@@ -147,7 +150,8 @@ export default async function ThemeEditorPage() {
     const all = [
       ...COLOR_FIELDS,
       ...TILE_FIELDS,
-      ...NAVBAR_FIELDS,
+      ...NAVBAR_COLOR_FIELDS,
+      ...NAVBAR_SIZE_FIELDS,
       ...SHAPE_FIELDS,
       ...BASIC_FIELDS,
       ...MUTED_FIELDS,
@@ -330,16 +334,17 @@ export default async function ThemeEditorPage() {
         {/* Navbar */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Navbar</h2>
-          <div className="tile" style={{ padding: "1rem" }}>
+          <div className="tile" style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {/* Row 1: Colors */}
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {NAVBAR_FIELDS.map((f) => (
-                f.type === "color" ? (
-                  <CompactColorField key={f.var} {...f} />
-                ) : f.type === "range" ? (
-                  <CompactSliderField key={f.var} {...f} />
-                ) : (
-                  <CompactTextField key={f.var} {...f} />
-                )
+              {NAVBAR_COLOR_FIELDS.map((f) => (
+                <CompactColorField key={f.var} {...f} />
+              ))}
+            </div>
+            {/* Row 2: Sizes */}
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {NAVBAR_SIZE_FIELDS.map((f) => (
+                <CompactSliderField key={f.var} {...f} />
               ))}
             </div>
           </div>

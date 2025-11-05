@@ -1,14 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
+function initials(name?: string | null) {
+  if (!name) return "??";
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "??";
+}
+
 type Props = {
   isAuthed: boolean;
   isAdmin: boolean;
-  email?: string | null;
+  userSlug?: string | null;
+  userImageUrl?: string | null;
+  userName?: string | null;
 };
 
 function NavItem({
@@ -40,14 +49,14 @@ function NavItem({
   );
 }
 
-export default function NavBar({ isAuthed, isAdmin, email }: Props) {
+export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, userName }: Props) {
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: "Home", show: true },
     { href: "/members", label: "Members", show: isAuthed },
-    { href: "/members/profile", label: "Profile", show: isAuthed },
+    { href: userSlug ? `/people/${userSlug}` : "/members/profile", label: "Profile", show: isAuthed },
     { href: "/members/approval", label: "Approval", show: isAdmin },
     { href: "/members/users", label: "Users", show: isAdmin },
     { href: "/members/theme", label: "Theme", show: isAdmin },
@@ -55,8 +64,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
     { href: "/login", label: "Login", show: !isAuthed },
   ];
 
-  const isCurrent = (href: string) =>
-    pathname === href || (href !== "/" && pathname?.startsWith(href));
+  const isCurrent = (href: string) => pathname === href;
 
   return (
     <nav
@@ -118,18 +126,35 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isAuthed ? (
               <>
-                {email && (
-                  <span
-                    style={{
-                      fontSize: 13,
-                      color: "var(--muted)",
-                      display: "inline-block",
-                      marginRight: 4,
-                    }}
-                  >
-                    {email}
-                  </span>
-                )}
+                {/* Profile picture */}
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "9999px",
+                    overflow: "hidden",
+                    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                    color: "var(--color-text)",
+                    fontWeight: 600,
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  {userImageUrl ? (
+                    <Image
+                      src={userImageUrl}
+                      alt={userName || "User"}
+                      width={36}
+                      height={36}
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    initials(userName)
+                  )}
+                </div>
                 <button
                   onClick={async () => {
                     setBusy(true);
