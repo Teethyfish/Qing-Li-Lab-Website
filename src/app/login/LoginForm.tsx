@@ -27,56 +27,74 @@ export default function LoginForm() {
     setError("Incorrect email or password.");
   }
 
-  return (
-    <main className="max-w-md space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Login</h1>
-        <p className="text-gray-600">Members sign in below.</p>
-      </header>
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.55rem 0.7rem",
+    borderRadius: 10,
+    border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+    background: "var(--color-card)",
+    boxSizing: "border-box",
+  };
 
-      <section className="rounded border bg-white p-6 shadow-sm">
-        <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Email</label>
+  return (
+    <main className="mx-auto max-w-md" style={{ paddingTop: "2rem" }}>
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>Login</h1>
+        <p className="muted">Members sign in below.</p>
+      </div>
+
+      <div className="tile" style={{ padding: "1.5rem" }}>
+        <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
+              style={inputStyle}
               placeholder="you@hawaii.edu"
             />
           </div>
 
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Password</label>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
+              style={inputStyle}
               placeholder="••••••••"
             />
           </div>
 
           {status === "error" && (
-            <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div
+              style={{
+                padding: "0.75rem",
+                borderRadius: "8px",
+                border: "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#b91c1c",
+                fontSize: "0.875rem",
+              }}
+            >
               {error}
             </div>
           )}
 
-          <div className="pt-2">
+          <div style={{ paddingTop: "0.5rem" }}>
             <button
               type="submit"
               disabled={status === "loading"}
-              className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-basic"
             >
               {status === "loading" ? "Signing in…" : "Sign in"}
             </button>
           </div>
         </form>
-      </section>
+      </div>
     </main>
   );
 }

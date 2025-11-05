@@ -62,130 +62,153 @@ export default function RegisterForm() {
 
   if (status === "done") {
     return (
-      <main className="max-w-lg space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold">Registration submitted!</h1>
-          <p className="text-gray-600">
+      <main className="mx-auto max-w-lg" style={{ paddingTop: "2rem" }}>
+        <div style={{ marginBottom: "1.5rem" }}>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>
+            Registration submitted!
+          </h1>
+          <p className="muted">
             Thank you, {name}. Your request has been sent to the PI for approval.
           </p>
-        </header>
+        </div>
 
-        <section className="rounded border bg-white p-6 shadow-sm space-y-3">
-          <p className="text-sm text-gray-600">
-            You’ll receive an email with a temporary password once approved.
+        <div className="tile" style={{ padding: "1.5rem", display: "grid", gap: "1rem" }}>
+          <p className="muted" style={{ fontSize: "0.875rem" }}>
+            You'll receive an email with a temporary password once approved.
           </p>
-          <div className="flex gap-3">
-            <Link
-              href="/"
-              className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            <Link href="/" className="btn btn-basic">
               Back to Home
             </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center rounded border px-4 py-2 hover:bg-gray-50"
-            >
+            <Link href="/login" className="btn btn-muted">
               Go to Login
             </Link>
           </div>
-        </section>
+        </div>
       </main>
     );
   }
 
-  return (
-    <main className="max-w-lg space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Lab Registration</h1>
-        <p className="text-gray-600">Request an account to access the members area.</p>
-      </header>
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.55rem 0.7rem",
+    borderRadius: 10,
+    border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+    background: "var(--color-card)",
+    boxSizing: "border-box",
+  };
 
-      <section className="rounded border bg-white p-6 shadow-sm">
-        <form onSubmit={onSubmit} className="grid gap-4">
+  return (
+    <main className="mx-auto max-w-lg" style={{ paddingTop: "2rem" }}>
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>
+          Lab Registration
+        </h1>
+        <p className="muted">Request an account to access the members area.</p>
+      </div>
+
+      <div className="tile" style={{ padding: "1.5rem" }}>
+        <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
           {/* Full name */}
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Full name</label>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Full name</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
+              style={inputStyle}
               placeholder="e.g., Lynn Zhang"
             />
           </div>
 
           {/* Email */}
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Email</label>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
+              style={inputStyle}
               placeholder="name@hawaii.edu"
             />
-            <p className="text-xs text-gray-500">
+            <p className="muted" style={{ fontSize: "0.75rem" }}>
               Use an email you can access; approval details will be sent there.
             </p>
           </div>
 
           {/* Slug */}
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Desired profile URL (slug)</label>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Desired profile URL (slug)</label>
             <input
               type="text"
               required
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
+              style={inputStyle}
               placeholder="e.g., lynn-zhang"
             />
-            <div className="text-xs text-gray-500">
+            <div className="muted" style={{ fontSize: "0.75rem" }}>
               Preview:&nbsp;
-              <code className="rounded bg-gray-100 px-1 py-0.5">
+              <code
+                style={{
+                  padding: "0.125rem 0.25rem",
+                  borderRadius: "4px",
+                  background: "color-mix(in oklab, var(--color-text) 8%, transparent)",
+                  fontFamily: "monospace",
+                }}
+              >
                 {cleanedSlug || "(invalid)"}
               </code>
             </div>
           </div>
 
           {/* Note to PI */}
-          <div className="grid gap-1.5">
-            <label className="text-sm font-medium">Note to PI (optional)</label>
+          <div style={{ display: "grid", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Note to PI (optional)</label>
             <textarea
               rows={4}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full rounded border p-2 outline-none focus:ring focus:ring-blue-200"
-              placeholder="Share your interests or why you’re joining…"
+              style={inputStyle}
+              placeholder="Share your interests or why you're joining…"
             />
           </div>
 
           {/* Error */}
           {status === "error" && (
-            <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div
+              style={{
+                padding: "0.75rem",
+                borderRadius: "8px",
+                border: "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#b91c1c",
+                fontSize: "0.875rem",
+              }}
+            >
               {error}
             </div>
           )}
 
           {/* Submit */}
-          <div className="flex items-center gap-3 pt-2">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", paddingTop: "0.5rem" }}>
             <button
               type="submit"
               disabled={status === "sending" || !slugLooksValid}
-              className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn btn-basic"
             >
               {status === "sending" ? "Submitting…" : "Submit"}
             </button>
             {!slugLooksValid && (
-              <span className="text-xs text-gray-500">
+              <span className="muted" style={{ fontSize: "0.75rem" }}>
                 Slug must be at least 2 characters (letters/numbers/dashes).
               </span>
             )}
           </div>
         </form>
-      </section>
+      </div>
     </main>
   );
 }
