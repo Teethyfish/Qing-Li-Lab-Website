@@ -22,7 +22,7 @@ export default async function PersonPage({ params }: Props) {
   if (!user) notFound();
 
   return (
-    <main className="mx-auto max-w-5xl p-6">
+    <main className="mx-auto max-w-5xl p-6" style={{ paddingTop: "2rem" }}>
       <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: "2rem", alignItems: "start" }}>
         {/* Left: Profile picture + contact info */}
         <div className="tile" style={{ padding: "1.5rem" }}>
