@@ -47,8 +47,10 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: "Home", show: true },
     { href: "/members", label: "Members", show: isAuthed },
+    { href: "/members/profile", label: "Profile", show: isAuthed },
     { href: "/members/approval", label: "Approval", show: isAdmin },
     { href: "/members/users", label: "Users", show: isAdmin },
+    { href: "/members/theme", label: "Theme", show: isAdmin },
     { href: "/register", label: "Register", show: !isAuthed },
     { href: "/login", label: "Login", show: !isAuthed },
   ];
@@ -71,7 +73,6 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
       <div
         style={{
           margin: "0 auto",
-          maxWidth: 1120,
           padding: "0 16px",
         }}
       >
