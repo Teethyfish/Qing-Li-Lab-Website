@@ -52,11 +52,11 @@ function NavItem({
 export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, userName }: Props) {
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: "Home", show: true },
     { href: "/members", label: "Members", show: isAuthed },
-    { href: userSlug ? `/people/${userSlug}` : "/members/profile", label: "Profile", show: isAuthed },
     { href: "/members/approval", label: "Approval", show: isAdmin },
     { href: "/members/users", label: "Users", show: isAdmin },
     { href: "/members/theme", label: "Theme", show: isAdmin },
@@ -126,33 +126,131 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isAuthed ? (
               <>
-                {/* Profile picture */}
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "9999px",
-                    overflow: "hidden",
-                    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
-                    color: "var(--color-text)",
-                    fontWeight: 600,
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  {userImageUrl ? (
-                    <Image
-                      src={userImageUrl}
-                      alt={userName || "User"}
-                      width={36}
-                      height={36}
-                      style={{ objectFit: "cover" }}
-                    />
-                  ) : (
-                    initials(userName)
+                {/* Profile picture with dropdown */}
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "9999px",
+                      overflow: "hidden",
+                      border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "color-mix(in oklab, var(--color-text) 6%, #f3f4f6)",
+                      color: "var(--color-text)",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    {userImageUrl ? (
+                      <Image
+                        src={userImageUrl}
+                        alt={userName || "User"}
+                        width={36}
+                        height={36}
+                        style={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      initials(userName)
+                    )}
+                  </button>
+
+                  {/* Dropdown menu */}
+                  {dropdownOpen && (
+                    <>
+                      {/* Backdrop to close dropdown */}
+                      <div
+                        onClick={() => setDropdownOpen(false)}
+                        style={{
+                          position: "fixed",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 40,
+                        }}
+                      />
+                      {/* Dropdown content */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 8px)",
+                          right: 0,
+                          zIndex: 50,
+                          minWidth: 180,
+                          background: "var(--color-card, #ffffff)",
+                          border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) 15%, transparent)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Link
+                          href={userSlug ? `/people/${userSlug}` : "/members"}
+                          onClick={() => setDropdownOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.75rem 1rem",
+                            textDecoration: "none",
+                            color: "var(--color-text)",
+                            fontSize: "0.9rem",
+                            borderBottom: "1px solid color-mix(in oklab, var(--color-text) 8%, transparent)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "color-mix(in oklab, var(--color-text) 6%, transparent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          View Profile
+                        </Link>
+                        <Link
+                          href="/members/profile"
+                          onClick={() => setDropdownOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.75rem 1rem",
+                            textDecoration: "none",
+                            color: "var(--color-text)",
+                            fontSize: "0.9rem",
+                            borderBottom: "1px solid color-mix(in oklab, var(--color-text) 8%, transparent)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "color-mix(in oklab, var(--color-text) 6%, transparent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          Edit Profile
+                        </Link>
+                        <Link
+                          href="/members/settings"
+                          onClick={() => setDropdownOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.75rem 1rem",
+                            textDecoration: "none",
+                            color: "var(--color-muted)",
+                            fontSize: "0.9rem",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "color-mix(in oklab, var(--color-text) 6%, transparent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          Settings
+                        </Link>
+                      </div>
+                    </>
                   )}
                 </div>
                 <button
