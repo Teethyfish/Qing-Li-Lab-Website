@@ -45,9 +45,9 @@ const DEFAULTS: KV = {
   "--btn-weight": "600",
 
   // Basic (using primary settings)
-  "--btn-basic-bg": "oklab(0.35 0 0)",
+  "--btn-basic-bg": "#111827",
   "--btn-basic-fg": "#ffffff",
-  "--btn-basic-hover-bg": "oklab(0.30 0 0)",
+  "--btn-basic-hover-bg": "#0a0f1a",
 
   // Muted
   "--btn-muted-bg": "#f5f5f5",
@@ -200,6 +200,35 @@ export default async function ThemeEditorPage() {
     );
   };
 
+  // Compact text input for other settings (no tile wrapper)
+  const CompactTextField = (f: Field) => {
+    const inputStyle: React.CSSProperties = {
+      width: "100%",
+      padding: "0.55rem 0.7rem",
+      borderRadius: 8,
+      border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
+      background: "var(--color-card)",
+      fontSize: "0.9rem",
+    };
+    return (
+      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "180px" }}>
+        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{f.label}</div>
+        {"help" in f && f.help ? (
+          <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 2 }}>
+            {f.help}
+          </div>
+        ) : null}
+        <input
+          type="text"
+          name={f.var}
+          defaultValue={theme[f.var] ?? ""}
+          placeholder={("placeholder" in f && f.placeholder) || ""}
+          style={inputStyle}
+        />
+      </label>
+    );
+  };
+
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
@@ -213,30 +242,36 @@ export default async function ThemeEditorPage() {
         {/* Colors */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Site colors</h2>
-          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-            {COLOR_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {COLOR_FIELDS.map((f) => (
+                <CompactColorField key={f.var} {...f} />
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Tiles/Cards */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Cards & Tiles</h2>
-          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-            {TILE_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {TILE_FIELDS.map((f) => (
+                <CompactTextField key={f.var} {...f} />
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Buttons: shape */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Buttons — shape</h2>
-          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-            {SHAPE_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {SHAPE_FIELDS.map((f) => (
+                <CompactTextField key={f.var} {...f} />
+              ))}
+            </div>
           </div>
         </section>
 
