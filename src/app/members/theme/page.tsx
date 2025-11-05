@@ -33,15 +33,15 @@ const DEFAULTS: KV = {
   "--color-card": "#ffffff",
 
   // === Cards/Tiles ===
-  "--tile-radius": "12px",
-  "--tile-padding": "1rem",
-  "--tile-border-opacity": "12%",
-  "--tile-shadow-opacity": "8%",
+  "--tile-radius": "12",
+  "--tile-padding": "1",
+  "--tile-border-opacity": "12",
+  "--tile-shadow-opacity": "8",
 
   // === Buttons ===
-  "--btn-radius": "10px",
-  "--btn-py": "0.55rem",
-  "--btn-px": "0.9rem",
+  "--btn-radius": "10",
+  "--btn-py": "0.55",
+  "--btn-px": "0.9",
   "--btn-weight": "600",
 
   // Basic (using primary settings)
@@ -63,17 +63,19 @@ const DEFAULTS: KV = {
   "--btn-warning-border-color": "#f59e0b",
 
   // === Navbar ===
-  "--nav-bg": "color-mix(in oklab, #ffffff 90%, transparent)",
+  "--nav-bg": "#ffffff",
+  "--nav-opacity": "90",
   "--nav-text": "#111827",
   "--nav-border": "#e5e7eb",
-  "--nav-height": "56px",
-  "--nav-blur": "6px",
+  "--nav-height": "56",
+  "--nav-blur": "6",
 };
 
 type Field =
   | { var: string; label: string; type: "color"; help?: string }
   | { var: string; label: string; type: "text"; help?: string; placeholder?: string }
-  | { var: string; label: string; type: "number"; help?: string; step?: string; min?: string };
+  | { var: string; label: string; type: "number"; help?: string; step?: string; min?: string }
+  | { var: string; label: string; type: "range"; min: number; max: number; step: number; unit: string; help?: string };
 
 const COLOR_FIELDS: Field[] = [
   { var: "--color-bg", label: "Background", type: "color" },
@@ -84,17 +86,17 @@ const COLOR_FIELDS: Field[] = [
 ];
 
 const TILE_FIELDS: Field[] = [
-  { var: "--tile-radius", label: "Tile Border Radius", type: "text", help: "e.g. 12px" },
-  { var: "--tile-padding", label: "Tile Padding", type: "text", help: "e.g. 1rem" },
-  { var: "--tile-border-opacity", label: "Tile Border Opacity", type: "text", help: "e.g. 12%" },
-  { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "text", help: "e.g. 8%" },
+  { var: "--tile-radius", label: "Tile Border Radius", type: "range", min: 0, max: 24, step: 1, unit: "px" },
+  { var: "--tile-padding", label: "Tile Padding", type: "range", min: 0.25, max: 3, step: 0.25, unit: "rem" },
+  { var: "--tile-border-opacity", label: "Tile Border Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
+  { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
 ];
 
 const SHAPE_FIELDS: Field[] = [
-  { var: "--btn-radius", label: "Button Radius", type: "text", help: "e.g. 10px" },
-  { var: "--btn-py", label: "Button Padding Y", type: "text", help: "e.g. 0.55rem" },
-  { var: "--btn-px", label: "Button Padding X", type: "text", help: "e.g. 0.9rem" },
-  { var: "--btn-weight", label: "Button Font Weight", type: "text", help: "e.g. 600" },
+  { var: "--btn-radius", label: "Button Radius", type: "range", min: 0, max: 20, step: 1, unit: "px" },
+  { var: "--btn-py", label: "Button Padding Y", type: "range", min: 0.25, max: 1.5, step: 0.05, unit: "rem" },
+  { var: "--btn-px", label: "Button Padding X", type: "range", min: 0.25, max: 2, step: 0.05, unit: "rem" },
+  { var: "--btn-weight", label: "Button Font Weight", type: "range", min: 300, max: 900, step: 100, unit: "" },
 ];
 
 const BASIC_FIELDS: Field[] = [
@@ -119,11 +121,12 @@ const WARNING_FIELDS: Field[] = [
 ];
 
 const NAVBAR_FIELDS: Field[] = [
-  { var: "--nav-bg", label: "Navbar Background", type: "text", help: "e.g. #ffffff or color-mix(...)" },
+  { var: "--nav-bg", label: "Navbar Background", type: "color" },
+  { var: "--nav-opacity", label: "Navbar Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
   { var: "--nav-text", label: "Navbar Text", type: "color" },
   { var: "--nav-border", label: "Navbar Border", type: "color" },
-  { var: "--nav-height", label: "Navbar Height", type: "text", help: "e.g. 56px" },
-  { var: "--nav-blur", label: "Backdrop Blur", type: "text", help: "e.g. 6px" },
+  { var: "--nav-height", label: "Navbar Height", type: "range", min: 40, max: 80, step: 2, unit: "px" },
+  { var: "--nav-blur", label: "Backdrop Blur", type: "range", min: 0, max: 20, step: 1, unit: "px" },
 ];
 
 export default async function ThemeEditorPage() {
@@ -262,6 +265,30 @@ export default async function ThemeEditorPage() {
     );
   };
 
+  // Compact slider for numeric settings with units
+  const CompactSliderField = (f: Field & { type: "range" }) => {
+    const currentValue = parseFloat(theme[f.var] ?? String(f.min));
+    return (
+      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
+        <div style={{ fontSize: "0.9rem", fontWeight: 500, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{f.label}</span>
+          <span style={{ fontSize: "0.85rem", color: "var(--color-muted)", fontWeight: 400 }}>
+            {currentValue}{f.unit}
+          </span>
+        </div>
+        <input
+          type="range"
+          name={f.var}
+          min={f.min}
+          max={f.max}
+          step={f.step}
+          defaultValue={currentValue}
+          style={{ width: "100%", cursor: "pointer" }}
+        />
+      </label>
+    );
+  };
+
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
@@ -290,7 +317,11 @@ export default async function ThemeEditorPage() {
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {TILE_FIELDS.map((f) => (
-                <CompactTextField key={f.var} {...f} />
+                f.type === "range" ? (
+                  <CompactSliderField key={f.var} {...f} />
+                ) : (
+                  <CompactTextField key={f.var} {...f} />
+                )
               ))}
             </div>
           </div>
@@ -304,6 +335,8 @@ export default async function ThemeEditorPage() {
               {NAVBAR_FIELDS.map((f) => (
                 f.type === "color" ? (
                   <CompactColorField key={f.var} {...f} />
+                ) : f.type === "range" ? (
+                  <CompactSliderField key={f.var} {...f} />
                 ) : (
                   <CompactTextField key={f.var} {...f} />
                 )
@@ -318,7 +351,11 @@ export default async function ThemeEditorPage() {
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {SHAPE_FIELDS.map((f) => (
-                <CompactTextField key={f.var} {...f} />
+                f.type === "range" ? (
+                  <CompactSliderField key={f.var} {...f} />
+                ) : (
+                  <CompactTextField key={f.var} {...f} />
+                )
               ))}
             </div>
           </div>

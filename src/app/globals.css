@@ -22,10 +22,10 @@ a:hover { text-decoration: underline; }
 /* Cards */
 .card {
   background: var(--color-card, #fff);
-  border: 1px solid color-mix(in oklab, var(--color-text) var(--tile-border-opacity, 12%), transparent);
-  border-radius: var(--tile-radius, 12px);
-  padding: var(--tile-padding, 1rem);
-  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) var(--tile-shadow-opacity, 8%), transparent);
+  border: 1px solid color-mix(in oklab, var(--color-text) calc(var(--tile-border-opacity, 12) * 1%), transparent);
+  border-radius: calc(var(--tile-radius, 12) * 1px);
+  padding: calc(var(--tile-padding, 1) * 1rem);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 8) * 1%), transparent);
 }
 
 
@@ -65,10 +65,10 @@ a:hover { text-decoration: underline; }
   isolation: isolate;        /* prevent pseudo/background bleed from ancestors */
   overflow: clip;            /* keep stray visuals inside */
   background: var(--color-card);
-  border: 1px solid color-mix(in oklab, var(--color-text) var(--tile-border-opacity, 12%), transparent);
-  border-radius: var(--tile-radius, 12px);
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) var(--tile-shadow-opacity, 8%), transparent);
-  padding: var(--tile-padding, 1rem);
+  border: 1px solid color-mix(in oklab, var(--color-text) calc(var(--tile-border-opacity, 12) * 1%), transparent);
+  border-radius: calc(var(--tile-radius, 12) * 1px);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 8) * 1%), transparent);
+  padding: calc(var(--tile-padding, 1) * 1rem);
   text-decoration: none;
   color: inherit;
   transition: background 120ms ease;
@@ -104,8 +104,8 @@ input[type="button"] {
   align-items: center !important;
   justify-content: center !important;
 
-  padding: var(--btn-py, 0.55rem) var(--btn-px, 0.9rem) !important;
-  border-radius: var(--btn-radius, 10px) !important;
+  padding: calc(var(--btn-py, 0.55) * 1rem) calc(var(--btn-px, 0.9) * 1rem) !important;
+  border-radius: calc(var(--btn-radius, 10) * 1px) !important;
   border: 1px solid
     color-mix(in oklab, var(--color-text, #111) 20%, transparent) !important;
 

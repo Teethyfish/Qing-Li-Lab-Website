@@ -64,8 +64,8 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
         position: "sticky",
         top: 0,
         zIndex: 40,
-        backdropFilter: `saturate(1.2) blur(var(--nav-blur, 6px))`,
-        background: "var(--nav-bg, color-mix(in oklab, #ffffff 90%, transparent))",
+        backdropFilter: `saturate(1.2) blur(calc(var(--nav-blur, 6) * 1px))`,
+        background: "color-mix(in oklab, var(--nav-bg, #ffffff) calc(var(--nav-opacity, 90) * 1%), transparent)",
         borderBottom: "1px solid var(--nav-border, #e5e7eb)",
       }}
       aria-label="Primary"
@@ -78,7 +78,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
       >
         <div
           style={{
-            height: "var(--nav-height, 56px)",
+            height: `calc(var(--nav-height, 56) * 1px)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
