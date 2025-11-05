@@ -93,7 +93,9 @@ export default function ProfilePictureUpload({ currentImageUrl, userName, onImag
             position: "relative",
             cursor: previewUrl ? "pointer" : "default",
             padding: 0,
-          }}
+            transition: "none",
+          } as React.CSSProperties}
+          className="profile-pic-button"
         >
           {previewUrl ? (
             <>

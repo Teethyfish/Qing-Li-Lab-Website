@@ -164,5 +164,22 @@ input[type="button"]:disabled {
   background: var(--btn-warning-hover-bg, #d97706) !important;
 }
 
-/* Ensure links styled as buttons don’t turn browser-blue */
+/* Ensure links styled as buttons don't turn browser-blue */
 a.btn { color: var(--_fg) !important; }
+
+/* Exception: profile picture button should not get button styles */
+button.profile-pic-button {
+  background: color-mix(in oklab, var(--color-text) 6%, #f3f4f6) !important;
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent) !important;
+  padding: 0 !important;
+  border-radius: 9999px !important;
+  color: var(--color-text) !important;
+}
+button.profile-pic-button:hover {
+  background: color-mix(in oklab, var(--color-text) 6%, #f3f4f6) !important;
+  border-color: color-mix(in oklab, var(--color-text) 12%, transparent) !important;
+}
+button.profile-pic-button:disabled {
+  opacity: 1 !important;
+  cursor: default !important;
+}
