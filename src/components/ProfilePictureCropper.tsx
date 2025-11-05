@@ -82,78 +82,100 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 100,
-        background: "rgba(0, 0, 0, 0.9)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* Cropper area */}
-      <div style={{ position: "relative", flex: 1 }}>
-        <Cropper
-          image={imageSrc}
-          crop={crop}
-          zoom={zoom}
-          aspect={1}
-          cropShape="round"
-          showGrid={false}
-          onCropChange={setCrop}
-          onZoomChange={setZoom}
-          onCropComplete={onCropComplete}
-        />
-      </div>
-
-      {/* Controls */}
+    <>
+      {/* Backdrop */}
       <div
+        onClick={onCancel}
         style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9998,
+          background: "rgba(0, 0, 0, 0.7)",
+        }}
+      />
+
+      {/* Popup tile */}
+      <div
+        className="tile"
+        style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          width: "90vw",
+          maxWidth: "600px",
+          maxHeight: "90vh",
           padding: "1.5rem",
-          background: "var(--color-bg)",
-          borderTop: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
         }}
       >
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          {/* Zoom slider */}
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem", fontWeight: 500 }}>
-              Zoom
-            </label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              style={{ width: "100%", cursor: "pointer" }}
-            />
-          </div>
+        <h2 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
+          Crop Profile Picture
+        </h2>
 
-          {/* Action buttons */}
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-            <button
-              onClick={onCancel}
-              disabled={saving}
-              className="btn btn-muted"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="btn btn-basic"
-            >
-              {saving ? "Saving..." : "Save Crop"}
-            </button>
-          </div>
+        {/* Cropper area */}
+        <div
+          style={{
+            position: "relative",
+            height: "400px",
+            background: "#000",
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            aspect={1}
+            cropShape="round"
+            showGrid={false}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onCropComplete={onCropComplete}
+          />
+        </div>
+
+        {/* Zoom slider */}
+        <div>
+          <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem", fontWeight: 500 }}>
+            Zoom
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={3}
+            step={0.1}
+            value={zoom}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            style={{ width: "100%", cursor: "pointer" }}
+          />
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            disabled={saving}
+            className="btn btn-muted"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn btn-basic"
+          >
+            {saving ? "Saving..." : "Save Crop"}
+          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
