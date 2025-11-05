@@ -48,6 +48,7 @@ const DEFAULTS: KV = {
   "--btn-basic-bg": "#111827",
   "--btn-basic-fg": "#ffffff",
   "--btn-basic-hover-bg": "#0a0f1a",
+  "--btn-basic-border-color": "#111827",
 
   // Muted
   "--btn-muted-bg": "#f5f5f5",
@@ -59,6 +60,7 @@ const DEFAULTS: KV = {
   "--btn-warning-bg": "#f59e0b",
   "--btn-warning-fg": "#ffffff",
   "--btn-warning-hover-bg": "#d97706",
+  "--btn-warning-border-color": "#f59e0b",
 };
 
 type Field =
@@ -92,6 +94,7 @@ const BASIC_FIELDS: Field[] = [
   { var: "--btn-basic-bg", label: "Basic BG", type: "color" },
   { var: "--btn-basic-fg", label: "Basic FG", type: "color" },
   { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "color" },
+  { var: "--btn-basic-border-color", label: "Basic Border Color", type: "color" },
 ];
 
 const MUTED_FIELDS: Field[] = [
@@ -105,6 +108,7 @@ const WARNING_FIELDS: Field[] = [
   { var: "--btn-warning-bg", label: "Warning BG", type: "color" },
   { var: "--btn-warning-fg", label: "Warning FG", type: "color" },
   { var: "--btn-warning-hover-bg", label: "Warning Hover BG", type: "color" },
+  { var: "--btn-warning-border-color", label: "Warning Border Color", type: "color" },
 ];
 
 export default async function ThemeEditorPage() {
@@ -209,9 +213,10 @@ export default async function ThemeEditorPage() {
       border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
       background: "var(--color-card)",
       fontSize: "0.9rem",
+      boxSizing: "border-box",
     };
     return (
-      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "180px" }}>
+      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
         <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{f.label}</div>
         {"help" in f && f.help ? (
           <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 2 }}>
