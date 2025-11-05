@@ -38,21 +38,21 @@ const DEFAULTS: KV = {
   "--btn-px": "0.9rem",
   "--btn-weight": "600",
 
-  // primary
-  "--btn-primary-bg": "oklab(0.35 0 0)",
-  "--btn-primary-fg": "#ffffff",
-  "--btn-primary-hover-bg": "oklab(0.30 0 0)",
+  // Basic (using primary settings)
+  "--btn-basic-bg": "oklab(0.35 0 0)",
+  "--btn-basic-fg": "#ffffff",
+  "--btn-basic-hover-bg": "oklab(0.30 0 0)",
 
-  // accent
-  "--btn-accent-bg": "#2563eb",
-  "--btn-accent-fg": "#ffffff",
-  "--btn-accent-hover-bg": "#1e4fd1",
-
-  // muted
+  // Muted
   "--btn-muted-bg": "#f5f5f5",
   "--btn-muted-fg": "#111827",
   "--btn-muted-hover-bg": "#ededed",
   "--btn-muted-border": "1px solid #e5e7eb",
+
+  // Warning
+  "--btn-warning-bg": "#f59e0b",
+  "--btn-warning-fg": "#ffffff",
+  "--btn-warning-hover-bg": "#d97706",
 };
 
 type Field =
@@ -75,16 +75,10 @@ const SHAPE_FIELDS: Field[] = [
   { var: "--btn-weight", label: "Button Font Weight", type: "text", help: "e.g. 600" },
 ];
 
-const PRIMARY_FIELDS: Field[] = [
-  { var: "--btn-primary-bg", label: "Primary BG", type: "text", help: "CSS color (e.g. #111827)" },
-  { var: "--btn-primary-fg", label: "Primary FG", type: "color" },
-  { var: "--btn-primary-hover-bg", label: "Primary Hover BG", type: "text", help: "CSS color" },
-];
-
-const ACCENT_FIELDS: Field[] = [
-  { var: "--btn-accent-bg", label: "Accent BG", type: "color" },
-  { var: "--btn-accent-fg", label: "Accent FG", type: "color" },
-  { var: "--btn-accent-hover-bg", label: "Accent Hover BG", type: "color" },
+const BASIC_FIELDS: Field[] = [
+  { var: "--btn-basic-bg", label: "Basic BG", type: "text", help: "CSS color (e.g. #111827)" },
+  { var: "--btn-basic-fg", label: "Basic FG", type: "color" },
+  { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "text", help: "CSS color" },
 ];
 
 const MUTED_FIELDS: Field[] = [
@@ -92,6 +86,12 @@ const MUTED_FIELDS: Field[] = [
   { var: "--btn-muted-fg", label: "Muted FG", type: "color" },
   { var: "--btn-muted-hover-bg", label: "Muted Hover BG", type: "color" },
   { var: "--btn-muted-border", label: "Muted Border", type: "text", help: `e.g. "1px solid #e5e7eb"` },
+];
+
+const WARNING_FIELDS: Field[] = [
+  { var: "--btn-warning-bg", label: "Warning BG", type: "color" },
+  { var: "--btn-warning-fg", label: "Warning FG", type: "color" },
+  { var: "--btn-warning-hover-bg", label: "Warning Hover BG", type: "color" },
 ];
 
 export default async function ThemeEditorPage() {
@@ -112,9 +112,9 @@ export default async function ThemeEditorPage() {
     const all = [
       ...COLOR_FIELDS,
       ...SHAPE_FIELDS,
-      ...PRIMARY_FIELDS,
-      ...ACCENT_FIELDS,
+      ...BASIC_FIELDS,
       ...MUTED_FIELDS,
+      ...WARNING_FIELDS,
     ];
     for (const f of all) {
       const raw = (formData.get(f.var) ?? "").toString().trim();
@@ -205,36 +205,33 @@ export default async function ThemeEditorPage() {
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Buttons — colors</h2>
 
-          {/* Preview — use buttons (no onClick) so it’s legal in a Server Component */}
+          {/* Preview — use buttons (no onClick) so it's legal in a Server Component */}
           <div className="tile" style={{ padding: "1rem" }}>
             <div className="muted" style={{ marginBottom: 8, fontSize: "0.9rem" }}>
               Preview
             </div>
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button className="btn btn-primary" type="button">Primary</button>
-              <button className="btn btn-accent"  type="button">Accent</button>
-              <button className="btn btn-muted"   type="button">Muted</button>
-              <button className="btn btn-primary sm" type="button">Small</button>
-              <button className="btn btn-accent  lg" type="button">Large</button>
-              <button className="btn btn-muted  icon" type="button" aria-label="icon">•</button>
+              <button className="btn btn-basic" type="button">Basic</button>
+              <button className="btn btn-muted" type="button">Muted</button>
+              <button className="btn btn-warning" type="button">Warning</button>
             </div>
           </div>
 
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-            {PRIMARY_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
-            {ACCENT_FIELDS.map((f) => (
+            {BASIC_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
             {MUTED_FIELDS.map((f) => (
+              <FieldRow key={f.var} {...f} />
+            ))}
+            {WARNING_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
           </div>
         </section>
 
         <div>
-          <button className="btn btn-accent" type="submit">Save theme</button>
+          <button className="btn btn-basic" type="submit">Save theme</button>
         </div>
       </form>
     </main>

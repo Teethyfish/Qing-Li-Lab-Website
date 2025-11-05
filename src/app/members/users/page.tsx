@@ -161,7 +161,7 @@ export default async function UsersAdminPage() {
                               name="flag"
                               value={(!u.mustResetPassword).toString()}
                             />
-                            <button className="btn btn-primary" type="submit">
+                            <button className="btn btn-basic" type="submit">
                               {u.mustResetPassword ? "Clear reset flag" : "Require reset"}
                             </button>
                           </form>
@@ -184,7 +184,7 @@ export default async function UsersAdminPage() {
                               boxSizing: "border-box",
                             }}
                           />
-                          <button className="btn btn-accent" type="submit" title="Delete user">
+                          <button className="btn btn-warning" type="submit" title="Delete user">
                             Delete
                           </button>
                         </form>

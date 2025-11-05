@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Qing Li Lab Website
 
-## Getting Started
+Internal lab website for the Qing X. Li Lab — built with Next.js, Prisma, and Supabase.  
+This repo includes registration → approval workflow, credential auth, email notifications, a site-wide theme system, and guard rails to keep unapproved users out.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Auth & Roles**
+  - Credentials login via Prisma `User`
+  - Role in session; Admin-only routes
+  - Middleware blocks `/login` if already authed and forces `/reset-password` when `mustResetPassword=true`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Registration → Approval**
+  - Public *Register* (name, email, slug, note) with slug cleaning & duplicate checks
+  - Admin *Approval Dashboard*: Approve / Reject (frees slug) / Reset (to pending) / Delete
+  - Decided rows remain visible but are greyed out; Reset shows only for rejected/denied
+  - On approval: temp password generated & emailed to the user
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Password Reset Flow**
+  - First login with temp password → **must** reset password (double confirm + eye toggle)
+  - Direct `/reset-password` blocked unless authed
+  - Access to `/members/*` blocked until reset is complete
 
-## Learn More
+- **User Management (Admin)**
+  - List, promote/demote, and delete
+  - Self-demotion blocked
+  - Delete requires typing **DELETE**
 
-To learn more about Next.js, take a look at the following resources:
+- **Email**
+  - **Resend** preferred if `RESEND_API_KEY` is set
+  - Falls back to **SMTP** (Gmail App Password) if Resend is not configured
+  - Emails include reset link using `NEXT_PUBLIC_SITE_URL`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Theme System**
+  - Site-wide CSS variables for colors and buttons
+  - Admin Theme Editor writes to `AppConfig` JSON
+  - Simplified button system with three categories:
+    - `btn-basic`: primary actions (default dark button)
+    - `btn-muted`: secondary/neutral actions (light gray button)
+    - `btn-warning`: destructive/important actions (orange/amber button)
+  - Utility classes: `tile`, `muted`, `btn`, `nav-item`
+  - Full-width navbar with hover effects
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Pages**
+  - Home: masthead, PI sidebar, announcements strip, grid of members
+  - Members: themed tiles for quick access (Profile, Reading List)
+  - Profile: edit name/about; inputs contained within tiles (visible to authenticated users in navbar)
+  - Theme: admin-only theme customization (visible to admins in navbar)
+  - Users: admin-only management (visible to admins in navbar)
+  - Approval: full workflow with temp password email (visible to admins in navbar)
+  - Navbar: full-width, responsive with hover effects, contextual links based on role
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js** (App Router 15.5.x)
+- **next-auth** (credentials)
+- **Prisma** + **Supabase Postgres**
+- **Resend** or **SMTP (Gmail App Password)**
+- **TypeScript**
+- Styling: custom CSS variables + small utility classes (no Tailwind in page code)
+

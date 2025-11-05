@@ -105,7 +105,7 @@ export default async function ProfilePage() {
         </div>
 
         <div>
-          <button className="btn btn-accent" type="submit">Save changes</button>
+          <button className="btn btn-basic" type="submit">Save changes</button>
         </div>
       </form>
     </main>

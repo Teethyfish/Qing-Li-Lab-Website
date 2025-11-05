@@ -97,15 +97,15 @@ a.btn,
 input[type="submit"],
 input[type="reset"],
 input[type="button"] {
-  --_bg: var(--btn-bg, var(--color-primary, #2563eb));
-  --_fg: var(--btn-fg, #fff);
+  --_bg: var(--btn-bg, var(--btn-basic-bg, #111827));
+  --_fg: var(--btn-fg, var(--btn-basic-fg, #fff));
 
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
 
-  padding: 0.55rem 0.9rem !important;
-  border-radius: 10px !important;
+  padding: var(--btn-py, 0.55rem) var(--btn-px, 0.9rem) !important;
+  border-radius: var(--btn-radius, 10px) !important;
   border: 1px solid
     color-mix(in oklab, var(--color-text, #111) 20%, transparent) !important;
 
@@ -113,6 +113,7 @@ input[type="button"] {
   color: var(--_fg) !important;
   text-decoration: none !important;
   line-height: 1.2 !important;
+  font-weight: var(--btn-weight, 600) !important;
   cursor: pointer !important;
   transition: background .15s, border-color .15s, color .15s, opacity .15s !important;
 }
@@ -136,17 +137,23 @@ input[type="button"]:disabled {
   cursor: not-allowed !important;
 }
 
-/* Variants driven by class — keep your existing classNames like "btn btn-primary" */
+/* Variants driven by class — keep your existing classNames like "btn btn-basic" */
 .btn { /* no-op: inherits base */ }
-.btn-primary { --btn-bg: var(--color-primary, #2563eb); --btn-fg: var(--color-on-primary, #fff); }
-.btn-accent  { --btn-bg: var(--color-accent,  #059669); --btn-fg: var(--color-on-accent,  #fff); }
-.btn-muted   { --btn-bg: var(--color-muted,   #6b7280); --btn-fg: var(--color-on-muted,   #fff); }
-
-/* “Ghost” still visible at rest */
-.btn-ghost {
-  --btn-bg: color-mix(in oklab, var(--color-primary, #2563eb) 12%, #fff);
-  --btn-fg: var(--color-primary, #2563eb);
-  border-color: color-mix(in oklab, var(--color-primary, #2563eb) 40%, transparent) !important;
+.btn-basic {
+  --btn-bg: var(--btn-basic-bg, #111827);
+  --btn-fg: var(--btn-basic-fg, #fff);
+}
+.btn-muted {
+  --btn-bg: var(--btn-muted-bg, #f5f5f5);
+  --btn-fg: var(--btn-muted-fg, #111827);
+  border: var(--btn-muted-border, 1px solid #e5e7eb) !important;
+}
+.btn-muted:hover {
+  --btn-bg: var(--btn-muted-hover-bg, #ededed);
+}
+.btn-warning {
+  --btn-bg: var(--btn-warning-bg, #f59e0b);
+  --btn-fg: var(--btn-warning-fg, #fff);
 }
 
 /* Ensure links styled as buttons don’t turn browser-blue */

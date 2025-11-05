@@ -329,11 +329,11 @@ export default async function ApprovalPage() {
                           <>
                             <form action={approveAction}>
                               <input type="hidden" name="id" value={x.id} />
-                              <button className="btn btn-success">Approve</button>
+                              <button className="btn btn-basic">Approve</button>
                             </form>
                             <form action={rejectAction}>
                               <input type="hidden" name="id" value={x.id} />
-                              <button className="btn btn-danger">{denyVerb}</button>
+                              <button className="btn btn-warning">{denyVerb}</button>
                             </form>
                           </>
                         )}
@@ -352,7 +352,7 @@ export default async function ApprovalPage() {
 
                         <form action={deleteInviteAction}>
                           <input type="hidden" name="id" value={x.id} />
-                          <button className="btn btn-neutral">Delete</button>
+                          <button className="btn btn-muted">Delete</button>
                         </form>
                       </div>
                     </td>

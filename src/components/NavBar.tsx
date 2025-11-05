@@ -137,13 +137,13 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
                     setBusy(false);
                   }}
                   disabled={busy}
-                  className="btn btn-primary"
+                  className="btn btn-basic"
                 >
                   {busy ? "Signing out…" : "Logout"}
                 </button>
               </>
             ) : (
-              <Link href="/login" className="btn btn-accent">
+              <Link href="/login" className="btn btn-basic">
                 Login
               </Link>
             )}
