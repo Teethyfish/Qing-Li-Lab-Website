@@ -225,14 +225,14 @@ export default async function ThemeEditorPage() {
   };
 
   // Compact color picker for button colors (no tile wrapper)
-  const CompactColorField = (f: Field) => {
+  const CompactColorField = ({ field }: { field: Field }) => {
     return (
       <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "140px" }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{f.label}</div>
+        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{field.label}</div>
         <input
           type="color"
-          name={f.var}
-          defaultValue={theme[f.var] ?? "#000000"}
+          name={field.var}
+          defaultValue={theme[field.var] ?? "#000000"}
           style={{ width: "100%", height: "40px", cursor: "pointer" }}
         />
       </label>
@@ -240,7 +240,7 @@ export default async function ThemeEditorPage() {
   };
 
   // Compact text input for other settings (no tile wrapper)
-  const CompactTextField = (f: Field) => {
+  const CompactTextField = ({ field }: { field: Field }) => {
     const inputStyle: React.CSSProperties = {
       width: "100%",
       padding: "0.55rem 0.7rem",
@@ -252,17 +252,17 @@ export default async function ThemeEditorPage() {
     };
     return (
       <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{f.label}</div>
-        {"help" in f && f.help ? (
+        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{field.label}</div>
+        {"help" in field && field.help ? (
           <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 2 }}>
-            {f.help}
+            {field.help}
           </div>
         ) : null}
         <input
           type="text"
-          name={f.var}
-          defaultValue={theme[f.var] ?? ""}
-          placeholder={("placeholder" in f && f.placeholder) || ""}
+          name={field.var}
+          defaultValue={theme[field.var] ?? ""}
+          placeholder={("placeholder" in field && field.placeholder) || ""}
           style={inputStyle}
         />
       </label>
@@ -270,22 +270,22 @@ export default async function ThemeEditorPage() {
   };
 
   // Compact slider for numeric settings with units
-  const CompactSliderField = (f: Field & { type: "range" }) => {
-    const currentValue = parseFloat(theme[f.var] ?? String(f.min));
+  const CompactSliderField = ({ field }: { field: Field & { type: "range" } }) => {
+    const currentValue = parseFloat(theme[field.var] ?? String(field.min));
     return (
       <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
         <div style={{ fontSize: "0.9rem", fontWeight: 500, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span>{f.label}</span>
+          <span>{field.label}</span>
           <span style={{ fontSize: "0.85rem", color: "var(--color-muted)", fontWeight: 400 }}>
-            {currentValue}{f.unit}
+            {currentValue}{field.unit}
           </span>
         </div>
         <input
           type="range"
-          name={f.var}
-          min={f.min}
-          max={f.max}
-          step={f.step}
+          name={field.var}
+          min={field.min}
+          max={field.max}
+          step={field.step}
           defaultValue={currentValue}
           style={{ width: "100%", cursor: "pointer" }}
         />
@@ -309,7 +309,7 @@ export default async function ThemeEditorPage() {
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {COLOR_FIELDS.map((f) => (
-                <CompactColorField key={f.var} {...f} />
+                <CompactColorField key={f.var} field={f} />
               ))}
             </div>
           </div>
@@ -322,9 +322,9 @@ export default async function ThemeEditorPage() {
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {TILE_FIELDS.map((f) => (
                 f.type === "range" ? (
-                  <CompactSliderField key={f.var} {...f} />
+                  <CompactSliderField key={f.var} field={f} />
                 ) : (
-                  <CompactTextField key={f.var} {...f} />
+                  <CompactTextField key={f.var} field={f} />
                 )
               ))}
             </div>
@@ -338,13 +338,13 @@ export default async function ThemeEditorPage() {
             {/* Row 1: Colors */}
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {NAVBAR_COLOR_FIELDS.map((f) => (
-                <CompactColorField key={f.var} {...f} />
+                <CompactColorField key={f.var} field={f} />
               ))}
             </div>
             {/* Row 2: Sizes */}
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {NAVBAR_SIZE_FIELDS.map((f) => (
-                <CompactSliderField key={f.var} {...f} />
+                <CompactSliderField key={f.var} field={f as Field & { type: "range" }} />
               ))}
             </div>
           </div>
@@ -357,9 +357,9 @@ export default async function ThemeEditorPage() {
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {SHAPE_FIELDS.map((f) => (
                 f.type === "range" ? (
-                  <CompactSliderField key={f.var} {...f} />
+                  <CompactSliderField key={f.var} field={f} />
                 ) : (
-                  <CompactTextField key={f.var} {...f} />
+                  <CompactTextField key={f.var} field={f} />
                 )
               ))}
             </div>
@@ -387,7 +387,7 @@ export default async function ThemeEditorPage() {
             <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Basic</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {BASIC_FIELDS.map((f) => (
-                <CompactColorField key={f.var} {...f} />
+                <CompactColorField key={f.var} field={f} />
               ))}
             </div>
           </div>
@@ -397,7 +397,7 @@ export default async function ThemeEditorPage() {
             <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Muted</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {MUTED_FIELDS.map((f) => (
-                <CompactColorField key={f.var} {...f} />
+                <CompactColorField key={f.var} field={f} />
               ))}
             </div>
           </div>
@@ -407,7 +407,7 @@ export default async function ThemeEditorPage() {
             <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Warning</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {WARNING_FIELDS.map((f) => (
-                <CompactColorField key={f.var} {...f} />
+                <CompactColorField key={f.var} field={f} />
               ))}
             </div>
           </div>
