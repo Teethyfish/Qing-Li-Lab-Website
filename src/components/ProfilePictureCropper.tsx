@@ -92,20 +92,19 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 9998,
+          zIndex: 99998,
           background: "rgba(0, 0, 0, 0.7)",
         }}
       />
 
       {/* Popup tile */}
       <div
-        className="tile"
         style={{
           position: "fixed",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: 9999,
+          zIndex: 99999,
           width: "90vw",
           maxWidth: "600px",
           maxHeight: "90vh",
@@ -113,6 +112,10 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
           display: "flex",
           flexDirection: "column",
           gap: "1rem",
+          background: "var(--color-card)",
+          border: "1px solid color-mix(in oklab, var(--color-text) calc(var(--tile-border-opacity, 12) * 1%), transparent)",
+          borderRadius: "calc(var(--tile-radius, 12) * 1px)",
+          boxShadow: "0 4px 24px color-mix(in oklab, var(--color-text) 25%, transparent)",
         }}
       >
         <h2 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
