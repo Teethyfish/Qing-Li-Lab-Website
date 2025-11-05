@@ -61,6 +61,13 @@ const DEFAULTS: KV = {
   "--btn-warning-fg": "#ffffff",
   "--btn-warning-hover-bg": "#d97706",
   "--btn-warning-border-color": "#f59e0b",
+
+  // === Navbar ===
+  "--nav-bg": "color-mix(in oklab, #ffffff 90%, transparent)",
+  "--nav-text": "#111827",
+  "--nav-border": "#e5e7eb",
+  "--nav-height": "56px",
+  "--nav-blur": "6px",
 };
 
 type Field =
@@ -111,6 +118,14 @@ const WARNING_FIELDS: Field[] = [
   { var: "--btn-warning-border-color", label: "Warning Border Color", type: "color" },
 ];
 
+const NAVBAR_FIELDS: Field[] = [
+  { var: "--nav-bg", label: "Navbar Background", type: "text", help: "e.g. #ffffff or color-mix(...)" },
+  { var: "--nav-text", label: "Navbar Text", type: "color" },
+  { var: "--nav-border", label: "Navbar Border", type: "color" },
+  { var: "--nav-height", label: "Navbar Height", type: "text", help: "e.g. 56px" },
+  { var: "--nav-blur", label: "Backdrop Blur", type: "text", help: "e.g. 6px" },
+];
+
 export default async function ThemeEditorPage() {
   // Admin-only
   const session = await getServerSession(authOptions);
@@ -129,6 +144,7 @@ export default async function ThemeEditorPage() {
     const all = [
       ...COLOR_FIELDS,
       ...TILE_FIELDS,
+      ...NAVBAR_FIELDS,
       ...SHAPE_FIELDS,
       ...BASIC_FIELDS,
       ...MUTED_FIELDS,
@@ -148,6 +164,18 @@ export default async function ThemeEditorPage() {
        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
       "theme",
       JSON.stringify(merged)
+    );
+
+    revalidatePath("/", "layout");
+    revalidatePath("/members/theme");
+  }
+
+  // --- Server action to reset ---
+  async function resetTheme() {
+    "use server";
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM "AppConfig" WHERE key = $1`,
+      "theme"
     );
 
     revalidatePath("/", "layout");
@@ -268,6 +296,22 @@ export default async function ThemeEditorPage() {
           </div>
         </section>
 
+        {/* Navbar */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Navbar</h2>
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {NAVBAR_FIELDS.map((f) => (
+                f.type === "color" ? (
+                  <CompactColorField key={f.var} {...f} />
+                ) : (
+                  <CompactTextField key={f.var} {...f} />
+                )
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Buttons: shape */}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Buttons — shape</h2>
@@ -327,9 +371,14 @@ export default async function ThemeEditorPage() {
           </div>
         </section>
 
-        <div>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <button className="btn btn-basic" type="submit">Save theme</button>
         </div>
+      </form>
+
+      {/* Reset form outside the main form */}
+      <form action={resetTheme} style={{ marginTop: "1rem" }}>
+        <button className="btn btn-warning" type="submit">Reset to Defaults</button>
       </form>
     </main>
   );

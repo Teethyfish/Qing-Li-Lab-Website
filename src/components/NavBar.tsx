@@ -31,8 +31,8 @@ function NavItem({
         fontSize: 14,
         fontWeight: 500,
         transition: "background .15s ease",
-        color: current ? "var(--bg)" : "var(--fg)",
-        background: current ? "var(--fg)" : "transparent",
+        color: current ? "var(--color-bg, #ffffff)" : "var(--nav-text, var(--color-text, #111827))",
+        background: current ? "var(--nav-text, var(--color-text, #111827))" : "transparent",
       }}
     >
       {label}
@@ -64,9 +64,9 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
         position: "sticky",
         top: 0,
         zIndex: 40,
-        backdropFilter: "saturate(1.2) blur(6px)",
-        background: "color-mix(in oklab, var(--bg) 90%, transparent)",
-        borderBottom: "1px solid var(--border)",
+        backdropFilter: `saturate(1.2) blur(var(--nav-blur, 6px))`,
+        background: "var(--nav-bg, color-mix(in oklab, #ffffff 90%, transparent))",
+        borderBottom: "1px solid var(--nav-border, #e5e7eb)",
       }}
       aria-label="Primary"
     >
@@ -78,7 +78,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
       >
         <div
           style={{
-            height: 56,
+            height: "var(--nav-height, 56px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -92,7 +92,7 @@ export default function NavBar({ isAuthed, isAdmin, email }: Props) {
               style={{
                 fontWeight: 600,
                 textDecoration: "none",
-                color: "var(--fg)",
+                color: "var(--nav-text, var(--color-text, #111827))",
                 marginRight: 4,
               }}
             >
