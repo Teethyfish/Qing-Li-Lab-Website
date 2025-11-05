@@ -21,11 +21,11 @@ a:hover { text-decoration: underline; }
 
 /* Cards */
 .card {
-  background: #fff;
-  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
-  border-radius: var(--radius-lg);
-  padding: 1rem;
-  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) 12%, transparent);
+  background: var(--color-card, #fff);
+  border: 1px solid color-mix(in oklab, var(--color-text) var(--tile-border-opacity, 12%), transparent);
+  border-radius: var(--tile-radius, 12px);
+  padding: var(--tile-padding, 1rem);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) var(--tile-shadow-opacity, 8%), transparent);
 }
 
 
@@ -65,10 +65,10 @@ a:hover { text-decoration: underline; }
   isolation: isolate;        /* prevent pseudo/background bleed from ancestors */
   overflow: clip;            /* keep stray visuals inside */
   background: var(--color-card);
-  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
-  border-radius: 12px;
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) 8%, transparent);
-  padding: 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) var(--tile-border-opacity, 12%), transparent);
+  border-radius: var(--tile-radius, 12px);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) var(--tile-shadow-opacity, 8%), transparent);
+  padding: var(--tile-padding, 1rem);
   text-decoration: none;
   color: inherit;
   transition: background 120ms ease;
@@ -146,7 +146,7 @@ input[type="button"]:disabled {
 .btn-muted {
   --btn-bg: var(--btn-muted-bg, #f5f5f5);
   --btn-fg: var(--btn-muted-fg, #111827);
-  border: var(--btn-muted-border, 1px solid #e5e7eb) !important;
+  border: 1px solid var(--btn-muted-border-color, #e5e7eb) !important;
 }
 .btn-muted:hover {
   --btn-bg: var(--btn-muted-hover-bg, #ededed);

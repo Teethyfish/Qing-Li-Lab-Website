@@ -32,6 +32,12 @@ const DEFAULTS: KV = {
   "--color-accent": "#2563eb",
   "--color-card": "#ffffff",
 
+  // === Cards/Tiles ===
+  "--tile-radius": "12px",
+  "--tile-padding": "1rem",
+  "--tile-border-opacity": "12%",
+  "--tile-shadow-opacity": "8%",
+
   // === Buttons ===
   "--btn-radius": "10px",
   "--btn-py": "0.55rem",
@@ -47,7 +53,7 @@ const DEFAULTS: KV = {
   "--btn-muted-bg": "#f5f5f5",
   "--btn-muted-fg": "#111827",
   "--btn-muted-hover-bg": "#ededed",
-  "--btn-muted-border": "1px solid #e5e7eb",
+  "--btn-muted-border-color": "#e5e7eb",
 
   // Warning
   "--btn-warning-bg": "#f59e0b",
@@ -68,6 +74,13 @@ const COLOR_FIELDS: Field[] = [
   { var: "--color-card", label: "Card Background", type: "color" },
 ];
 
+const TILE_FIELDS: Field[] = [
+  { var: "--tile-radius", label: "Tile Border Radius", type: "text", help: "e.g. 12px" },
+  { var: "--tile-padding", label: "Tile Padding", type: "text", help: "e.g. 1rem" },
+  { var: "--tile-border-opacity", label: "Tile Border Opacity", type: "text", help: "e.g. 12%" },
+  { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "text", help: "e.g. 8%" },
+];
+
 const SHAPE_FIELDS: Field[] = [
   { var: "--btn-radius", label: "Button Radius", type: "text", help: "e.g. 10px" },
   { var: "--btn-py", label: "Button Padding Y", type: "text", help: "e.g. 0.55rem" },
@@ -76,16 +89,16 @@ const SHAPE_FIELDS: Field[] = [
 ];
 
 const BASIC_FIELDS: Field[] = [
-  { var: "--btn-basic-bg", label: "Basic BG", type: "text", help: "CSS color (e.g. #111827)" },
+  { var: "--btn-basic-bg", label: "Basic BG", type: "color" },
   { var: "--btn-basic-fg", label: "Basic FG", type: "color" },
-  { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "text", help: "CSS color" },
+  { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "color" },
 ];
 
 const MUTED_FIELDS: Field[] = [
   { var: "--btn-muted-bg", label: "Muted BG", type: "color" },
   { var: "--btn-muted-fg", label: "Muted FG", type: "color" },
   { var: "--btn-muted-hover-bg", label: "Muted Hover BG", type: "color" },
-  { var: "--btn-muted-border", label: "Muted Border", type: "text", help: `e.g. "1px solid #e5e7eb"` },
+  { var: "--btn-muted-border-color", label: "Muted Border Color", type: "color" },
 ];
 
 const WARNING_FIELDS: Field[] = [
@@ -111,6 +124,7 @@ export default async function ThemeEditorPage() {
     const incoming: KV = {};
     const all = [
       ...COLOR_FIELDS,
+      ...TILE_FIELDS,
       ...SHAPE_FIELDS,
       ...BASIC_FIELDS,
       ...MUTED_FIELDS,
@@ -171,6 +185,21 @@ export default async function ThemeEditorPage() {
     );
   };
 
+  // Compact color picker for button colors (no tile wrapper)
+  const CompactColorField = (f: Field) => {
+    return (
+      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "140px" }}>
+        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{f.label}</div>
+        <input
+          type="color"
+          name={f.var}
+          defaultValue={theme[f.var] ?? "#000000"}
+          style={{ width: "100%", height: "40px", cursor: "pointer" }}
+        />
+      </label>
+    );
+  };
+
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
@@ -186,6 +215,16 @@ export default async function ThemeEditorPage() {
           <h2 className="text-lg font-semibold">Site colors</h2>
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {COLOR_FIELDS.map((f) => (
+              <FieldRow key={f.var} {...f} />
+            ))}
+          </div>
+        </section>
+
+        {/* Tiles/Cards */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Cards & Tiles</h2>
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+            {TILE_FIELDS.map((f) => (
               <FieldRow key={f.var} {...f} />
             ))}
           </div>
@@ -217,16 +256,34 @@ export default async function ThemeEditorPage() {
             </div>
           </div>
 
-          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
-            {BASIC_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
-            {MUTED_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
-            {WARNING_FIELDS.map((f) => (
-              <FieldRow key={f.var} {...f} />
-            ))}
+          {/* Basic buttons */}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Basic</div>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {BASIC_FIELDS.map((f) => (
+                <CompactColorField key={f.var} {...f} />
+              ))}
+            </div>
+          </div>
+
+          {/* Muted buttons */}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Muted</div>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {MUTED_FIELDS.map((f) => (
+                <CompactColorField key={f.var} {...f} />
+              ))}
+            </div>
+          </div>
+
+          {/* Warning buttons */}
+          <div className="tile" style={{ padding: "1rem" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Warning</div>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {WARNING_FIELDS.map((f) => (
+                <CompactColorField key={f.var} {...f} />
+              ))}
+            </div>
           </div>
         </section>
 
