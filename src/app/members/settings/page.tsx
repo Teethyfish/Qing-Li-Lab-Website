@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
+import { localeNames } from "@/i18n/config";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
@@ -14,10 +16,29 @@ export default async function SettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { email: true, name: true },
+    select: { email: true, name: true, locale: true },
   });
 
   if (!user) redirect("/login");
+
+  const t = await getTranslations('settings');
+
+  // Server action to update language
+  async function updateLanguage(formData: FormData) {
+    "use server";
+    const locale = String(formData.get("locale") || "en");
+    const email = String(formData.get("email") || "");
+
+    if (!email) return;
+
+    await prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: { locale },
+    });
+
+    revalidatePath("/members/settings");
+    redirect(`/${locale}/members/settings`);
+  }
 
   // Server action to change password
   async function changePassword(formData: FormData) {
@@ -48,36 +69,36 @@ export default async function SettingsPage() {
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-          Settings
+          {t('title')}
         </h1>
-        <p className="muted">Manage your account, display, and notification preferences</p>
+        <p className="muted">{t('subtitle')}</p>
       </header>
 
       {/* Account Settings */}
       <section>
         <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Account Settings
+          {t('accountSettings')}
         </h2>
 
         <div className="tile" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
           <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-            Email
+            {t('email')}
           </h3>
           <div className="muted" style={{ fontSize: "0.9rem" }}>
             {user.email}
           </div>
           <p className="muted" style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
-            Contact an admin to change your email address
+            {t('emailNote')}
           </p>
         </div>
 
         <div className="tile" style={{ padding: "1.5rem" }}>
           <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem" }}>
-            Change Password
+            {t('changePassword')}
           </h3>
           <form action={changePassword} style={{ display: "grid", gap: "1rem" }}>
             <div style={{ display: "grid", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Current Password</label>
+              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('currentPassword')}</label>
               <input
                 type="password"
                 name="currentPassword"
@@ -88,7 +109,7 @@ export default async function SettingsPage() {
             </div>
 
             <div style={{ display: "grid", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>New Password</label>
+              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('newPassword')}</label>
               <input
                 type="password"
                 name="newPassword"
@@ -99,7 +120,7 @@ export default async function SettingsPage() {
             </div>
 
             <div style={{ display: "grid", gap: "0.4rem" }}>
-              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Confirm New Password</label>
+              <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('confirmNewPassword')}</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -111,7 +132,7 @@ export default async function SettingsPage() {
 
             <div>
               <button type="submit" className="btn btn-basic">
-                Update Password
+                {t('updatePassword')}
               </button>
             </div>
           </form>
@@ -121,80 +142,99 @@ export default async function SettingsPage() {
       {/* Display Settings */}
       <section>
         <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Display Settings
+          {t('displaySettings')}
         </h2>
 
-        <div className="tile" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "grid", gap: "1rem" }}>
-            <div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                Theme Preference
-              </h3>
-              <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-                Coming soon: Choose your preferred color scheme
-              </p>
-              <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button disabled className="btn btn-muted">
-                  Light
-                </button>
-                <button disabled className="btn btn-muted">
-                  Dark
-                </button>
-                <button disabled className="btn btn-muted">
-                  Auto
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                Language
-              </h3>
-              <p className="muted" style={{ fontSize: "0.85rem" }}>
-                Coming soon: Select your preferred language
-              </p>
+        <div className="tile" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+          <div>
+            <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+              {t('themePreference')}
+            </h3>
+            <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+              {t('themeNote')}
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button disabled className="btn btn-muted">
+                {t('light')}
+              </button>
+              <button disabled className="btn btn-muted">
+                {t('dark')}
+              </button>
+              <button disabled className="btn btn-muted">
+                {t('auto')}
+              </button>
             </div>
           </div>
+        </div>
+
+        <div className="tile" style={{ padding: "1.5rem" }}>
+          <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+            {t('language')}
+          </h3>
+          <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "1rem" }}>
+            {t('languageNote')}
+          </p>
+          <form action={updateLanguage} style={{ display: "grid", gap: "1rem" }}>
+            <input type="hidden" name="email" value={user.email} />
+            <div style={{ display: "grid", gap: "0.4rem" }}>
+              <select
+                name="locale"
+                defaultValue={user.locale}
+                style={inputStyle}
+              >
+                {Object.entries(localeNames).map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <button type="submit" className="btn btn-basic">
+                {t('saveLanguage')}
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 
       {/* Notification Settings */}
       <section>
         <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-          Notification Settings
+          {t('notificationSettings')}
         </h2>
 
         <div className="tile" style={{ padding: "1.5rem" }}>
           <div style={{ display: "grid", gap: "1.5rem" }}>
             <div>
               <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                Email Notifications
+                {t('emailNotifications')}
               </h3>
               <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "1rem" }}>
-                Choose which emails you'd like to receive
+                {t('emailNotificationsNote')}
               </p>
 
               <div style={{ display: "grid", gap: "0.75rem" }}>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                   <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>New member registrations (Admins only)</span>
+                  <span style={{ fontSize: "0.9rem" }}>{t('newMemberRegistrations')}</span>
                 </label>
 
                 <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                   <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>Account updates and announcements</span>
+                  <span style={{ fontSize: "0.9rem" }}>{t('accountUpdates')}</span>
                 </label>
 
                 <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
                   <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>Weekly lab activity summary</span>
+                  <span style={{ fontSize: "0.9rem" }}>{t('weeklyActivity')}</span>
                 </label>
               </div>
             </div>
 
             <div>
               <p className="muted" style={{ fontSize: "0.85rem" }}>
-                Notification preferences will be available soon
+                {t('notificationsNote')}
               </p>
             </div>
           </div>
