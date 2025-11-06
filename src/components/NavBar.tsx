@@ -54,16 +54,20 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
   const t = useTranslations('navigation');
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
     { href: "/members", label: t('members'), show: isAuthed },
-    { href: "/members/approval", label: t('approval'), show: isAdmin },
-    { href: "/members/users", label: t('users'), show: isAdmin },
-    { href: "/members/theme", label: t('theme'), show: isAdmin },
     { href: "/register", label: t('register'), show: !isAuthed },
     { href: "/login", label: t('login'), show: !isAuthed },
+  ];
+
+  const adminItems: Array<{ href: string; label: string }> = [
+    { href: "/members/approval", label: t('approval') },
+    { href: "/members/users", label: t('users') },
+    { href: "/members/theme", label: t('theme') },
   ];
 
   const isCurrent = (href: string) => pathname === href;
@@ -95,33 +99,97 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
             gap: 12,
           }}
         >
-          {/* Left: brand + links */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Link
-              href="/"
-              style={{
-                fontWeight: 600,
-                textDecoration: "none",
-                color: "var(--nav-text, var(--color-text, #111827))",
-                marginRight: 4,
-              }}
-            >
-              {t('brandName')}
-            </Link>
+          {/* Left: links */}
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {items
+              .filter((i) => i.show)
+              .map((i) => (
+                <NavItem
+                  key={i.href}
+                  href={i.href}
+                  label={i.label}
+                  current={isCurrent(i.href)}
+                />
+              ))}
 
-            {/* links row (always visible; we already fixed the double-navbar issue) */}
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {items
-                .filter((i) => i.show)
-                .map((i) => (
-                  <NavItem
-                    key={i.href}
-                    href={i.href}
-                    label={i.label}
-                    current={isCurrent(i.href)}
-                  />
-                ))}
-            </div>
+            {/* Admin Only dropdown */}
+            {isAdmin && (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+                  style={{
+                    textDecoration: "none",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    transition: "background .15s ease",
+                    color: "#dc2626",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Admin Only
+                </button>
+
+                {adminDropdownOpen && (
+                  <>
+                    {/* Backdrop to close dropdown */}
+                    <div
+                      onClick={() => setAdminDropdownOpen(false)}
+                      style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 40,
+                      }}
+                    />
+                    {/* Dropdown content */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        left: 0,
+                        zIndex: 50,
+                        minWidth: 160,
+                        background: "var(--color-card, #ffffff)",
+                        border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) 15%, transparent)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {adminItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setAdminDropdownOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.75rem 1rem",
+                            textDecoration: "none",
+                            color: "var(--color-text)",
+                            fontSize: "0.9rem",
+                            borderBottom: "1px solid color-mix(in oklab, var(--color-text) 8%, transparent)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "color-mix(in oklab, var(--color-text) 6%, transparent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "transparent";
+                          }}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right: user + logout/login */}
@@ -131,7 +199,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                 {/* Profile picture with dropdown */}
                 <div style={{ position: "relative" }}>
                   <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     style={{
                       width: 36,
                       height: 36,
@@ -163,11 +231,11 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                   </button>
 
                   {/* Dropdown menu */}
-                  {dropdownOpen && (
+                  {profileDropdownOpen && (
                     <>
                       {/* Backdrop to close dropdown */}
                       <div
-                        onClick={() => setDropdownOpen(false)}
+                        onClick={() => setProfileDropdownOpen(false)}
                         style={{
                           position: "fixed",
                           top: 0,
@@ -194,7 +262,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                       >
                         <Link
                           href={userSlug ? `/people/${userSlug}` : "/members"}
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={() => setProfileDropdownOpen(false)}
                           style={{
                             display: "block",
                             padding: "0.75rem 1rem",
@@ -214,7 +282,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                         </Link>
                         <Link
                           href="/members/profile"
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={() => setProfileDropdownOpen(false)}
                           style={{
                             display: "block",
                             padding: "0.75rem 1rem",
@@ -234,7 +302,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                         </Link>
                         <Link
                           href="/members/settings"
-                          onClick={() => setDropdownOpen(false)}
+                          onClick={() => setProfileDropdownOpen(false)}
                           style={{
                             display: "block",
                             padding: "0.75rem 1rem",
