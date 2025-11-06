@@ -9,7 +9,9 @@
       "Bash(del nul 2)",
       "Bash(.gitignore)",
       "Bash(npx prisma migrate:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(echo:*)",
+      "Bash(\"src\\app\\members\\announcements\\AnnouncementsManager_new.tsx\")"
     ],
     "deny": [],
     "ask": []

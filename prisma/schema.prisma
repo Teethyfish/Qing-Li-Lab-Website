@@ -55,14 +55,23 @@ enum InviteStatus {
   DENIED
 }
 
+enum AnnouncementStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model Announcement {
-  id           String   @id @default(cuid())
-  imageUrl     String   // URL to the banner image
-  text         String   // JSON object storing translations {en: string, zh?: string, ko?: string}
-  croppedArea  String?  // JSON string storing crop coordinates {x, y, width, height}
-  order        Int      @default(0) // Display order (lower numbers first)
-  isActive     Boolean  @default(true) // Whether to show this announcement
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String             @id @default(cuid())
+  imageUrl        String             // URL to the banner image
+  title           String             @default("{\"en\":\"\"}") // JSON object storing title translations {en: string, zh?: string, ko?: string}
+  text            String             // JSON object storing subtitle translations {en: string, zh?: string, ko?: string}
+  croppedArea     String?            // JSON string storing crop coordinates {x, y, width, height}
+  order           Int                @default(0) // Display order (lower numbers first)
+  status          AnnouncementStatus @default(ACTIVE) // ACTIVE shows on homepage, ARCHIVED keeps details page only
+  hasDetailsPage  Boolean            @default(false) // Whether this announcement has a details page
+  detailsSlug     String?            @unique // URL slug for details page (e.g., "summer-symposium-2024")
+  detailsContent  String?            // JSON object storing detailed content translations
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 }
 
