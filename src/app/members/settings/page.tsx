@@ -37,7 +37,7 @@ export default async function SettingsPage() {
     });
 
     revalidatePath("/members/settings");
-    redirect(`/${locale}/members/settings`);
+    redirect("/members/settings");
   }
 
   // Server action to change password

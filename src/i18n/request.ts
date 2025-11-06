@@ -1,14 +1,22 @@
 import { getRequestConfig } from 'next-intl/server';
-import { defaultLocale } from './config';
+import { defaultLocale, locales } from './config';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-export default getRequestConfig(async ({ requestLocale }) => {
-  // This function runs on the server for each request
-  // and loads the appropriate locale messages
-  let locale = await requestLocale;
+export default getRequestConfig(async () => {
+  // Get locale from user's database preference
+  const session = await getServerSession(authOptions);
+  let locale: string = defaultLocale;
 
-  // Fallback to default locale if undefined
-  if (!locale) {
-    locale = defaultLocale;
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email.toLowerCase() },
+      select: { locale: true }
+    });
+    if (user?.locale && locales.includes(user.locale as any)) {
+      locale = user.locale;
+    }
   }
 
   return {
