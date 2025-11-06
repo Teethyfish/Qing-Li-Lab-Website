@@ -3,6 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { defaultLocale } from "@/i18n/config";
+import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 
 /**
  * Config keys this page reads:
@@ -38,6 +42,19 @@ export default async function HomePage() {
   const t = await getTranslations('home');
   const tc = await getTranslations('common');
 
+  // Get user's locale
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email ?? null;
+  let userLocale: string = defaultLocale;
+
+  if (email) {
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { locale: true },
+    });
+    userLocale = user?.locale ?? defaultLocale;
+  }
+
   // --- Config-driven content ---
   const pi =
     (await getConfig<{
@@ -61,10 +78,6 @@ export default async function HomePage() {
       intro:
         "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
     } as const);
-
-  const announcement =
-    (await getConfig<{ title?: string; href?: string }>("home.announcement")) ||
-    null;
 
   const welcome =
     (await getConfig<string>("home.welcome")) ||
@@ -91,6 +104,13 @@ export default async function HomePage() {
     orderBy: { name: "asc" },
   });
 
+  // --- Fetch active announcements ---
+  const announcements = await prisma.announcement.findMany({
+    where: { isActive: true },
+    orderBy: { order: "asc" },
+    select: { id: true, imageUrl: true, text: true },
+  });
+
   // --- styles (no client handlers) ---
   const grid: React.CSSProperties = {
     display: "grid",
@@ -105,12 +125,6 @@ export default async function HomePage() {
   };
   const sectionTitle: React.CSSProperties = { fontSize: "1.125rem", fontWeight: 600 };
   const cardPad: React.CSSProperties = { padding: "1rem" };
-  const thinBar: React.CSSProperties = {
-    border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-    borderRadius: "var(--radius-md)",
-    padding: "0.5rem 0.75rem",
-    background: "var(--color-bg)",
-  };
   const peopleGrid: React.CSSProperties = {
     display: "grid",
     gap: "1rem",
@@ -129,10 +143,13 @@ export default async function HomePage() {
       {/* ===== Big header at the top ===== */}
       <header>
         <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
-        <div className="muted">{pi.titleLines?.[0] || "Department of Molecular Biosciences and Bioengineering"}</div>
-        <div className="muted">{pi.titleLines?.[1] || "Proteomics Core Facility"}</div>
-        <div className="muted">{pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}</div>
+        <div className="muted">Proteomics Core Facility</div>
       </header>
+
+      {/* ===== Announcement Carousel ===== */}
+      {announcements.length > 0 && (
+        <AnnouncementCarousel announcements={announcements} locale={userLocale} />
+      )}
 
       {/* ===== Two-column block (PI sidebar on the left) ===== */}
       <section style={twoCols} className="home-two-cols">
@@ -183,12 +200,6 @@ export default async function HomePage() {
                 {pi.name || "Principal Investigator"}
               </h2>
 
-              <div style={{ marginTop: 4, lineHeight: 1.4, fontSize: 14 }} className="muted">
-                {(pi.titleLines || []).map((line, i) => (
-                  <div key={i}>{line}</div>
-                ))}
-              </div>
-
               <div style={{ marginTop: 8, fontSize: 14 }}>
                 {pi.email && (
                   <div>
@@ -221,36 +232,6 @@ export default async function HomePage() {
 
         {/* Main column */}
         <div style={{ display: "grid", gap: "1rem" }}>
-          {/* announcement bar */}
-          <div style={thinBar}>
-            {announcement?.title ? (
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", fontSize: 14 }}>
-                <span
-                  style={{
-                    background: "color-mix(in oklab, var(--color-primary) 20%, white)",
-                    color: "var(--color-text)",
-                    borderRadius: "9999px",
-                    padding: "0.1rem 0.5rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  {t('announcement')}
-                </span>
-                {announcement.href ? (
-                  <Link href={announcement.href} style={{ textDecoration: "underline" }}>
-                    {announcement.title}
-                  </Link>
-                ) : (
-                  <span>{announcement.title}</span>
-                )}
-              </div>
-            ) : (
-              <div className="muted" style={{ fontSize: 14 }}>
-                {t('noAnnouncements')}
-              </div>
-            )}
-          </div>
-
           {/* welcome card */}
           <div className="card" style={cardPad}>
             <h2 style={sectionTitle}>{t('welcome')}</h2>

@@ -9,6 +9,7 @@
     "adminOnly": "관리자 전용",
     "approval": "승인",
     "users": "사용자",
+    "announcements": "공지사항",
     "theme": "테마",
     "register": "등록",
     "login": "로그인",
@@ -167,5 +168,25 @@
     "errorPasswordLength": "새 비밀번호는 최소 8자 이상이어야 합니다.",
     "errorPasswordMismatch": "비밀번호가 일치하지 않습니다.",
     "errorGeneric": "비밀번호를 업데이트하지 못했습니다."
+  },
+  "announcements": {
+    "heading": "공지사항 관리",
+    "subtitle": "홈 페이지에 표시되는 배너 공지사항을 생성하고 관리합니다",
+    "addNew": "새 공지사항 추가",
+    "createNew": "새 공지사항 만들기",
+    "bannerImage": "배너 이미지",
+    "overlayText": "오버레이 텍스트",
+    "textPlaceholder": "배너에 표시할 텍스트를 입력하세요...",
+    "displayOrder": "표시 순서",
+    "active": "활성",
+    "inactive": "비활성",
+    "order": "순서",
+    "create": "만들기",
+    "save": "저장",
+    "edit": "편집",
+    "delete": "삭제",
+    "cancel": "취소",
+    "confirmDelete": "이 공지사항을 삭제하시겠습니까?",
+    "noAnnouncements": "아직 공지사항이 없습니다. '새 공지사항 추가'를 클릭하여 만드세요."
   }
 }

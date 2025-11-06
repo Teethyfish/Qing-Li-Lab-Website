@@ -7,7 +7,9 @@
       "Bash(ping:*)",
       "Bash(nul)",
       "Bash(del nul 2)",
-      "Bash(.gitignore)"
+      "Bash(.gitignore)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": [],
     "ask": []

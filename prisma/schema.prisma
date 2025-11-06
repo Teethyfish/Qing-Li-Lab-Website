@@ -55,3 +55,14 @@ enum InviteStatus {
   DENIED
 }
 
+model Announcement {
+  id           String   @id @default(cuid())
+  imageUrl     String   // URL to the banner image
+  text         String   // JSON object storing translations {en: string, zh?: string, ko?: string}
+  croppedArea  String?  // JSON string storing crop coordinates {x, y, width, height}
+  order        Int      @default(0) // Display order (lower numbers first)
+  isActive     Boolean  @default(true) // Whether to show this announcement
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

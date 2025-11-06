@@ -67,6 +67,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
   const adminItems: Array<{ href: string; label: string }> = [
     { href: "/members/approval", label: t('approval') },
     { href: "/members/users", label: t('users') },
+    { href: "/members/announcements", label: t('announcements') },
     { href: "/members/theme", label: t('theme') },
   ];
 
