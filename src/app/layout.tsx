@@ -2,11 +2,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "../components/NavBar";
+import TranslationsProvider from "../components/TranslationsProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
 import { prisma } from "@/lib/prisma";
-// src/app/layout.tsx
+import { defaultLocale } from "@/i18n/config";
+
 export const viewport = { width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
@@ -22,26 +24,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isAuthed = !!email;
   const isAdmin = typeof role === "string" && role.toUpperCase() === "ADMIN";
 
-  // Get user's slug and imageUrl for profile link and navbar
+  // Get user's locale, slug, and imageUrl for profile link and navbar
   let userSlug: string | null = null;
   let userImageUrl: string | null = null;
   let userName: string | null = null;
+  let userLocale: string = defaultLocale;
+
   if (email) {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { slug: true, imageUrl: true, name: true },
+      select: { slug: true, imageUrl: true, name: true, locale: true },
     });
     userSlug = user?.slug ?? null;
     userImageUrl = user?.imageUrl ?? null;
     userName = user?.name ?? null;
+    userLocale = user?.locale ?? defaultLocale;
   }
+
+  // Load translation messages for the user's locale
+  const messages = (await import(`@/i18n/messages/${userLocale}.json`)).default;
 
   // Load theme from DB and inject as CSS variables
   const theme = await getTheme();
   const cssVars = themeToCss(theme);
 
   return (
-    <html lang="en">
+    <html lang={userLocale}>
       <body
         className="min-h-screen antialiased"
         style={{
@@ -54,17 +62,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Inject CSS variables for the whole site */}
         <style id="theme">{cssVars}</style>
 
-        {/* Global nav expects props */}
-        <NavBar
-          isAuthed={isAuthed}
-          isAdmin={isAdmin}
-          userSlug={userSlug}
-          userImageUrl={userImageUrl}
-          userName={userName}
-        />
+        <TranslationsProvider locale={userLocale} messages={messages}>
+          {/* Global nav expects props */}
+          <NavBar
+            isAuthed={isAuthed}
+            isAdmin={isAdmin}
+            userSlug={userSlug}
+            userImageUrl={userImageUrl}
+            userName={userName}
+          />
 
-        {/* Page content */}
-        <div className="mx-auto max-w-5xl p-6">{children}</div>
+          {/* Page content */}
+          <div className="mx-auto max-w-5xl p-6">{children}</div>
+        </TranslationsProvider>
       </body>
     </html>
   );

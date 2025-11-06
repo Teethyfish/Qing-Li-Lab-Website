@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(nul)",
+      "Bash(del nul 2)",
+      "Bash(.gitignore)"
     ],
     "deny": [],
     "ask": []
