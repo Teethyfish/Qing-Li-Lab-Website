@@ -19,24 +19,21 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (10MB max)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      alert("Image file is too large. Maximum size is 10MB.");
-      return;
-    }
-
-    // Validate image dimensions (minimum 1200x400)
+    // Check image dimensions and warn if too small
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
         if (img.width < 1200 || img.height < 400) {
-          alert("Image is too small. Minimum dimensions are 1200x400 pixels.");
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
+          const proceed = confirm(
+            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended 1200x400px minimum. The image may not look good on the banner. Do you want to continue anyway?`
+          );
+          if (!proceed) {
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
+            return;
           }
-          return;
         }
         setImageSrc(reader.result as string);
       };
@@ -149,7 +146,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
           <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {previewUrl
               ? "Upload a new image or click the preview to re-crop"
-              : "Upload a banner image (min 1200x400px, max 10MB)"}
+              : "Upload a banner image (recommended: 1200x400px or larger)"}
           </div>
         </div>
       </div>
