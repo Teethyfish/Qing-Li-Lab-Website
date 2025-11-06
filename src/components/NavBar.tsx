@@ -117,17 +117,9 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
               <div style={{ position: "relative" }}>
                 <button
                   onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
+                  className="btn btn-warning"
                   style={{
-                    textDecoration: "none",
-                    padding: "8px 12px",
-                    borderRadius: 8,
                     fontSize: 14,
-                    fontWeight: 500,
-                    transition: "background .15s ease",
-                    color: "#dc2626",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
                   }}
                 >
                   {t('adminOnly')}
