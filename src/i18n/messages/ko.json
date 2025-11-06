@@ -6,6 +6,7 @@
     "viewProfile": "프로필 보기",
     "editProfile": "프로필 편집",
     "settings": "설정",
+    "adminOnly": "관리자 전용",
     "approval": "승인",
     "users": "사용자",
     "theme": "테마",

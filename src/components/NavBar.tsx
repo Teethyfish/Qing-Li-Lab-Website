@@ -130,7 +130,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                     cursor: "pointer",
                   }}
                 >
-                  Admin Only
+                  {t('adminOnly')}
                 </button>
 
                 {adminDropdownOpen && (
