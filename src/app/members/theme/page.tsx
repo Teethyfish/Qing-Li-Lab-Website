@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 /** Theme is a flat map of CSS var -> value, stored in AppConfig under key "theme". */
 type KV = Record<string, string>;
@@ -77,62 +78,9 @@ type Field =
   | { var: string; label: string; type: "number"; help?: string; step?: string; min?: string }
   | { var: string; label: string; type: "range"; min: number; max: number; step: number; unit: string; help?: string };
 
-const COLOR_FIELDS: Field[] = [
-  { var: "--color-bg", label: "Background", type: "color" },
-  { var: "--color-text", label: "Text", type: "color" },
-  { var: "--color-muted", label: "Muted Text", type: "color" },
-  { var: "--color-accent", label: "Accent", type: "color" },
-  { var: "--color-card", label: "Card Background", type: "color" },
-];
-
-const TILE_FIELDS: Field[] = [
-  { var: "--tile-radius", label: "Tile Border Radius", type: "range", min: 0, max: 24, step: 1, unit: "px" },
-  { var: "--tile-padding", label: "Tile Padding", type: "range", min: 0.25, max: 3, step: 0.25, unit: "rem" },
-  { var: "--tile-border-opacity", label: "Tile Border Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-  { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-];
-
-const SHAPE_FIELDS: Field[] = [
-  { var: "--btn-radius", label: "Button Radius", type: "range", min: 0, max: 20, step: 1, unit: "px" },
-  { var: "--btn-py", label: "Button Padding Y", type: "range", min: 0.25, max: 1.5, step: 0.05, unit: "rem" },
-  { var: "--btn-px", label: "Button Padding X", type: "range", min: 0.25, max: 2, step: 0.05, unit: "rem" },
-  { var: "--btn-weight", label: "Button Font Weight", type: "range", min: 300, max: 900, step: 100, unit: "" },
-];
-
-const BASIC_FIELDS: Field[] = [
-  { var: "--btn-basic-bg", label: "Basic BG", type: "color" },
-  { var: "--btn-basic-fg", label: "Basic FG", type: "color" },
-  { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "color" },
-  { var: "--btn-basic-border-color", label: "Basic Border Color", type: "color" },
-];
-
-const MUTED_FIELDS: Field[] = [
-  { var: "--btn-muted-bg", label: "Muted BG", type: "color" },
-  { var: "--btn-muted-fg", label: "Muted FG", type: "color" },
-  { var: "--btn-muted-hover-bg", label: "Muted Hover BG", type: "color" },
-  { var: "--btn-muted-border-color", label: "Muted Border Color", type: "color" },
-];
-
-const WARNING_FIELDS: Field[] = [
-  { var: "--btn-warning-bg", label: "Warning BG", type: "color" },
-  { var: "--btn-warning-fg", label: "Warning FG", type: "color" },
-  { var: "--btn-warning-hover-bg", label: "Warning Hover BG", type: "color" },
-  { var: "--btn-warning-border-color", label: "Warning Border Color", type: "color" },
-];
-
-const NAVBAR_COLOR_FIELDS: Field[] = [
-  { var: "--nav-bg", label: "Navbar Background", type: "color" },
-  { var: "--nav-text", label: "Navbar Text", type: "color" },
-  { var: "--nav-border", label: "Navbar Border", type: "color" },
-];
-
-const NAVBAR_SIZE_FIELDS: Field[] = [
-  { var: "--nav-opacity", label: "Navbar Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-  { var: "--nav-height", label: "Navbar Height", type: "range", min: 40, max: 80, step: 2, unit: "px" },
-  { var: "--nav-blur", label: "Backdrop Blur", type: "range", min: 0, max: 20, step: 1, unit: "px" },
-];
 
 export default async function ThemeEditorPage() {
+  const t = await getTranslations("theme");
   // Admin-only
   const session = await getServerSession(authOptions);
   const role = (session?.user as any)?.role as string | undefined;
@@ -142,6 +90,77 @@ export default async function ThemeEditorPage() {
   // Merge defaults with saved values
   const current = await readTheme();
   const theme: KV = { ...DEFAULTS, ...current };
+
+  const COLOR_FIELDS: Field[] = [
+    { var: "--color-bg", label: t("fields.background"), type: "color" },
+    { var: "--color-text", label: t("fields.text"), type: "color" },
+    { var: "--color-muted", label: t("fields.mutedText"), type: "color" },
+    { var: "--color-accent", label: t("fields.accent"), type: "color" },
+    { var: "--color-card", label: t("fields.card"), type: "color" },
+  ];
+
+  const TILE_FIELDS: Field[] = [
+    { var: "--tile-radius", label: t("fields.tileRadius"), type: "range", min: 0, max: 24, step: 1, unit: "px" },
+    { var: "--tile-padding", label: t("fields.tilePadding"), type: "range", min: 0.25, max: 3, step: 0.25, unit: "rem" },
+    {
+      var: "--tile-border-opacity",
+      label: t("fields.tileBorderOpacity"),
+      type: "range",
+      min: 0,
+      max: 100,
+      step: 1,
+      unit: "%",
+    },
+    {
+      var: "--tile-shadow-opacity",
+      label: t("fields.tileShadowOpacity"),
+      type: "range",
+      min: 0,
+      max: 100,
+      step: 1,
+      unit: "%",
+    },
+  ];
+
+  const SHAPE_FIELDS: Field[] = [
+    { var: "--btn-radius", label: t("fields.buttonRadius"), type: "range", min: 0, max: 20, step: 1, unit: "px" },
+    { var: "--btn-py", label: t("fields.buttonPaddingY"), type: "range", min: 0.25, max: 1.5, step: 0.05, unit: "rem" },
+    { var: "--btn-px", label: t("fields.buttonPaddingX"), type: "range", min: 0.25, max: 2, step: 0.05, unit: "rem" },
+    { var: "--btn-weight", label: t("fields.buttonWeight"), type: "range", min: 300, max: 900, step: 100, unit: "" },
+  ];
+
+  const BASIC_FIELDS: Field[] = [
+    { var: "--btn-basic-bg", label: t("fields.basicBg"), type: "color" },
+    { var: "--btn-basic-fg", label: t("fields.basicFg"), type: "color" },
+    { var: "--btn-basic-hover-bg", label: t("fields.basicHoverBg"), type: "color" },
+    { var: "--btn-basic-border-color", label: t("fields.basicBorder"), type: "color" },
+  ];
+
+  const MUTED_FIELDS: Field[] = [
+    { var: "--btn-muted-bg", label: t("fields.mutedBg"), type: "color" },
+    { var: "--btn-muted-fg", label: t("fields.mutedFg"), type: "color" },
+    { var: "--btn-muted-hover-bg", label: t("fields.mutedHoverBg"), type: "color" },
+    { var: "--btn-muted-border-color", label: t("fields.mutedBorder"), type: "color" },
+  ];
+
+  const WARNING_FIELDS: Field[] = [
+    { var: "--btn-warning-bg", label: t("fields.warningBg"), type: "color" },
+    { var: "--btn-warning-fg", label: t("fields.warningFg"), type: "color" },
+    { var: "--btn-warning-hover-bg", label: t("fields.warningHoverBg"), type: "color" },
+    { var: "--btn-warning-border-color", label: t("fields.warningBorder"), type: "color" },
+  ];
+
+  const NAVBAR_COLOR_FIELDS: Field[] = [
+    { var: "--nav-bg", label: t("fields.navBg"), type: "color" },
+    { var: "--nav-text", label: t("fields.navText"), type: "color" },
+    { var: "--nav-border", label: t("fields.navBorder"), type: "color" },
+  ];
+
+  const NAVBAR_SIZE_FIELDS: Field[] = [
+    { var: "--nav-opacity", label: t("fields.navOpacity"), type: "range", min: 0, max: 100, step: 1, unit: "%" },
+    { var: "--nav-height", label: t("fields.navHeight"), type: "range", min: 40, max: 80, step: 2, unit: "px" },
+    { var: "--nav-blur", label: t("fields.navBlur"), type: "range", min: 0, max: 20, step: 1, unit: "px" },
+  ];
 
   // --- Server action to save ---
   async function saveTheme(formData: FormData) {
@@ -297,15 +316,15 @@ export default async function ThemeEditorPage() {
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
-          Theme Editor
+          {t("title")}
         </h1>
-        <p className="muted">Tweak global colors and button styles. Changes apply site-wide.</p>
+        <p className="muted">{t("subtitle")}</p>
       </header>
 
       <form action={saveTheme} className="space-y-6">
         {/* Colors */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Site colors</h2>
+          <h2 className="text-lg font-semibold">{t("sections.colors")}</h2>
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {COLOR_FIELDS.map((f) => (
@@ -317,7 +336,7 @@ export default async function ThemeEditorPage() {
 
         {/* Tiles/Cards */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Cards & Tiles</h2>
+          <h2 className="text-lg font-semibold">{t("sections.tiles")}</h2>
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {TILE_FIELDS.map((f) => (
@@ -333,7 +352,7 @@ export default async function ThemeEditorPage() {
 
         {/* Navbar */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Navbar</h2>
+          <h2 className="text-lg font-semibold">{t("sections.navbar")}</h2>
           <div className="tile" style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
             {/* Row 1: Colors */}
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -352,7 +371,7 @@ export default async function ThemeEditorPage() {
 
         {/* Buttons: shape */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Buttons — shape</h2>
+          <h2 className="text-lg font-semibold">{t("sections.buttonShape")}</h2>
           <div className="tile" style={{ padding: "1rem" }}>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {SHAPE_FIELDS.map((f) => (
@@ -368,23 +387,23 @@ export default async function ThemeEditorPage() {
 
         {/* Buttons: colors */}
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Buttons — colors</h2>
+          <h2 className="text-lg font-semibold">{t("sections.buttonColors")}</h2>
 
           {/* Preview — use buttons (no onClick) so it's legal in a Server Component */}
           <div className="tile" style={{ padding: "1rem" }}>
             <div className="muted" style={{ marginBottom: 8, fontSize: "0.9rem" }}>
-              Preview
+              {t("preview")}
             </div>
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button className="btn btn-basic" type="button">Basic</button>
-              <button className="btn btn-muted" type="button">Muted</button>
-              <button className="btn btn-warning" type="button">Warning</button>
+              <button className="btn btn-basic" type="button">{t("buttons.basic")}</button>
+              <button className="btn btn-muted" type="button">{t("buttons.muted")}</button>
+              <button className="btn btn-warning" type="button">{t("buttons.warning")}</button>
             </div>
           </div>
 
           {/* Basic buttons */}
           <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Basic</div>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>{t("buttons.basic")}</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {BASIC_FIELDS.map((f) => (
                 <CompactColorField key={f.var} field={f} />
@@ -394,7 +413,7 @@ export default async function ThemeEditorPage() {
 
           {/* Muted buttons */}
           <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Muted</div>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>{t("buttons.muted")}</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {MUTED_FIELDS.map((f) => (
                 <CompactColorField key={f.var} field={f} />
@@ -404,7 +423,7 @@ export default async function ThemeEditorPage() {
 
           {/* Warning buttons */}
           <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Warning</div>
+            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>{t("buttons.warning")}</div>
             <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               {WARNING_FIELDS.map((f) => (
                 <CompactColorField key={f.var} field={f} />
@@ -414,13 +433,13 @@ export default async function ThemeEditorPage() {
         </section>
 
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button className="btn btn-basic" type="submit">Save theme</button>
+          <button className="btn btn-basic" type="submit">{t("save")}</button>
         </div>
       </form>
 
       {/* Reset form outside the main form */}
       <form action={resetTheme} style={{ marginTop: "1rem" }}>
-        <button className="btn btn-warning" type="submit">Reset to Defaults</button>
+        <button className="btn btn-warning" type="submit">{t("reset")}</button>
       </form>
     </main>
   );

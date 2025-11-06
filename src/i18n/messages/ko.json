@@ -1,5 +1,6 @@
 {
   "navigation": {
+    "brand": "Qing Li Lab",
     "home": "홈",
     "members": "멤버",
     "profile": "프로필",
@@ -47,6 +48,7 @@
     "uploadNew": "새 사진을 업로드하거나 사진을 클릭하여 다시 자르기",
     "uploadPicture": "새 프로필 사진 업로드 (JPG, PNG 등)",
     "displayName": "표시 이름",
+    "namePlaceholder": "예: Lynn Zhang",
     "aboutMe": "자기소개",
     "aboutPlaceholder": "간단한 소개, 연구 관심사 등.",
     "saveChanges": "변경사항 저장",
@@ -55,31 +57,182 @@
     "cancel": "취소",
     "saveCrop": "자르기 저장",
     "saving": "저장 중...",
-    "about": "소개"
+    "about": "소개",
+    "edit": "편집"
   },
   "home": {
-    "welcome": "환영합니다!",
+    "labTitle": "Qing X. Li 연구실",
+    "piDefaultName": "연구책임자",
+    "piTitleLines": {
+      "0": "분자생명공학과",
+      "1": "단백질체학 코어 시설",
+      "2": "하와이 대학교 마노아"
+    },
+    "piIntro": "우리 연구실은 단백질체학과 환경 및 생물학적 시스템의 분자 기초를 연구합니다.",
+    "emailLabel": "이메일",
+    "phoneLabel": "전화",
+    "officeLabel": "사무실",
+    "announcement": "공지사항",
+    "noAnnouncements": "아직 공지사항이 없습니다.",
+    "welcomeHeading": "환영합니다!",
+    "welcomeBody": "환영합니다! 우리는 단백질체학과 분자 생명과학을 연구하는 연구실입니다.",
     "labMembers": "연구실 멤버",
     "alumni": "졸업생",
     "collaborators": "협력자",
     "noMembers": "아직 멤버가 없습니다.",
     "noAlumni": "아직 졸업생이 없습니다.",
     "noCollaborators": "아직 협력자가 없습니다.",
-    "announcement": "공지사항",
-    "noAnnouncements": "아직 공지사항이 없습니다."
+    "unnamed": "이름 없음",
+    "alumniRoleFallback": "졸업생",
+    "collaboratorRoleFallback": "협력자"
+  },
+  "members": {
+    "heading": "멤버 영역",
+    "subheading": "환영합니다, {email}",
+    "profileTile": {
+      "title": "내 프로필",
+      "description": "이름, 소개 등을 업데이트하세요."
+    },
+    "readingTile": {
+      "title": "읽기 목록",
+      "description": "연구실에서 선별한 논문과 자료."
+    }
+  },
+  "theme": {
+    "title": "테마 편집기",
+    "subtitle": "사이트 전체에 적용되는 색상과 버튼 스타일을 조정하세요.",
+    "sections": {
+      "colors": "사이트 색상",
+      "tiles": "카드 & 타일",
+      "navbar": "네비게이션 바",
+      "buttonShape": "버튼 형태",
+      "buttonColors": "버튼 색상"
+    },
+    "preview": "미리보기",
+    "buttons": {
+      "basic": "기본",
+      "muted": "차분",
+      "warning": "경고"
+    },
+    "save": "테마 저장",
+    "reset": "기본값으로 재설정",
+    "fields": {
+      "background": "배경",
+      "text": "텍스트",
+      "mutedText": "차분한 텍스트",
+      "accent": "포인트",
+      "card": "카드 배경",
+      "tileRadius": "타일 모서리 반경",
+      "tilePadding": "타일 여백",
+      "tileBorderOpacity": "타일 테두리 불투명도",
+      "tileShadowOpacity": "타일 그림자 불투명도",
+      "buttonRadius": "버튼 모서리",
+      "buttonPaddingY": "버튼 세로 여백",
+      "buttonPaddingX": "버튼 가로 여백",
+      "buttonWeight": "버튼 글자 두께",
+      "basicBg": "기본 배경",
+      "basicFg": "기본 글자색",
+      "basicHoverBg": "기본 호버 배경",
+      "basicBorder": "기본 테두리",
+      "mutedBg": "차분 배경",
+      "mutedFg": "차분 글자색",
+      "mutedHoverBg": "차분 호버 배경",
+      "mutedBorder": "차분 테두리",
+      "warningBg": "경고 배경",
+      "warningFg": "경고 글자색",
+      "warningHoverBg": "경고 호버 배경",
+      "warningBorder": "경고 테두리",
+      "navBg": "네비게이션 배경",
+      "navText": "네비게이션 텍스트",
+      "navBorder": "네비게이션 테두리",
+      "navOpacity": "네비게이션 불투명도",
+      "navHeight": "네비게이션 높이",
+      "navBlur": "배경 흐림"
+    }
+  },
+  "approval": {
+    "title": "승인 대시보드",
+    "intro": "승인하면 임시 비밀번호가 포함된 사용자 계정이 생성되어 이메일로 전송됩니다. {denyVerb} 하면 슬러그가 해제됩니다. 결정된 행은 흐리게 표시되며, 재설정은 {denyVerbLower}된 행에서만 사용할 수 있습니다.",
+    "headers": {
+      "email": "이메일",
+      "slug": "슬러그",
+      "name": "이름",
+      "status": "상태",
+      "requested": "요청일",
+      "decided": "결정일",
+      "note": "지원자 메모",
+      "tempPassword": "임시 비밀번호",
+      "actions": "작업"
+    },
+    "noInvites": "초대가 없습니다.",
+    "buttons": {
+      "approve": "승인",
+      "deny": "거부",
+      "reject": "반려",
+      "denyLower": "거부",
+      "rejectLower": "반려",
+      "reset": "재설정",
+      "delete": "삭제"
+    },
+    "resetTitle": "상태를 PENDING으로 되돌리고 메모를 유지합니다"
+  },
+  "users": {
+    "heading": "사용자 (관리자)",
+    "intro": "연구실 계정, 권한, 비밀번호 재설정을 관리하세요.",
+    "headers": {
+      "email": "이메일",
+      "name": "이름",
+      "slug": "슬러그",
+      "role": "역할",
+      "resetRequired": "비밀번호 재설정 필요",
+      "actions": "작업"
+    },
+    "noUsers": "사용자가 없습니다.",
+    "resetFlag": {
+      "yes": "예",
+      "no": "아니오"
+    },
+    "actions": {
+      "demote": "MEMBER로 강등",
+      "promote": "ADMIN으로 승격",
+      "clearReset": "재설정 요구 해제",
+      "requireReset": "재설정 요구"
+    },
+    "delete": {
+      "placeholder": "DELETE 입력",
+      "aria": "삭제하려면 DELETE를 입력하세요",
+      "title": "사용자 삭제"
+    },
+    "buttons": {
+      "delete": "삭제"
+    }
+  },
+  "people": {
+    "title": "구성원",
+    "noBio": "아직 소개가 없습니다."
   },
   "auth": {
+    "avatarAlt": "{name}님의 아바타",
+    "userFallback": "사용자",
+    "signingOut": "로그아웃 중…",
+    "logout": "로그아웃",
     "login": "로그인",
     "loginSubtitle": "멤버는 아래에서 로그인하세요.",
     "email": "이메일",
+    "emailPlaceholder": "you@hawaii.edu",
     "password": "비밀번호",
+    "passwordPlaceholder": "••••••••",
     "signIn": "로그인",
     "signingIn": "로그인 중…",
+    "loginError": "이메일 또는 비밀번호가 올바르지 않습니다.",
     "register": "연구실 등록",
     "registerSubtitle": "멤버 영역에 액세스하려면 계정을 요청하세요.",
     "fullName": "이름",
+    "fullNamePlaceholder": "예: Lynn Zhang",
     "desiredSlug": "원하는 프로필 URL (슬러그)",
+    "desiredSlugPlaceholder": "예: lynn-zhang",
     "noteToPI": "PI에게 메모 (선택사항)",
+    "notePlaceholder": "관심 분야나 가입 이유를 공유하세요…",
     "submit": "제출",
     "submitting": "제출 중…",
     "slugPreview": "미리보기:",
@@ -91,6 +244,22 @@
     "approvalNote": "승인되면 임시 비밀번호가 포함된 이메일을 받게 됩니다.",
     "backToHome": "홈으로 돌아가기",
     "goToLogin": "로그인으로 이동"
+  },
+  "resetPassword": {
+    "title": "새 비밀번호 설정",
+    "description": "이메일과 승인 메일의 임시 비밀번호를 입력한 후 새 비밀번호를 선택하세요.",
+    "email": "이메일",
+    "currentPassword": "현재(임시) 비밀번호",
+    "newPassword": "새 비밀번호",
+    "confirmPassword": "새 비밀번호 확인",
+    "invalidEmail": "유효한 이메일을 입력하세요.",
+    "passwordTooShort": "새 비밀번호는 8자 이상이어야 합니다.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "updateFailed": "비밀번호를 업데이트하지 못했습니다.",
+    "toggleCurrent": "현재 비밀번호 표시 전환",
+    "toggleNew": "새 비밀번호 표시 전환",
+    "saving": "저장 중…",
+    "saveButton": "새 비밀번호 저장"
   },
   "common": {
     "member": "멤버",

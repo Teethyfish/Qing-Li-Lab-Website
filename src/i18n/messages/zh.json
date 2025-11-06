@@ -1,5 +1,6 @@
 {
   "navigation": {
+    "brand": "Qing Li Lab",
     "home": "主页",
     "members": "成员",
     "profile": "个人资料",
@@ -47,6 +48,7 @@
     "uploadNew": "上传新图片或点击您的照片重新裁剪",
     "uploadPicture": "上传新头像（JPG、PNG等）",
     "displayName": "显示名称",
+    "namePlaceholder": "如：Lynn Zhang",
     "aboutMe": "关于我",
     "aboutPlaceholder": "简短的个人简介、研究兴趣等。",
     "saveChanges": "保存更改",
@@ -55,31 +57,182 @@
     "cancel": "取消",
     "saveCrop": "保存裁剪",
     "saving": "保存中...",
-    "about": "关于"
+    "about": "关于",
+    "edit": "编辑"
   },
   "home": {
-    "welcome": "欢迎！",
+    "labTitle": "Qing X. Li 实验室",
+    "piDefaultName": "首席研究员",
+    "piTitleLines": {
+      "0": "分子生物科学与生物工程系",
+      "1": "蛋白质组学核心设施",
+      "2": "夏威夷大学马诺阿分校"
+    },
+    "piIntro": "我们的实验室专注于蛋白质组学以及环境和生物系统的分子基础。",
+    "emailLabel": "电子邮件",
+    "phoneLabel": "电话",
+    "officeLabel": "办公室",
+    "announcement": "公告",
+    "noAnnouncements": "暂无公告。",
+    "welcomeHeading": "欢迎！",
+    "welcomeBody": "欢迎！我们是一家研究蛋白质组学和分子生物科学的实验室。",
     "labMembers": "实验室成员",
     "alumni": "校友",
     "collaborators": "合作者",
     "noMembers": "暂无成员。",
     "noAlumni": "暂无校友。",
     "noCollaborators": "暂无合作者。",
-    "announcement": "公告",
-    "noAnnouncements": "暂无公告。"
+    "unnamed": "未命名",
+    "alumniRoleFallback": "校友",
+    "collaboratorRoleFallback": "合作者"
+  },
+  "members": {
+    "heading": "成员区域",
+    "subheading": "欢迎，{email}",
+    "profileTile": {
+      "title": "个人资料",
+      "description": "更新姓名、简介等信息。"
+    },
+    "readingTile": {
+      "title": "阅读清单",
+      "description": "实验室精选的论文和资源。"
+    }
+  },
+  "theme": {
+    "title": "主题编辑器",
+    "subtitle": "调整全站的颜色和按钮样式。",
+    "sections": {
+      "colors": "站点颜色",
+      "tiles": "卡片与磁贴",
+      "navbar": "导航栏",
+      "buttonShape": "按钮形状",
+      "buttonColors": "按钮颜色"
+    },
+    "preview": "预览",
+    "buttons": {
+      "basic": "基础",
+      "muted": "柔和",
+      "warning": "警告"
+    },
+    "save": "保存主题",
+    "reset": "恢复默认",
+    "fields": {
+      "background": "背景",
+      "text": "文本",
+      "mutedText": "次要文本",
+      "accent": "强调色",
+      "card": "卡片背景",
+      "tileRadius": "磁贴圆角",
+      "tilePadding": "磁贴内边距",
+      "tileBorderOpacity": "磁贴边框不透明度",
+      "tileShadowOpacity": "磁贴阴影不透明度",
+      "buttonRadius": "按钮圆角",
+      "buttonPaddingY": "按钮上下内边距",
+      "buttonPaddingX": "按钮左右内边距",
+      "buttonWeight": "按钮字重",
+      "basicBg": "基础背景",
+      "basicFg": "基础前景",
+      "basicHoverBg": "基础悬停背景",
+      "basicBorder": "基础边框",
+      "mutedBg": "柔和背景",
+      "mutedFg": "柔和前景",
+      "mutedHoverBg": "柔和悬停背景",
+      "mutedBorder": "柔和边框",
+      "warningBg": "警告背景",
+      "warningFg": "警告前景",
+      "warningHoverBg": "警告悬停背景",
+      "warningBorder": "警告边框",
+      "navBg": "导航栏背景",
+      "navText": "导航栏文本",
+      "navBorder": "导航栏边框",
+      "navOpacity": "导航栏不透明度",
+      "navHeight": "导航栏高度",
+      "navBlur": "背景模糊"
+    }
+  },
+  "approval": {
+    "title": "审批面板",
+    "intro": "批准后将创建带有临时密码的用户并邮件通知。{denyVerb} 将释放该 slug。已处理的条目会淡出显示，只有{denyVerbLower}的条目可以重置。",
+    "headers": {
+      "email": "电子邮件",
+      "slug": "标识",
+      "name": "姓名",
+      "status": "状态",
+      "requested": "请求时间",
+      "decided": "决定时间",
+      "note": "申请人备注",
+      "tempPassword": "临时密码",
+      "actions": "操作"
+    },
+    "noInvites": "暂无邀请。",
+    "buttons": {
+      "approve": "批准",
+      "deny": "拒绝",
+      "reject": "驳回",
+      "denyLower": "拒绝",
+      "rejectLower": "驳回",
+      "reset": "重置",
+      "delete": "删除"
+    },
+    "resetTitle": "恢复为 PENDING 状态（保留备注）"
+  },
+  "users": {
+    "heading": "用户（管理员）",
+    "intro": "管理实验室成员的账户、角色和重置要求。",
+    "headers": {
+      "email": "电子邮件",
+      "name": "姓名",
+      "slug": "标识",
+      "role": "角色",
+      "resetRequired": "需重置密码",
+      "actions": "操作"
+    },
+    "noUsers": "暂无用户。",
+    "resetFlag": {
+      "yes": "是",
+      "no": "否"
+    },
+    "actions": {
+      "demote": "降为 MEMBER",
+      "promote": "升为 ADMIN",
+      "clearReset": "取消重置要求",
+      "requireReset": "要求重置"
+    },
+    "delete": {
+      "placeholder": "输入 DELETE",
+      "aria": "请输入 DELETE 以确认",
+      "title": "删除用户"
+    },
+    "buttons": {
+      "delete": "删除"
+    }
+  },
+  "people": {
+    "title": "成员",
+    "noBio": "暂无简介。"
   },
   "auth": {
+    "avatarAlt": "{name} 的头像",
+    "userFallback": "用户",
+    "signingOut": "正在登出…",
+    "logout": "登出",
     "login": "登录",
     "loginSubtitle": "成员在下方登录。",
     "email": "电子邮件",
+    "emailPlaceholder": "you@hawaii.edu",
     "password": "密码",
+    "passwordPlaceholder": "••••••••",
     "signIn": "登录",
     "signingIn": "登录中…",
+    "loginError": "电子邮件或密码不正确。",
     "register": "实验室注册",
     "registerSubtitle": "请求账户以访问成员区域。",
     "fullName": "全名",
+    "fullNamePlaceholder": "如：Lynn Zhang",
     "desiredSlug": "期望的个人资料URL（标识符）",
+    "desiredSlugPlaceholder": "如：lynn-zhang",
     "noteToPI": "给PI的备注（可选）",
+    "notePlaceholder": "分享您的兴趣或加入原因…",
     "submit": "提交",
     "submitting": "提交中…",
     "slugPreview": "预览：",
@@ -91,6 +244,22 @@
     "approvalNote": "批准后，您将收到一封包含临时密码的电子邮件。",
     "backToHome": "返回主页",
     "goToLogin": "前往登录"
+  },
+  "resetPassword": {
+    "title": "设置新密码",
+    "description": "输入您的电子邮件和审批邮件中的临时密码，然后选择一个新密码。",
+    "email": "电子邮件",
+    "currentPassword": "当前（临时）密码",
+    "newPassword": "新密码",
+    "confirmPassword": "确认新密码",
+    "invalidEmail": "请输入有效的电子邮件地址。",
+    "passwordTooShort": "新密码至少需要 8 个字符。",
+    "passwordMismatch": "两次输入的密码不一致。",
+    "updateFailed": "密码更新失败。",
+    "toggleCurrent": "切换当前密码显示",
+    "toggleNew": "切换新密码显示",
+    "saving": "保存中…",
+    "saveButton": "保存新密码"
   },
   "common": {
     "member": "成员",

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import ProfileForm from "./ProfileForm";
+import { getTranslations } from "next-intl/server";
 
 /* optional: page-builder text */
 type AppRow = { value: string };
@@ -25,6 +26,7 @@ async function getConfig<T = unknown>(key: string): Promise<T | null> {
 type ProfileCfg = { heading?: string; intro?: string };
 
 export default async function ProfilePage() {
+  const t = await getTranslations("profile");
   const session = await getServerSession(authOptions);
   const email = session?.user?.email?.toLowerCase();
   if (!email) redirect("/login");
@@ -72,7 +74,7 @@ export default async function ProfilePage() {
     <main className="mx-auto max-w-5xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
-          {cfg.heading || "Edit your profile"}
+          {cfg.heading || t("editYourProfile")}
         </h1>
         {cfg.intro && <p className="muted">{cfg.intro}</p>}
       </header>
