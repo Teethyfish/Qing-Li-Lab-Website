@@ -3,8 +3,10 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export default function LoginForm() {
+  const t = useTranslations('auth');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle"|"loading"|"error">("idle");
@@ -24,7 +26,7 @@ export default function LoginForm() {
 
     // signIn() redirects on success; if it returns, it likely failed:
     setStatus("error");
-    setError("Incorrect email or password.");
+    setError(t('errorInvalidCredentials') || "Incorrect email or password.");
   }
 
   const inputStyle: React.CSSProperties = {
@@ -39,14 +41,14 @@ export default function LoginForm() {
   return (
     <main className="mx-auto max-w-md" style={{ paddingTop: "2rem" }}>
       <div style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>Login</h1>
-        <p className="muted">Members sign in below.</p>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>{t('login')}</h1>
+        <p className="muted">{t('loginSubtitle')}</p>
       </div>
 
       <div className="tile" style={{ padding: "1.5rem" }}>
         <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Email</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('email')}</label>
             <input
               type="email"
               required
@@ -58,7 +60,7 @@ export default function LoginForm() {
           </div>
 
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Password</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('password')}</label>
             <input
               type="password"
               required
@@ -90,7 +92,7 @@ export default function LoginForm() {
               disabled={status === "loading"}
               className="btn btn-basic"
             >
-              {status === "loading" ? "Signing in…" : "Sign in"}
+              {status === "loading" ? t('signingIn') : t('signIn')}
             </button>
           </div>
         </form>

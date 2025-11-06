@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 function initials(name?: string | null) {
   if (!name) return "??";
@@ -50,18 +51,19 @@ function NavItem({
 }
 
 export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, userName }: Props) {
+  const t = useTranslations('navigation');
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
-    { href: "/", label: "Home", show: true },
-    { href: "/members", label: "Members", show: isAuthed },
-    { href: "/members/approval", label: "Approval", show: isAdmin },
-    { href: "/members/users", label: "Users", show: isAdmin },
-    { href: "/members/theme", label: "Theme", show: isAdmin },
-    { href: "/register", label: "Register", show: !isAuthed },
-    { href: "/login", label: "Login", show: !isAuthed },
+    { href: "/", label: t('home'), show: true },
+    { href: "/members", label: t('members'), show: isAuthed },
+    { href: "/members/approval", label: t('approval'), show: isAdmin },
+    { href: "/members/users", label: t('users'), show: isAdmin },
+    { href: "/members/theme", label: t('theme'), show: isAdmin },
+    { href: "/register", label: t('register'), show: !isAuthed },
+    { href: "/login", label: t('login'), show: !isAuthed },
   ];
 
   const isCurrent = (href: string) => pathname === href;
@@ -104,7 +106,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                 marginRight: 4,
               }}
             >
-              Qing Li Lab
+              {t('brandName')}
             </Link>
 
             {/* links row (always visible; we already fixed the double-navbar issue) */}
@@ -208,7 +210,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                             e.currentTarget.style.background = "transparent";
                           }}
                         >
-                          View Profile
+                          {t('viewProfile')}
                         </Link>
                         <Link
                           href="/members/profile"
@@ -228,7 +230,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                             e.currentTarget.style.background = "transparent";
                           }}
                         >
-                          Edit Profile
+                          {t('editProfile')}
                         </Link>
                         <Link
                           href="/members/settings"
@@ -247,7 +249,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                             e.currentTarget.style.background = "transparent";
                           }}
                         >
-                          Settings
+                          {t('settings')}
                         </Link>
                       </div>
                     </>
@@ -262,12 +264,12 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
                   disabled={busy}
                   className="btn btn-basic"
                 >
-                  {busy ? "Signing out…" : "Logout"}
+                  {busy ? t('signingOut') : t('logout')}
                 </button>
               </>
             ) : (
               <Link href="/login" className="btn btn-basic">
-                Login
+                {t('login')}
               </Link>
             )}
           </div>

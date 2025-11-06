@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
+import { useTranslations } from "next-intl";
 
 type Props = {
   user: {
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function ProfileForm({ user, saveProfile }: Props) {
+  const t = useTranslations('profile');
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -43,7 +45,7 @@ export default function ProfileForm({ user, saveProfile }: Props) {
 
       {/* Profile Picture */}
       <div className="tile" style={{ padding: "1rem" }}>
-        <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Profile picture</div>
+        <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{t('profilePicture')}</div>
         <ProfilePictureUpload
           currentImageUrl={user.imageUrl}
           userName={user.name}
@@ -54,7 +56,7 @@ export default function ProfileForm({ user, saveProfile }: Props) {
       {/* Name */}
       <div className="tile" style={{ padding: "1rem" }}>
         <label style={{ display: "grid", gap: "0.4rem" }}>
-          <div style={{ fontWeight: 600 }}>Display name</div>
+          <div style={{ fontWeight: 600 }}>{t('displayName')}</div>
           <input
             name="name"
             defaultValue={user.name ?? ""}
@@ -67,12 +69,12 @@ export default function ProfileForm({ user, saveProfile }: Props) {
       {/* About */}
       <div className="tile" style={{ padding: "1rem" }}>
         <label style={{ display: "grid", gap: "0.4rem" }}>
-          <div style={{ fontWeight: 600 }}>About me</div>
+          <div style={{ fontWeight: 600 }}>{t('aboutMe')}</div>
           <textarea
             name="about"
             defaultValue={user.about ?? ""}
             rows={6}
-            placeholder="A short bio, research interests, etc."
+            placeholder={t('aboutPlaceholder')}
             style={inputStyle}
           />
         </label>
@@ -80,7 +82,7 @@ export default function ProfileForm({ user, saveProfile }: Props) {
 
       <div>
         <button className="btn btn-basic" type="submit">
-          Save changes
+          {t('saveChanges')}
         </button>
       </div>
     </form>

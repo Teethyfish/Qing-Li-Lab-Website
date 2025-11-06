@@ -11,7 +11,9 @@
     "theme": "테마",
     "register": "등록",
     "login": "로그인",
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "signingOut": "로그아웃 중…",
+    "brandName": "Qing Li 연구실"
   },
   "settings": {
     "title": "설정",
@@ -75,6 +77,7 @@
     "password": "비밀번호",
     "signIn": "로그인",
     "signingIn": "로그인 중…",
+    "errorInvalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
     "register": "연구실 등록",
     "registerSubtitle": "멤버 영역에 액세스하려면 계정을 요청하세요.",
     "fullName": "이름",
@@ -95,6 +98,73 @@
   "common": {
     "member": "멤버",
     "admin": "관리자",
-    "pi": "PI"
+    "pi": "PI",
+    "unnamed": "이름 없음",
+    "noBioYet": "아직 소개가 없습니다.",
+    "email": "이메일",
+    "phone": "전화",
+    "office": "사무실"
+  },
+  "members": {
+    "heading": "멤버 영역",
+    "welcomeUser": "환영합니다, {email}",
+    "yourProfile": "내 프로필",
+    "yourProfileDesc": "이름, 소개 등을 업데이트하세요.",
+    "readingList": "읽기 목록",
+    "readingListDesc": "연구실에서 선별한 논문 및 자료."
+  },
+  "users": {
+    "heading": "사용자 (관리자)",
+    "tableEmail": "이메일",
+    "tableName": "이름",
+    "tableSlug": "슬러그",
+    "tableRole": "역할",
+    "tableMustResetPW": "비밀번호 재설정 필수",
+    "tableActions": "작업",
+    "noUsers": "사용자가 없습니다.",
+    "demoteToMember": "멤버로 강등",
+    "promoteToAdmin": "관리자로 승격",
+    "clearResetFlag": "재설정 플래그 지우기",
+    "requireReset": "재설정 요구",
+    "typeDELETE": "DELETE 입력",
+    "delete": "삭제",
+    "yes": "예",
+    "no": "아니오"
+  },
+  "approval": {
+    "heading": "승인 대시보드",
+    "intro1": "승인하면 임시 비밀번호가 포함된 사용자가 생성되고 이메일로 전송됩니다.",
+    "intro2": "슬러그를 해제합니다. 결정된 행은 표시되지만 회색으로 표시됩니다. 재설정은",
+    "intro3": "거부된 행에만 표시됩니다.",
+    "tableEmail": "이메일",
+    "tableSlug": "슬러그",
+    "tableName": "이름",
+    "tableStatus": "상태",
+    "tableRequested": "요청 시간",
+    "tableDecided": "결정 시간",
+    "tableApplicantNote": "신청자 메모",
+    "tableTempPW": "임시 비밀번호",
+    "tableActions": "작업",
+    "noInvites": "초대가 없습니다.",
+    "approve": "승인",
+    "reject": "거부",
+    "deny": "거부",
+    "reset": "재설정",
+    "delete": "삭제",
+    "resetTooltip": "대기 중으로 되돌리기 (메모 유지)"
+  },
+  "resetPassword": {
+    "heading": "새 비밀번호 설정",
+    "intro": "이메일과 승인 이메일의 임시 비밀번호를 입력한 다음 새 비밀번호를 선택하세요.",
+    "email": "이메일",
+    "currentPassword": "현재 (임시) 비밀번호",
+    "newPassword": "새 비밀번호",
+    "confirmNewPassword": "새 비밀번호 확인",
+    "saveNewPassword": "새 비밀번호 저장",
+    "saving": "저장 중…",
+    "errorInvalidEmail": "유효한 이메일을 입력하세요.",
+    "errorPasswordLength": "새 비밀번호는 최소 8자 이상이어야 합니다.",
+    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다.",
+    "errorGeneric": "비밀번호를 업데이트하지 못했습니다."
   }
 }

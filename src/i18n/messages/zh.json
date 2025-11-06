@@ -11,7 +11,9 @@
     "theme": "主题",
     "register": "注册",
     "login": "登录",
-    "logout": "登出"
+    "logout": "登出",
+    "signingOut": "登出中…",
+    "brandName": "李晴实验室"
   },
   "settings": {
     "title": "设置",
@@ -75,6 +77,7 @@
     "password": "密码",
     "signIn": "登录",
     "signingIn": "登录中…",
+    "errorInvalidCredentials": "电子邮件或密码不正确。",
     "register": "实验室注册",
     "registerSubtitle": "请求账户以访问成员区域。",
     "fullName": "全名",
@@ -95,6 +98,73 @@
   "common": {
     "member": "成员",
     "admin": "管理员",
-    "pi": "PI"
+    "pi": "PI",
+    "unnamed": "未命名",
+    "noBioYet": "暂无简介。",
+    "email": "电子邮件",
+    "phone": "电话",
+    "office": "办公室"
+  },
+  "members": {
+    "heading": "成员区",
+    "welcomeUser": "欢迎，{email}",
+    "yourProfile": "您的个人资料",
+    "yourProfileDesc": "更新您的姓名、关于文本等。",
+    "readingList": "阅读列表",
+    "readingListDesc": "实验室策划的论文和资源。"
+  },
+  "users": {
+    "heading": "用户（管理员）",
+    "tableEmail": "电子邮件",
+    "tableName": "姓名",
+    "tableSlug": "标识符",
+    "tableRole": "角色",
+    "tableMustResetPW": "必须重置密码",
+    "tableActions": "操作",
+    "noUsers": "暂无用户。",
+    "demoteToMember": "降级为成员",
+    "promoteToAdmin": "升级为管理员",
+    "clearResetFlag": "清除重置标记",
+    "requireReset": "要求重置",
+    "typeDELETE": "输入DELETE",
+    "delete": "删除",
+    "yes": "是",
+    "no": "否"
+  },
+  "approval": {
+    "heading": "审批仪表板",
+    "intro1": "批准将创建一个带有临时密码的用户并通过电子邮件发送给他们。",
+    "intro2": "释放标识符。已决定的行保持可见但显示为灰色。重置仅显示",
+    "intro3": "已拒绝的行。",
+    "tableEmail": "电子邮件",
+    "tableSlug": "标识符",
+    "tableName": "姓名",
+    "tableStatus": "状态",
+    "tableRequested": "请求时间",
+    "tableDecided": "决定时间",
+    "tableApplicantNote": "申请人备注",
+    "tableTempPW": "临时密码",
+    "tableActions": "操作",
+    "noInvites": "暂无邀请。",
+    "approve": "批准",
+    "reject": "拒绝",
+    "deny": "拒绝",
+    "reset": "重置",
+    "delete": "删除",
+    "resetTooltip": "设置回待处理（保留备注）"
+  },
+  "resetPassword": {
+    "heading": "设置新密码",
+    "intro": "输入您的电子邮件和批准电子邮件中的临时密码，然后选择新密码。",
+    "email": "电子邮件",
+    "currentPassword": "当前（临时）密码",
+    "newPassword": "新密码",
+    "confirmNewPassword": "确认新密码",
+    "saveNewPassword": "保存新密码",
+    "saving": "保存中…",
+    "errorInvalidEmail": "请输入有效的电子邮件。",
+    "errorPasswordLength": "新密码必须至少8个字符。",
+    "errorPasswordMismatch": "密码不匹配。",
+    "errorGeneric": "无法更新密码。"
   }
 }

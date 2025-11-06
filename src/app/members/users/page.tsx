@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 /* ---------- page-builder config helper ---------- */
 type AppRow = { value: string };
@@ -44,6 +45,8 @@ export default async function UsersAdminPage() {
   const role = (session?.user as any)?.role as string | undefined;
   const isAdmin = role && role.toUpperCase() === "ADMIN";
   if (!isAdmin) redirect("/");
+
+  const t = await getTranslations('users');
 
   const cfg = (await getConfig<UsersPageCfg>("members.users.page")) ?? {};
 
@@ -96,7 +99,7 @@ export default async function UsersAdminPage() {
     <main className="mx-auto max-w-6xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
-          {cfg.heading || "Users (Admin)"}
+          {cfg.heading || t('heading')}
         </h1>
         {cfg.intro && <p className="muted">{cfg.intro}</p>}
       </header>
@@ -106,23 +109,23 @@ export default async function UsersAdminPage() {
           <table className="min-w-full text-sm" style={{ width: "100%" }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "8px" }}>Email</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>Name</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableEmail')}</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableName')}</th>
                 {cfg.showSlugCol !== false && (
-                  <th style={{ textAlign: "left", padding: "8px" }}>Slug</th>
+                  <th style={{ textAlign: "left", padding: "8px" }}>{t('tableSlug')}</th>
                 )}
-                <th style={{ textAlign: "left", padding: "8px" }}>Role</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableRole')}</th>
                 {cfg.showResetCol !== false && (
-                  <th style={{ textAlign: "left", padding: "8px" }}>Must Reset PW</th>
+                  <th style={{ textAlign: "left", padding: "8px" }}>{t('tableMustResetPW')}</th>
                 )}
-                <th style={{ textAlign: "left", padding: "8px" }}>Actions</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableActions')}</th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="muted" style={{ padding: "10px" }}>
-                    No users.
+                    {t('noUsers')}
                   </td>
                 </tr>
               ) : (
@@ -135,7 +138,7 @@ export default async function UsersAdminPage() {
                     )}
                     <td style={{ padding: "8px" }}>{u.role}</td>
                     {cfg.showResetCol !== false && (
-                      <td style={{ padding: "8px" }}>{u.mustResetPassword ? "Yes" : "No"}</td>
+                      <td style={{ padding: "8px" }}>{u.mustResetPassword ? t('yes') : t('no')}</td>
                     )}
                     <td style={{ padding: "8px" }}>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -148,7 +151,7 @@ export default async function UsersAdminPage() {
                             value={u.role === "ADMIN" ? "MEMBER" : "ADMIN"}
                           />
                           <button className="btn btn-muted" type="submit">
-                            {u.role === "ADMIN" ? "Demote to MEMBER" : "Promote to ADMIN"}
+                            {u.role === "ADMIN" ? t('demoteToMember') : t('promoteToAdmin')}
                           </button>
                         </form>
 
@@ -162,7 +165,7 @@ export default async function UsersAdminPage() {
                               value={(!u.mustResetPassword).toString()}
                             />
                             <button className="btn btn-basic" type="submit">
-                              {u.mustResetPassword ? "Clear reset flag" : "Require reset"}
+                              {u.mustResetPassword ? t('clearResetFlag') : t('requireReset')}
                             </button>
                           </form>
                         )}
@@ -172,7 +175,7 @@ export default async function UsersAdminPage() {
                           <input type="hidden" name="id" value={u.id} />
                           <input
                             name="confirm"
-                            placeholder='Type DELETE'
+                            placeholder={t('typeDELETE')}
                             aria-label="Type DELETE to confirm"
                             style={{
                               width: 120,
@@ -185,7 +188,7 @@ export default async function UsersAdminPage() {
                             }}
                           />
                           <button className="btn btn-warning" type="submit" title="Delete user">
-                            Delete
+                            {t('delete')}
                           </button>
                         </form>
                       </div>

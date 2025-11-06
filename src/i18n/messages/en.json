@@ -11,7 +11,9 @@
     "theme": "Theme",
     "register": "Register",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "signingOut": "Signing out…",
+    "brandName": "Qing Li Lab"
   },
   "settings": {
     "title": "Settings",
@@ -75,6 +77,7 @@
     "password": "Password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
+    "errorInvalidCredentials": "Incorrect email or password.",
     "register": "Lab Registration",
     "registerSubtitle": "Request an account to access the members area.",
     "fullName": "Full name",
@@ -95,6 +98,73 @@
   "common": {
     "member": "Member",
     "admin": "Admin",
-    "pi": "PI"
+    "pi": "PI",
+    "unnamed": "Unnamed",
+    "noBioYet": "No bio yet.",
+    "email": "Email",
+    "phone": "Phone",
+    "office": "Office"
+  },
+  "members": {
+    "heading": "Members Area",
+    "welcomeUser": "Welcome, {email}",
+    "yourProfile": "Your profile",
+    "yourProfileDesc": "Update your name, about text, and more.",
+    "readingList": "Reading list",
+    "readingListDesc": "Papers and resources curated by the lab."
+  },
+  "users": {
+    "heading": "Users (Admin)",
+    "tableEmail": "Email",
+    "tableName": "Name",
+    "tableSlug": "Slug",
+    "tableRole": "Role",
+    "tableMustResetPW": "Must Reset PW",
+    "tableActions": "Actions",
+    "noUsers": "No users.",
+    "demoteToMember": "Demote to MEMBER",
+    "promoteToAdmin": "Promote to ADMIN",
+    "clearResetFlag": "Clear reset flag",
+    "requireReset": "Require reset",
+    "typeDELETE": "Type DELETE",
+    "delete": "Delete",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "approval": {
+    "heading": "Approval Dashboard",
+    "intro1": "Approve creates a User with a temporary password and emails it to them.",
+    "intro2": "frees the slug. Decided rows stay visible but are grayed out. Reset only shows for",
+    "intro3": "ed rows.",
+    "tableEmail": "Email",
+    "tableSlug": "Slug",
+    "tableName": "Name",
+    "tableStatus": "Status",
+    "tableRequested": "Requested",
+    "tableDecided": "Decided",
+    "tableApplicantNote": "Applicant Note",
+    "tableTempPW": "Temp PW",
+    "tableActions": "Actions",
+    "noInvites": "No invites yet.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "deny": "Deny",
+    "reset": "Reset",
+    "delete": "Delete",
+    "resetTooltip": "Set back to PENDING (keeps note)"
+  },
+  "resetPassword": {
+    "heading": "Set a New Password",
+    "intro": "Enter your email and the temporary password from the approval email, then choose a new password.",
+    "email": "Email",
+    "currentPassword": "Current (Temporary) Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "saveNewPassword": "Save New Password",
+    "saving": "Saving…",
+    "errorInvalidEmail": "Please enter a valid email.",
+    "errorPasswordLength": "New password must be at least 8 characters.",
+    "errorPasswordMismatch": "Passwords do not match.",
+    "errorGeneric": "Failed to update password."
   }
 }

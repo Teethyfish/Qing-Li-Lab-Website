@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Config keys this page reads:
@@ -34,6 +35,9 @@ function initials(name?: string | null) {
 }
 
 export default async function HomePage() {
+  const t = await getTranslations('home');
+  const tc = await getTranslations('common');
+
   // --- Config-driven content ---
   const pi =
     (await getConfig<{
@@ -64,7 +68,7 @@ export default async function HomePage() {
 
   const welcome =
     (await getConfig<string>("home.welcome")) ||
-    "Welcome! We are a research lab studying proteomics and molecular biosciences.";
+    t('welcome') + " " + "We are a research lab studying proteomics and molecular biosciences.";
 
   const alumni =
     (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
@@ -188,19 +192,19 @@ export default async function HomePage() {
               <div style={{ marginTop: 8, fontSize: 14 }}>
                 {pi.email && (
                   <div>
-                    <span className="muted">Email: </span>
+                    <span className="muted">{tc('email')}: </span>
                     <a href={`mailto:${pi.email}`}>{pi.email}</a>
                   </div>
                 )}
                 {pi.phone && (
                   <div>
-                    <span className="muted">Phone: </span>
+                    <span className="muted">{tc('phone')}: </span>
                     <span>{pi.phone}</span>
                   </div>
                 )}
                 {pi.office && (
                   <div>
-                    <span className="muted">Office: </span>
+                    <span className="muted">{tc('office')}: </span>
                     <span>{pi.office}</span>
                   </div>
                 )}
@@ -230,7 +234,7 @@ export default async function HomePage() {
                     fontWeight: 600,
                   }}
                 >
-                  Announcement
+                  {t('announcement')}
                 </span>
                 {announcement.href ? (
                   <Link href={announcement.href} style={{ textDecoration: "underline" }}>
@@ -242,24 +246,24 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="muted" style={{ fontSize: 14 }}>
-                No announcements yet.
+                {t('noAnnouncements')}
               </div>
             )}
           </div>
 
           {/* welcome card */}
           <div className="card" style={cardPad}>
-            <h2 style={sectionTitle}>Welcome!</h2>
+            <h2 style={sectionTitle}>{t('welcome')}</h2>
             <p style={{ marginTop: 8, lineHeight: 1.75, color: "var(--color-text)" }}>{welcome}</p>
           </div>
 
           {/* members */}
           <section>
-            <h3 style={sectionTitle}>Lab Members</h3>
+            <h3 style={sectionTitle}>{t('labMembers')}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {members.length === 0 ? (
-                <div className="muted">No members yet.</div>
+                <div className="muted">{t('noMembers')}</div>
               ) : (
                 members.map((m) => (
                   <Link
@@ -297,9 +301,9 @@ export default async function HomePage() {
                       )}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontWeight: 600 }}>{m.name || "Unnamed"}</div>
+                      <div style={{ fontWeight: 600 }}>{m.name || tc('unnamed')}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {m.role === "ADMIN" ? "Admin" : m.role === "PI" ? "PI" : "Member"}
+                        {m.role === "ADMIN" ? tc('admin') : m.role === "PI" ? tc('pi') : tc('member')}
                       </div>
                     </div>
                   </Link>
@@ -310,11 +314,11 @@ export default async function HomePage() {
 
           {/* alumni */}
           <section>
-            <h3 style={sectionTitle}>Alumni</h3>
+            <h3 style={sectionTitle}>{t('alumni')}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {alumni.length === 0 ? (
-                <div className="muted">No alumni listed yet.</div>
+                <div className="muted">{t('noAlumni')}</div>
               ) : (
                 alumni.map((a, i) => (
                   <Link
@@ -365,11 +369,11 @@ export default async function HomePage() {
 
           {/* collaborators */}
           <section>
-            <h3 style={sectionTitle}>Collaborators</h3>
+            <h3 style={sectionTitle}>{t('collaborators')}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {collaborators.length === 0 ? (
-                <div className="muted">No collaborators listed yet.</div>
+                <div className="muted">{t('noCollaborators')}</div>
               ) : (
                 collaborators.map((c, i) => (
                   <Link
