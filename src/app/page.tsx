@@ -76,10 +76,14 @@ export default async function HomePage() {
       "home.collaborators"
     )) || [];
 
-  // --- Live members from DB (current members only) ---
+  // --- Live members from DB (current members: MEMBER, PI, ADMIN) ---
   const members = await prisma.user.findMany({
-    where: { role: "MEMBER" as any },
-    select: { name: true, slug: true, imageUrl: true },
+    where: {
+      role: {
+        in: ["MEMBER", "PI", "ADMIN"] as any[]
+      }
+    },
+    select: { name: true, slug: true, imageUrl: true, role: true },
     orderBy: { name: "asc" },
   });
 
@@ -295,7 +299,7 @@ export default async function HomePage() {
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontWeight: 600 }}>{m.name || "Unnamed"}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        Member
+                        {m.role === "ADMIN" ? "Admin" : m.role === "PI" ? "PI" : "Member"}
                       </div>
                     </div>
                   </Link>
