@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { Area, Point } from "react-easy-crop";
 
@@ -63,6 +64,12 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -81,7 +88,9 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  const modal = (
     <>
       {/* Backdrop */}
       <div
@@ -181,4 +190,6 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
       </div>
     </>
   );
+
+  return createPortal(modal, document.body);
 }

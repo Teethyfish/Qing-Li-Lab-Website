@@ -34,23 +34,39 @@ This repo includes registration → approval workflow, credential auth, email no
   - Emails include reset link using `NEXT_PUBLIC_SITE_URL`
 
 - **Theme System**
-  - Site-wide CSS variables for colors and buttons
+  - Site-wide CSS variables for colors, buttons, tiles, and navbar
   - Admin Theme Editor writes to `AppConfig` JSON
   - Simplified button system with three categories:
     - `btn-basic`: primary actions (default dark button)
     - `btn-muted`: secondary/neutral actions (light gray button)
     - `btn-warning`: destructive/important actions (orange/amber button)
+  - Customizable navbar (background, text, border, opacity, height, blur)
+  - Customizable tiles (radius, padding, border, shadow)
+  - Reset to Defaults button to restore all theme settings
   - Utility classes: `tile`, `muted`, `btn`, `nav-item`
   - Full-width navbar with hover effects
 
+- **Profile Pictures**
+  - Upload and crop profile pictures with interactive cropper
+  - Circular crop area with zoom slider (1x-3x) and pan controls
+  - Re-crop existing photos by clicking the profile picture
+  - Profile pictures display on:
+    - Navbar (36px circle with dropdown menu)
+    - Home page member grid (80px circles)
+    - Public profile pages (120px circle)
+  - Images stored as base64 in database
+  - Fallback to initials when no picture is uploaded
+
 - **Pages**
-  - Home: masthead, PI sidebar, announcements strip, grid of members
+  - Home: masthead, PI sidebar, announcements strip, grid of members with profile pictures
   - Members: themed tiles for quick access (Profile, Reading List)
-  - Profile: edit name/about; inputs contained within tiles (visible to authenticated users in navbar)
-  - Theme: admin-only theme customization (visible to admins in navbar)
-  - Users: admin-only management (visible to admins in navbar)
-  - Approval: full workflow with temp password email (visible to admins in navbar)
-  - Navbar: full-width, responsive with hover effects, contextual links based on role
+  - Profile Edit: edit name, about, and profile picture with cropper
+  - Profile View (`/people/{slug}`): public profile page with two-column layout (picture/contact + bio)
+  - Theme: admin-only theme customization with navbar and tile settings
+  - Users: admin-only management
+  - Approval: full workflow with temp password email
+  - Login/Register: theme-aware forms using global CSS
+  - Navbar: full-width, responsive with hover effects, profile picture dropdown menu, contextual links based on role
 
 ---
 
@@ -60,6 +76,7 @@ This repo includes registration → approval workflow, credential auth, email no
 - **next-auth** (credentials)
 - **Prisma** + **Supabase Postgres**
 - **Resend** or **SMTP (Gmail App Password)**
+- **react-easy-crop** (profile picture cropping)
 - **TypeScript**
-- Styling: custom CSS variables + small utility classes (no Tailwind in page code)
+- Styling: custom CSS variables + small utility classes (migrated from Tailwind)
 

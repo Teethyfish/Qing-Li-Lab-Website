@@ -1,11 +1,6 @@
-
----
-
-### `USAGE.md`
-```md
 # Usage Guide
 
-Date: 2025-11-04 (Pacific/Honolulu)
+Date: 2025-11-05 (Pacific/Honolulu)
 
 This guide covers how to use the site as an **Admin** and as a **Member**.
 
@@ -31,11 +26,14 @@ This guide covers how to use the site as an **Admin** and as a **Member**.
 ### 3) Theme Editor
 - Go to **Members → Theme** (Admin only)
 - Adjust site colors (background, text, muted, accent, card)
+- Customize cards & tiles (radius, padding, border, shadow)
+- Configure **navbar** appearance (background, text, border, opacity, height, blur)
 - Configure **button** shape (radius, padding, font weight)
 - Customize three button types:
   - **Basic**: primary actions (saves, submissions, main CTAs)
   - **Muted**: secondary/neutral actions (delete, cancel)
   - **Warning**: destructive/important actions (reject, deny)
+- **Reset to Defaults** button to restore all theme settings
 - Save writes to `AppConfig` → changes apply site-wide instantly
 
 ### 4) Email System
@@ -61,18 +59,42 @@ This guide covers how to use the site as an **Admin** and as a **Member**.
 - Once complete, you can access **Members** pages normally
 
 ### Edit Profile
-- Go to **Members → Your profile**
+- Click your **profile picture** in the navbar → **Edit Profile**
 - Update Name and About text
-- (Future) Upload avatar image
+- **Upload Profile Picture**:
+  - Click "Choose File" to upload a new image
+  - Or click your existing profile picture to re-crop it
+  - Interactive cropper with zoom slider and pan controls
+  - Circular crop preview shows exactly how it will appear
+  - Click "Save Crop" to confirm or "Cancel" to discard
+- Changes apply to navbar, home page, and your public profile page
+
+### View Your Profile
+- Click your **profile picture** in the navbar → **View Profile**
+- See your public profile page at `/people/{your-slug}`
+- Displays your profile picture, name, email, and bio
 
 ---
+
+## Navigation
+
+### Navbar Features
+- **Profile Picture Icon**: Click to open dropdown menu with:
+  - **View Profile**: See your public profile page
+  - **Edit Profile**: Update your name, bio, and profile picture
+  - **Settings**: (Coming soon)
+- **Logout Button**: Sign out of your account
+- Links visible based on role:
+  - **Home**: Everyone
+  - **Members**: Authenticated users only
+  - **Approval, Users, Theme**: Admins only
 
 ## Guards & Access Rules
 
 - `/login` is blocked when already authenticated
-- Any access to `/members/*` requires not only auth but **mustResetPassword=false**  
+- Any access to `/members/*` requires not only auth but **mustResetPassword=false**
   (first-login users must reset password before entering `/members`)
-- (Planned) Alumni/Collaborators will only see public pages and their own profile
+- Public profile pages (`/people/{slug}`) are accessible to all authenticated users
 
 ---
 

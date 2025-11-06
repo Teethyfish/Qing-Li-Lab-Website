@@ -1,9 +1,57 @@
 # Changelog
 
 All notable changes for the Qing Li Lab Website.
-**Date:** 2025-11-04 (Pacific/Honolulu)
 
-## [Latest] - 2025-11-04
+## [Latest] - 2025-11-05
+
+### Added
+- **Profile Picture System**
+  - Added `imageUrl` field to User model for profile pictures
+  - Profile picture upload with interactive cropping tool (react-easy-crop)
+  - Circular crop area with zoom slider (1x-3x) and pan controls
+  - Profile pictures display on home page (80px), navbar (36px), and profile pages (120px)
+  - Clickable profile picture on edit page with "Edit" overlay on hover for re-cropping
+  - Cropper appears as centered popup tile with dark backdrop
+  - Images stored as base64 in database
+
+- **Navbar Dropdown Menu**
+  - Profile picture in navbar now clickable with dropdown menu
+  - Dropdown options: View Profile, Edit Profile, Settings
+  - Click outside to close dropdown
+
+- **Profile Page Layout**
+  - Two-column layout for user profile pages (/people/{slug})
+  - Left tile: profile picture (120px) + name + email (mailto link)
+  - Right tile: About section with bio
+  - Added top padding for spacing from navbar
+
+### Changed
+- **Navbar Navigation**
+  - Removed Profile link from main navbar (moved to dropdown)
+  - Profile link now correctly points to user's public profile (/people/{slug}) instead of edit page
+  - Navbar items only highlight for exact path matches (no parent category highlighting)
+
+- **Theme Page**
+  - Fixed TypeScript compilation errors in theme editor
+  - Updated CompactSliderField, CompactColorField, and CompactTextField components to use proper props
+  - Components now accept `field` prop instead of spread syntax
+
+- **Login/Register Pages**
+  - Migrated LoginForm from Tailwind to global CSS variables
+  - Migrated RegisterForm from Tailwind to global CSS variables
+  - Both forms now use `.tile` class and theme-aware styling
+  - Added top padding for spacing from navbar
+  - Buttons now use global button system (btn-basic, btn-muted)
+
+### Fixed
+- Profile picture button border styling (removed thick black border from global button styles)
+- Cropper z-index issues (now appears above all content with z-index: 99999)
+- Profile dropdown appears above tiles and navbar
+- Form styling consistency across login, register, and profile pages
+
+---
+
+## [Previous] - 2025-11-04
 
 ### Added
 - Theme and Profile pages to navbar for appropriate user roles
