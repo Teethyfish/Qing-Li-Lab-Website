@@ -8,6 +8,7 @@ import { prisma } from "../../../lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { sendMail } from "../../../lib/mailer";
+import { getTranslations } from "next-intl/server";
 
 function fmtUTC(d: Date | string | null | undefined) {
   if (!d) return "—";
@@ -196,6 +197,7 @@ async function deleteInviteAction(formData: FormData) {
 
 export default async function ApprovalPage() {
   const session = await getServerSession(authOptions);
+  const t = await getTranslations("approval");
   const role = (session?.user as any)?.role;
   const isAdmin = typeof role === "string" && role.toUpperCase() === "ADMIN";
   if (!session || !isAdmin) redirect("/");
@@ -222,16 +224,14 @@ export default async function ApprovalPage() {
   `;
 
   const rejectedLabel = labels.REJECTED.toUpperCase();
-  const denyVerb = rejectedLabel.includes("DENY") ? "Deny" : "Reject";
+  const denyIsDeny = rejectedLabel.includes("DENY");
+  const denyVerb = denyIsDeny ? t("buttons.deny") : t("buttons.reject");
+  const denyVerbLower = denyIsDeny ? t("buttons.denyLower") : t("buttons.rejectLower");
 
   return (
     <main style={{ padding: 24, display: "grid", gap: 12 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600 }}>Approval Dashboard</h1>
-      <p className="muted">
-        Approve creates a User with a temporary password and emails it to them.{" "}
-        {denyVerb} frees the slug. Decided rows stay visible but are grayed out.
-        Reset only shows for {denyVerb.toLowerCase()}ed rows.
-      </p>
+      <h1 style={{ fontSize: 24, fontWeight: 600 }}>{t("title")}</h1>
+      <p className="muted">{t("intro", { denyVerb, denyVerbLower })}</p>
 
       <div
         style={{
@@ -244,15 +244,15 @@ export default async function ApprovalPage() {
           <thead>
             <tr style={{ textAlign: "left", background: "color-mix(in oklab, var(--fg) 6%, var(--bg))" }}>
               {[
-                "Email",
-                "Slug",
-                "Name",
-                "Status",
-                "Requested",
-                "Decided",
-                "Applicant Note",
-                "Temp PW",
-                "Actions",
+                t("headers.email"),
+                t("headers.slug"),
+                t("headers.name"),
+                t("headers.status"),
+                t("headers.requested"),
+                t("headers.decided"),
+                t("headers.note"),
+                t("headers.tempPassword"),
+                t("headers.actions"),
               ].map((h) => (
                 <th key={h} style={{ padding: "10px 12px" }}>
                   {h}
@@ -264,7 +264,7 @@ export default async function ApprovalPage() {
             {invites.length === 0 ? (
               <tr>
                 <td className="muted" style={{ padding: 12 }} colSpan={9}>
-                  No invites yet.
+                  {t("noInvites")}
                 </td>
               </tr>
             ) : (
@@ -329,7 +329,7 @@ export default async function ApprovalPage() {
                           <>
                             <form action={approveAction}>
                               <input type="hidden" name="id" value={x.id} />
-                              <button className="btn btn-basic">Approve</button>
+                              <button className="btn btn-basic">{t("buttons.approve")}</button>
                             </form>
                             <form action={rejectAction}>
                               <input type="hidden" name="id" value={x.id} />
@@ -343,16 +343,16 @@ export default async function ApprovalPage() {
                             <input type="hidden" name="id" value={x.id} />
                             <button
                               className="btn btn-warning"
-                              title="Set back to PENDING (keeps note)"
+                              title={t("resetTitle")}
                             >
-                              Reset
+                              {t("buttons.reset")}
                             </button>
                           </form>
                         )}
 
                         <form action={deleteInviteAction}>
                           <input type="hidden" name="id" value={x.id} />
-                          <button className="btn btn-muted">Delete</button>
+                          <button className="btn btn-muted">{t("buttons.delete")}</button>
                         </form>
                       </div>
                     </td>

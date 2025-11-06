@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 /* ---------- page-builder config helper ---------- */
 type AppRow = { value: string };
@@ -44,6 +45,8 @@ export default async function UsersAdminPage() {
   const role = (session?.user as any)?.role as string | undefined;
   const isAdmin = role && role.toUpperCase() === "ADMIN";
   if (!isAdmin) redirect("/");
+  const t = await getTranslations("users");
+  const commonT = await getTranslations("common");
 
   const cfg = (await getConfig<UsersPageCfg>("members.users.page")) ?? {};
 
@@ -96,9 +99,9 @@ export default async function UsersAdminPage() {
     <main className="mx-auto max-w-6xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
-          {cfg.heading || "Users (Admin)"}
+          {cfg.heading || t("heading")}
         </h1>
-        {cfg.intro && <p className="muted">{cfg.intro}</p>}
+        {cfg.intro ? <p className="muted">{cfg.intro}</p> : <p className="muted">{t("intro")}</p>}
       </header>
 
       <div className="tile" style={{ padding: "0.5rem" }}>
@@ -106,23 +109,23 @@ export default async function UsersAdminPage() {
           <table className="min-w-full text-sm" style={{ width: "100%" }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "8px" }}>Email</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>Name</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.email")}</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.name")}</th>
                 {cfg.showSlugCol !== false && (
-                  <th style={{ textAlign: "left", padding: "8px" }}>Slug</th>
+                  <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.slug")}</th>
                 )}
-                <th style={{ textAlign: "left", padding: "8px" }}>Role</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.role")}</th>
                 {cfg.showResetCol !== false && (
-                  <th style={{ textAlign: "left", padding: "8px" }}>Must Reset PW</th>
+                  <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.resetRequired")}</th>
                 )}
-                <th style={{ textAlign: "left", padding: "8px" }}>Actions</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t("headers.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="muted" style={{ padding: "10px" }}>
-                    No users.
+                    {t("noUsers")}
                   </td>
                 </tr>
               ) : (
@@ -133,9 +136,13 @@ export default async function UsersAdminPage() {
                     {cfg.showSlugCol !== false && (
                       <td style={{ padding: "8px" }}>{u.slug ?? <em className="muted">—</em>}</td>
                     )}
-                    <td style={{ padding: "8px" }}>{u.role}</td>
+                    <td style={{ padding: "8px" }}>
+                      {u.role === "ADMIN" ? commonT("admin") : commonT("member")}
+                    </td>
                     {cfg.showResetCol !== false && (
-                      <td style={{ padding: "8px" }}>{u.mustResetPassword ? "Yes" : "No"}</td>
+                      <td style={{ padding: "8px" }}>
+                        {u.mustResetPassword ? t("resetFlag.yes") : t("resetFlag.no")}
+                      </td>
                     )}
                     <td style={{ padding: "8px" }}>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -148,7 +155,7 @@ export default async function UsersAdminPage() {
                             value={u.role === "ADMIN" ? "MEMBER" : "ADMIN"}
                           />
                           <button className="btn btn-muted" type="submit">
-                            {u.role === "ADMIN" ? "Demote to MEMBER" : "Promote to ADMIN"}
+                            {u.role === "ADMIN" ? t("actions.demote") : t("actions.promote")}
                           </button>
                         </form>
 
@@ -162,7 +169,7 @@ export default async function UsersAdminPage() {
                               value={(!u.mustResetPassword).toString()}
                             />
                             <button className="btn btn-basic" type="submit">
-                              {u.mustResetPassword ? "Clear reset flag" : "Require reset"}
+                              {u.mustResetPassword ? t("actions.clearReset") : t("actions.requireReset")}
                             </button>
                           </form>
                         )}
@@ -172,8 +179,8 @@ export default async function UsersAdminPage() {
                           <input type="hidden" name="id" value={u.id} />
                           <input
                             name="confirm"
-                            placeholder='Type DELETE'
-                            aria-label="Type DELETE to confirm"
+                            placeholder={t("delete.placeholder")}
+                            aria-label={t("delete.aria")}
                             style={{
                               width: 120,
                               padding: "0.5rem 0.6rem",
@@ -184,8 +191,8 @@ export default async function UsersAdminPage() {
                               boxSizing: "border-box",
                             }}
                           />
-                          <button className="btn btn-warning" type="submit" title="Delete user">
-                            Delete
+                          <button className="btn btn-warning" type="submit" title={t("delete.title")}>
+                            {t("buttons.delete")}
                           </button>
                         </form>
                       </div>

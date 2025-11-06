@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 
 export default function ResetPasswordPage() {
@@ -16,6 +17,7 @@ export default function ResetPasswordPage() {
   const [showNew, setShowNew] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving">("idle");
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("resetPassword");
 
   // Prefill email from ?email=
   useEffect(() => {
@@ -25,9 +27,9 @@ export default function ResetPasswordPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.includes("@")) return setError("Please enter a valid email.");
-    if (next.length < 8) return setError("New password must be at least 8 characters.");
-    if (next !== confirm) return setError("Passwords do not match.");
+    if (!email.includes("@")) return setError(t("invalidEmail"));
+    if (next.length < 8) return setError(t("passwordTooShort"));
+    if (next !== confirm) return setError(t("passwordMismatch"));
     setError(null);
     setStatus("saving");
 
@@ -40,7 +42,7 @@ export default function ResetPasswordPage() {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body?.error || "Failed to update password.");
+      setError(body?.error || t("updateFailed"));
       setStatus("idle");
       return;
     }
@@ -63,14 +65,14 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="p-8 max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Set a New Password</h1>
+      <h1 className="text-2xl font-semibold mb-4">{t("title")}</h1>
       <p className="text-sm text-gray-600 mb-4">
-        Enter your email and the temporary password from the approval email, then choose a new password.
+        {t("description")}
       </p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <label className="block">
-          <span className="text-sm font-medium">Email</span>
+          <span className="text-sm font-medium">{t("email")}</span>
           <input
             type="email"
             value={email}
@@ -81,7 +83,7 @@ export default function ResetPasswordPage() {
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">Current (Temporary) Password</span>
+          <span className="text-sm font-medium">{t("currentPassword")}</span>
           <div className="flex items-center border rounded px-2">
             <input
               type={showCur ? "text" : "password"}
@@ -94,7 +96,7 @@ export default function ResetPasswordPage() {
               type="button"
               onClick={() => setShowCur((v) => !v)}
               className="text-xs px-2"
-              aria-label="Toggle current password visibility"
+              aria-label={t("toggleCurrent")}
             >
               {showCur ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -102,7 +104,7 @@ export default function ResetPasswordPage() {
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">New Password</span>
+          <span className="text-sm font-medium">{t("newPassword")}</span>
           <div className="flex items-center border rounded px-2">
             <input
               type={showNew ? "text" : "password"}
@@ -116,7 +118,7 @@ export default function ResetPasswordPage() {
               type="button"
               onClick={() => setShowNew((v) => !v)}
               className="text-xs px-2"
-              aria-label="Toggle new password visibility"
+              aria-label={t("toggleNew")}
             >
               {showCur ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -124,7 +126,7 @@ export default function ResetPasswordPage() {
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium">Confirm New Password</span>
+          <span className="text-sm font-medium">{t("confirmPassword")}</span>
           <input
             type={showNew ? "text" : "password"}
             value={confirm}
@@ -141,7 +143,7 @@ export default function ResetPasswordPage() {
           disabled={status === "saving"}
           className="px-4 py-2 rounded bg-blue-600 text-white"
         >
-          {status === "saving" ? "Saving…" : "Save New Password"}
+          {status === "saving" ? t("saving") : t("saveButton")}
         </button>
       </form>
     </main>

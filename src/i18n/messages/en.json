@@ -1,5 +1,6 @@
 {
   "navigation": {
+    "brand": "Qing Li Lab",
     "home": "Home",
     "members": "Members",
     "profile": "Profile",
@@ -47,6 +48,7 @@
     "uploadNew": "Upload a new picture or click your photo to re-crop",
     "uploadPicture": "Upload a new profile picture (JPG, PNG, etc.)",
     "displayName": "Display name",
+    "namePlaceholder": "e.g. Lynn Zhang",
     "aboutMe": "About me",
     "aboutPlaceholder": "A short bio, research interests, etc.",
     "saveChanges": "Save changes",
@@ -55,31 +57,182 @@
     "cancel": "Cancel",
     "saveCrop": "Save Crop",
     "saving": "Saving...",
-    "about": "About"
+    "about": "About",
+    "edit": "Edit"
   },
   "home": {
-    "welcome": "Welcome!",
+    "labTitle": "Qing X. Li's Lab",
+    "piDefaultName": "Principal Investigator",
+    "piTitleLines": {
+      "0": "Department of Molecular Biosciences and Bioengineering",
+      "1": "Proteomics Core Facility",
+      "2": "University of Hawai‘i at Mānoa"
+    },
+    "piIntro": "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "officeLabel": "Office",
+    "announcement": "Announcement",
+    "noAnnouncements": "No announcements yet.",
+    "welcomeHeading": "Welcome!",
+    "welcomeBody": "Welcome! We are a research lab studying proteomics and molecular biosciences.",
     "labMembers": "Lab Members",
     "alumni": "Alumni",
     "collaborators": "Collaborators",
     "noMembers": "No members yet.",
     "noAlumni": "No alumni listed yet.",
     "noCollaborators": "No collaborators listed yet.",
-    "announcement": "Announcement",
-    "noAnnouncements": "No announcements yet."
+    "unnamed": "Unnamed",
+    "alumniRoleFallback": "Alumni",
+    "collaboratorRoleFallback": "Collaborator"
+  },
+  "members": {
+    "heading": "Members Area",
+    "subheading": "Welcome, {email}",
+    "profileTile": {
+      "title": "Your profile",
+      "description": "Update your name, about text, and more."
+    },
+    "readingTile": {
+      "title": "Reading list",
+      "description": "Papers and resources curated by the lab."
+    }
+  },
+  "theme": {
+    "title": "Theme Editor",
+    "subtitle": "Tweak global colors and button styles. Changes apply site-wide.",
+    "sections": {
+      "colors": "Site colors",
+      "tiles": "Cards & Tiles",
+      "navbar": "Navbar",
+      "buttonShape": "Buttons — shape",
+      "buttonColors": "Buttons — colors"
+    },
+    "preview": "Preview",
+    "buttons": {
+      "basic": "Basic",
+      "muted": "Muted",
+      "warning": "Warning"
+    },
+    "save": "Save theme",
+    "reset": "Reset to Defaults",
+    "fields": {
+      "background": "Background",
+      "text": "Text",
+      "mutedText": "Muted Text",
+      "accent": "Accent",
+      "card": "Card Background",
+      "tileRadius": "Tile Border Radius",
+      "tilePadding": "Tile Padding",
+      "tileBorderOpacity": "Tile Border Opacity",
+      "tileShadowOpacity": "Tile Shadow Opacity",
+      "buttonRadius": "Button Radius",
+      "buttonPaddingY": "Button Padding Y",
+      "buttonPaddingX": "Button Padding X",
+      "buttonWeight": "Button Font Weight",
+      "basicBg": "Basic BG",
+      "basicFg": "Basic FG",
+      "basicHoverBg": "Basic Hover BG",
+      "basicBorder": "Basic Border Color",
+      "mutedBg": "Muted BG",
+      "mutedFg": "Muted FG",
+      "mutedHoverBg": "Muted Hover BG",
+      "mutedBorder": "Muted Border Color",
+      "warningBg": "Warning BG",
+      "warningFg": "Warning FG",
+      "warningHoverBg": "Warning Hover BG",
+      "warningBorder": "Warning Border Color",
+      "navBg": "Navbar Background",
+      "navText": "Navbar Text",
+      "navBorder": "Navbar Border",
+      "navOpacity": "Navbar Opacity",
+      "navHeight": "Navbar Height",
+      "navBlur": "Backdrop Blur"
+    }
+  },
+  "approval": {
+    "title": "Approval Dashboard",
+    "intro": "Approve creates a user with a temporary password and emails it to them. {denyVerb} frees the slug. Decided rows stay visible but are grayed out. Reset only shows for {denyVerbLower}ed rows.",
+    "headers": {
+      "email": "Email",
+      "slug": "Slug",
+      "name": "Name",
+      "status": "Status",
+      "requested": "Requested",
+      "decided": "Decided",
+      "note": "Applicant Note",
+      "tempPassword": "Temp PW",
+      "actions": "Actions"
+    },
+    "noInvites": "No invites yet.",
+    "buttons": {
+      "approve": "Approve",
+      "deny": "Deny",
+      "reject": "Reject",
+      "denyLower": "deny",
+      "rejectLower": "reject",
+      "reset": "Reset",
+      "delete": "Delete"
+    },
+    "resetTitle": "Set back to PENDING (keeps note)"
+  },
+  "users": {
+    "heading": "Users (Admin)",
+    "intro": "Manage lab member accounts, roles, and reset requirements.",
+    "headers": {
+      "email": "Email",
+      "name": "Name",
+      "slug": "Slug",
+      "role": "Role",
+      "resetRequired": "Must Reset PW",
+      "actions": "Actions"
+    },
+    "noUsers": "No users.",
+    "resetFlag": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "actions": {
+      "demote": "Demote to MEMBER",
+      "promote": "Promote to ADMIN",
+      "clearReset": "Clear reset flag",
+      "requireReset": "Require reset"
+    },
+    "delete": {
+      "placeholder": "Type DELETE",
+      "aria": "Type DELETE to confirm",
+      "title": "Delete user"
+    },
+    "buttons": {
+      "delete": "Delete"
+    }
+  },
+  "people": {
+    "title": "People",
+    "noBio": "No bio yet."
   },
   "auth": {
+    "avatarAlt": "Avatar for {name}",
+    "userFallback": "User",
+    "signingOut": "Signing out…",
+    "logout": "Logout",
     "login": "Login",
     "loginSubtitle": "Members sign in below.",
     "email": "Email",
+    "emailPlaceholder": "you@hawaii.edu",
     "password": "Password",
+    "passwordPlaceholder": "••••••••",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
+    "loginError": "Incorrect email or password.",
     "register": "Lab Registration",
     "registerSubtitle": "Request an account to access the members area.",
     "fullName": "Full name",
+    "fullNamePlaceholder": "e.g., Lynn Zhang",
     "desiredSlug": "Desired profile URL (slug)",
+    "desiredSlugPlaceholder": "e.g., lynn-zhang",
     "noteToPI": "Note to PI (optional)",
+    "notePlaceholder": "Share your interests or why you're joining…",
     "submit": "Submit",
     "submitting": "Submitting…",
     "slugPreview": "Preview:",
@@ -91,6 +244,22 @@
     "approvalNote": "You'll receive an email with a temporary password once approved.",
     "backToHome": "Back to Home",
     "goToLogin": "Go to Login"
+  },
+  "resetPassword": {
+    "title": "Set a New Password",
+    "description": "Enter your email and the temporary password from the approval email, then choose a new password.",
+    "email": "Email",
+    "currentPassword": "Current (Temporary) Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "invalidEmail": "Please enter a valid email.",
+    "passwordTooShort": "New password must be at least 8 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "updateFailed": "Failed to update password.",
+    "toggleCurrent": "Toggle current password visibility",
+    "toggleNew": "Toggle new password visibility",
+    "saving": "Saving…",
+    "saveButton": "Save New Password"
   },
   "common": {
     "member": "Member",

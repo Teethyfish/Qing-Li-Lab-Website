@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Config keys this page reads:
@@ -34,7 +35,19 @@ function initials(name?: string | null) {
 }
 
 export default async function HomePage() {
-  // --- Config-driven content ---
+  const t = await getTranslations("home");
+  const commonT = await getTranslations("common");
+
+  const piDefaults = {
+    name: t("piDefaultName"),
+    titleLines: [t("piTitleLines.0"), t("piTitleLines.1"), t("piTitleLines.2")],
+    email: "",
+    phone: "",
+    office: "",
+    imageUrl: "",
+    intro: t("piIntro"),
+  } as const;
+
   const pi =
     (await getConfig<{
       name?: string;
@@ -45,18 +58,7 @@ export default async function HomePage() {
       imageUrl?: string;
       intro?: string;
     }>("pi")) ||
-    ({
-      name: "Qing X. Li",
-      titleLines: [
-        "Graduate Chair",
-      ],
-      email: "",
-      phone: "",
-      office: "",
-      imageUrl: "",
-      intro:
-        "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
-    } as const);
+    piDefaults;
 
   const announcement =
     (await getConfig<{ title?: string; href?: string }>("home.announcement")) ||
@@ -64,7 +66,7 @@ export default async function HomePage() {
 
   const welcome =
     (await getConfig<string>("home.welcome")) ||
-    "Welcome! We are a research lab studying proteomics and molecular biosciences.";
+    t("welcomeBody");
 
   const alumni =
     (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
@@ -76,12 +78,11 @@ export default async function HomePage() {
       "home.collaborators"
     )) || [];
 
-  // --- Live members from DB (current members: MEMBER, PI, ADMIN) ---
   const members = await prisma.user.findMany({
     where: {
       role: {
-        in: ["MEMBER", "PI", "ADMIN"] as any[]
-      }
+        in: ["MEMBER", "PI", "ADMIN"] as any[],
+      },
     },
     select: { name: true, slug: true, imageUrl: true, role: true },
     orderBy: { name: "asc" },
@@ -124,10 +125,10 @@ export default async function HomePage() {
     <main style={grid}>
       {/* ===== Big header at the top ===== */}
       <header>
-        <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
-        <div className="muted">{pi.titleLines?.[0] || "Department of Molecular Biosciences and Bioengineering"}</div>
-        <div className="muted">{pi.titleLines?.[1] || "Proteomics Core Facility"}</div>
-        <div className="muted">{pi.titleLines?.[2] || "University of Hawai‘i at Mānoa"}</div>
+        <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>{t("labTitle")}</h1>
+        <div className="muted">{pi.titleLines?.[0] || t("piTitleLines.0")}</div>
+        <div className="muted">{pi.titleLines?.[1] || t("piTitleLines.1")}</div>
+        <div className="muted">{pi.titleLines?.[2] || t("piTitleLines.2")}</div>
       </header>
 
       {/* ===== Two-column block (PI sidebar on the left) ===== */}
@@ -176,7 +177,7 @@ export default async function HomePage() {
 
             <div style={{ minWidth: 0 }}>
               <h2 style={{ fontSize: "1.125rem", fontWeight: 600 }}>
-                {pi.name || "Principal Investigator"}
+                {pi.name || t("piDefaultName")}
               </h2>
 
               <div style={{ marginTop: 4, lineHeight: 1.4, fontSize: 14 }} className="muted">
@@ -188,19 +189,19 @@ export default async function HomePage() {
               <div style={{ marginTop: 8, fontSize: 14 }}>
                 {pi.email && (
                   <div>
-                    <span className="muted">Email: </span>
+                    <span className="muted">{t("emailLabel")}: </span>
                     <a href={`mailto:${pi.email}`}>{pi.email}</a>
                   </div>
                 )}
                 {pi.phone && (
                   <div>
-                    <span className="muted">Phone: </span>
+                    <span className="muted">{t("phoneLabel")}: </span>
                     <span>{pi.phone}</span>
                   </div>
                 )}
                 {pi.office && (
                   <div>
-                    <span className="muted">Office: </span>
+                    <span className="muted">{t("officeLabel")}: </span>
                     <span>{pi.office}</span>
                   </div>
                 )}
@@ -230,7 +231,7 @@ export default async function HomePage() {
                     fontWeight: 600,
                   }}
                 >
-                  Announcement
+                  {t("announcement")}
                 </span>
                 {announcement.href ? (
                   <Link href={announcement.href} style={{ textDecoration: "underline" }}>
@@ -242,24 +243,24 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="muted" style={{ fontSize: 14 }}>
-                No announcements yet.
+                {t("noAnnouncements")}
               </div>
             )}
           </div>
 
           {/* welcome card */}
           <div className="card" style={cardPad}>
-            <h2 style={sectionTitle}>Welcome!</h2>
+            <h2 style={sectionTitle}>{t("welcomeHeading")}</h2>
             <p style={{ marginTop: 8, lineHeight: 1.75, color: "var(--color-text)" }}>{welcome}</p>
           </div>
 
           {/* members */}
           <section>
-            <h3 style={sectionTitle}>Lab Members</h3>
+            <h3 style={sectionTitle}>{t("labMembers")}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {members.length === 0 ? (
-                <div className="muted">No members yet.</div>
+                <div className="muted">{t("noMembers")}</div>
               ) : (
                 members.map((m) => (
                   <Link
@@ -287,7 +288,7 @@ export default async function HomePage() {
                       {m.imageUrl ? (
                         <Image
                           src={m.imageUrl}
-                          alt={m.name || "Member"}
+                          alt={m.name || commonT("member")}
                           width={80}
                           height={80}
                           style={{ objectFit: "cover", borderRadius: "9999px" }}
@@ -297,9 +298,13 @@ export default async function HomePage() {
                       )}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontWeight: 600 }}>{m.name || "Unnamed"}</div>
+                      <div style={{ fontWeight: 600 }}>{m.name || t("unnamed")}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {m.role === "ADMIN" ? "Admin" : m.role === "PI" ? "PI" : "Member"}
+                        {m.role === "ADMIN"
+                          ? commonT("admin")
+                          : m.role === "PI"
+                          ? commonT("pi")
+                          : commonT("member")}
                       </div>
                     </div>
                   </Link>
@@ -310,11 +315,11 @@ export default async function HomePage() {
 
           {/* alumni */}
           <section>
-            <h3 style={sectionTitle}>Alumni</h3>
+            <h3 style={sectionTitle}>{t("alumni")}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {alumni.length === 0 ? (
-                <div className="muted">No alumni listed yet.</div>
+                <div className="muted">{t("noAlumni")}</div>
               ) : (
                 alumni.map((a, i) => (
                   <Link
@@ -354,7 +359,7 @@ export default async function HomePage() {
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontWeight: 600 }}>{a.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {a.role || "Alumni"}
+                        {a.role || t("alumniRoleFallback")}
                       </div>
                     </div>
                   </Link>
@@ -365,11 +370,11 @@ export default async function HomePage() {
 
           {/* collaborators */}
           <section>
-            <h3 style={sectionTitle}>Collaborators</h3>
+            <h3 style={sectionTitle}>{t("collaborators")}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
               {collaborators.length === 0 ? (
-                <div className="muted">No collaborators listed yet.</div>
+                <div className="muted">{t("noCollaborators")}</div>
               ) : (
                 collaborators.map((c, i) => (
                   <Link
@@ -409,7 +414,7 @@ export default async function HomePage() {
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontWeight: 600 }}>{c.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {c.role || "Collaborator"}
+                        {c.role || t("collaboratorRoleFallback")}
                       </div>
                     </div>
                   </Link>

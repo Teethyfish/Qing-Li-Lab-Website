@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 function toSlug(input: string) {
   return input
@@ -21,6 +22,7 @@ export default function RegisterForm() {
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("auth");
 
   const cleanedSlug = useMemo(() => toSlug(slug), [slug]);
   const slugLooksValid = cleanedSlug.length >= 2;
@@ -65,23 +67,21 @@ export default function RegisterForm() {
       <main className="mx-auto max-w-lg" style={{ paddingTop: "2rem" }}>
         <div style={{ marginBottom: "1.5rem" }}>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-            Registration submitted!
+            {t("registrationSubmitted")}
           </h1>
           <p className="muted">
-            Thank you, {name}. Your request has been sent to the PI for approval.
+            {t("thankYou", { name })}
           </p>
         </div>
 
         <div className="tile" style={{ padding: "1.5rem", display: "grid", gap: "1rem" }}>
-          <p className="muted" style={{ fontSize: "0.875rem" }}>
-            You'll receive an email with a temporary password once approved.
-          </p>
+          <p className="muted" style={{ fontSize: "0.875rem" }}>{t("approvalNote")}</p>
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <Link href="/" className="btn btn-basic">
-              Back to Home
+              {t("backToHome")}
             </Link>
             <Link href="/login" className="btn btn-muted">
-              Go to Login
+              {t("goToLogin")}
             </Link>
           </div>
         </div>
@@ -102,55 +102,55 @@ export default function RegisterForm() {
     <main className="mx-auto max-w-lg" style={{ paddingTop: "2rem" }}>
       <div style={{ marginBottom: "1.5rem" }}>
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>
-          Lab Registration
+          {t("register")}
         </h1>
-        <p className="muted">Request an account to access the members area.</p>
+        <p className="muted">{t("registerSubtitle")}</p>
       </div>
 
       <div className="tile" style={{ padding: "1.5rem" }}>
         <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
           {/* Full name */}
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Full name</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t("fullName")}</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={inputStyle}
-              placeholder="e.g., Lynn Zhang"
+              placeholder={t("fullNamePlaceholder")}
             />
           </div>
 
           {/* Email */}
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Email</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t("email")}</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={inputStyle}
-              placeholder="name@hawaii.edu"
+              placeholder={t("emailPlaceholder")}
             />
             <p className="muted" style={{ fontSize: "0.75rem" }}>
-              Use an email you can access; approval details will be sent there.
+              {t("emailNote")}
             </p>
           </div>
 
           {/* Slug */}
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Desired profile URL (slug)</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t("desiredSlug")}</label>
             <input
               type="text"
               required
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               style={inputStyle}
-              placeholder="e.g., lynn-zhang"
+              placeholder={t("desiredSlugPlaceholder")}
             />
             <div className="muted" style={{ fontSize: "0.75rem" }}>
-              Preview:&nbsp;
+              {t("slugPreview")} &nbsp;
               <code
                 style={{
                   padding: "0.125rem 0.25rem",
@@ -159,20 +159,20 @@ export default function RegisterForm() {
                   fontFamily: "monospace",
                 }}
               >
-                {cleanedSlug || "(invalid)"}
+                {cleanedSlug || t("slugInvalid")}
               </code>
             </div>
           </div>
 
           {/* Note to PI */}
           <div style={{ display: "grid", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>Note to PI (optional)</label>
+            <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t("noteToPI")}</label>
             <textarea
               rows={4}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               style={inputStyle}
-              placeholder="Share your interests or why you're joining…"
+              placeholder={t("notePlaceholder")}
             />
           </div>
 
@@ -199,11 +199,11 @@ export default function RegisterForm() {
               disabled={status === "sending" || !slugLooksValid}
               className="btn btn-basic"
             >
-              {status === "sending" ? "Submitting…" : "Submit"}
+              {status === "sending" ? t("submitting") : t("submit")}
             </button>
             {!slugLooksValid && (
               <span className="muted" style={{ fontSize: "0.75rem" }}>
-                Slug must be at least 2 characters (letters/numbers/dashes).
+                {t("slugRequirement")}
               </span>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -11,6 +12,8 @@ function initials(name?: string | null) {
 }
 
 export default async function PersonPage({ params }: Props) {
+  const t = await getTranslations("profile");
+  const peopleT = await getTranslations("people");
   const { slug } = await params;
   if (!slug) notFound();
 
@@ -79,11 +82,11 @@ export default async function PersonPage({ params }: Props) {
 
         {/* Right: About section */}
         <div className="tile" style={{ padding: "1.5rem" }}>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>About</h2>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>{t("about")}</h2>
           {user.about ? (
             <p style={{ lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{user.about}</p>
           ) : (
-            <p className="muted">No bio yet.</p>
+            <p className="muted">{peopleT("noBio")}</p>
           )}
         </div>
       </div>

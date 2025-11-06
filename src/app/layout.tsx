@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
 import { prisma } from "@/lib/prisma";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 // src/app/layout.tsx
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -15,6 +17,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   // Get session to derive navbar props
   const session = await getServerSession(authOptions);
   const email = session?.user?.email ?? null;
@@ -41,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cssVars = themeToCss(theme);
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className="min-h-screen antialiased"
         style={{
@@ -54,17 +58,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Inject CSS variables for the whole site */}
         <style id="theme">{cssVars}</style>
 
-        {/* Global nav expects props */}
-        <NavBar
-          isAuthed={isAuthed}
-          isAdmin={isAdmin}
-          userSlug={userSlug}
-          userImageUrl={userImageUrl}
-          userName={userName}
-        />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {/* Global nav expects props */}
+          <NavBar
+            isAuthed={isAuthed}
+            isAdmin={isAdmin}
+            userSlug={userSlug}
+            userImageUrl={userImageUrl}
+            userName={userName}
+          />
 
-        {/* Page content */}
-        <div className="mx-auto max-w-5xl p-6">{children}</div>
+          {/* Page content */}
+          <div className="mx-auto max-w-5xl p-6">{children}</div>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
