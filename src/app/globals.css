@@ -191,13 +191,27 @@ button.profile-pic-button:disabled {
 
 /* Exception: carousel buttons should be transparent white */
 button.carousel-nav-button {
-  all: unset !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  color: inherit !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
 }
+button.carousel-nav-button:hover {
+  background: none !important;
+  border: none !important;
+}
 button.carousel-dot-button {
-  all: unset !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  color: inherit !important;
   cursor: pointer !important;
   box-sizing: border-box !important;
-  cursor: default !important;
+  display: block !important;
+}
+button.carousel-dot-button:hover {
+  background: none !important;
+  border: none !important;
 }
