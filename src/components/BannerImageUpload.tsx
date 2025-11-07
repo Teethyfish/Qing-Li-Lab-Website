@@ -24,9 +24,9 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        if (img.width < 1200 || img.height < 400) {
+        if (img.width < 1200 || img.height < 500) {
           const proceed = confirm(
-            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended 1200x400px minimum. The image may not look good on the banner. Do you want to continue anyway?`
+            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended 1200x500px minimum. The image may not look good on the banner. Do you want to continue anyway?`
           );
           if (!proceed) {
             if (fileInputRef.current) {
@@ -91,7 +91,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
             style={{
               width: "100%",
               maxWidth: 600,
-              height: 200,
+              height: 250,
               borderRadius: 8,
               overflow: "hidden",
               border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
@@ -146,7 +146,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
           <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {previewUrl
               ? "Upload a new image or click the preview to re-crop"
-              : "Upload a banner image (recommended: 1200x400px or larger)"}
+              : "Upload a banner image (recommended: 1200x500px or larger)"}
           </div>
         </div>
       </div>

@@ -81,7 +81,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
       style={{
         position: "relative",
         width: "100%",
-        height: 400,
+        height: 500,
         overflow: "hidden",
       }}
     >
@@ -145,7 +145,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
         <div
           style={{
             position: "absolute",
-            bottom: 0,
+            bottom: "140px",
             left: 0,
             right: 0,
             padding: "2rem",
@@ -197,22 +197,17 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
                 handleSlideChange(index, direction);
               }}
               style={{
+                all: "unset",
                 width: "10px",
                 height: "10px",
-                minWidth: "unset",
-                minHeight: "unset",
                 borderRadius: "50%",
                 border: "2px solid #ffffff",
                 background: index === currentIndex ? "#ffffff" : "transparent",
-                backgroundColor: index === currentIndex ? "#ffffff" : "transparent",
-                outline: "none",
-                boxShadow: "none",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                padding: "0",
-                margin: "0",
                 display: "block",
                 flexShrink: 0,
+                boxSizing: "border-box",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.3)";
@@ -237,42 +232,33 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               )
             }
             style={{
+              all: "unset",
               position: "absolute",
               left: "1rem",
               top: "50%",
               transform: "translateY(-50%)",
-              width: "32px",
-              height: "32px",
-              minWidth: "unset",
-              minHeight: "unset",
-              borderRadius: "0",
-              background: "transparent",
-              backgroundColor: "transparent",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.2)",
               border: "none",
-              outline: "none",
-              boxShadow: "none",
               color: "#ffffff",
-              fontSize: "1.5rem",
-              fontWeight: "normal",
-              lineHeight: "1",
+              fontSize: "2rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.3s ease",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-              padding: "0",
-              margin: "0",
+              backdropFilter: "blur(4px)",
+              boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
-              e.currentTarget.style.borderRadius = "50%";
-              e.currentTarget.style.backdropFilter = "blur(4px)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.35)";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.borderRadius = "0";
-              e.currentTarget.style.backdropFilter = "none";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
             aria-label="Previous slide"
           >
@@ -281,42 +267,33 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           <button
             onClick={() => handleSlideChange((prev) => (prev + 1) % announcements.length, "right")}
             style={{
+              all: "unset",
               position: "absolute",
               right: "1rem",
               top: "50%",
               transform: "translateY(-50%)",
-              width: "32px",
-              height: "32px",
-              minWidth: "unset",
-              minHeight: "unset",
-              borderRadius: "0",
-              background: "transparent",
-              backgroundColor: "transparent",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.2)",
               border: "none",
-              outline: "none",
-              boxShadow: "none",
               color: "#ffffff",
-              fontSize: "1.5rem",
-              fontWeight: "normal",
-              lineHeight: "1",
+              fontSize: "2rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.3s ease",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-              padding: "0",
-              margin: "0",
+              backdropFilter: "blur(4px)",
+              boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
-              e.currentTarget.style.borderRadius = "50%";
-              e.currentTarget.style.backdropFilter = "blur(4px)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.35)";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.borderRadius = "0";
-              e.currentTarget.style.backdropFilter = "none";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
             aria-label="Next slide"
           >

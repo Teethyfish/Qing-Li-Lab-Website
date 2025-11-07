@@ -154,7 +154,7 @@ export default async function HomePage() {
           top: "56px",
           left: 0,
           width: "100vw",
-          height: "400px",
+          height: "500px",
           zIndex: 1,
           pointerEvents: "none",
         }}>
@@ -167,7 +167,7 @@ export default async function HomePage() {
       <main style={{
         position: "relative",
         zIndex: 10,
-        marginTop: announcements.length > 0 ? "400px" : "0",
+        marginTop: announcements.length > 0 ? "500px" : "0",
         paddingBottom: "4rem",
       }}>
         <div style={{

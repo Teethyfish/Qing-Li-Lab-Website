@@ -105,7 +105,7 @@ export default function BannerImageCropper({ imageSrc, onComplete, onCancel }: P
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={3} // 3:1 aspect ratio for banner
+          aspect={12 / 5} // 12:5 aspect ratio for banner (1200x500)
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
