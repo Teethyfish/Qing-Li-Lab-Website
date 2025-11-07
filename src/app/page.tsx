@@ -146,14 +146,18 @@ export default async function HomePage() {
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", minHeight: "100vh" }}>
       {/* ===== Announcement Carousel (full-width, fixed behind content) ===== */}
       {announcements.length > 0 && (
         <div style={{
           position: "absolute",
           top: "-1.5rem",
-          left: "calc(-50vw + 50%)",
+          left: 0,
+          right: 0,
+          marginLeft: "calc(-50vw + 50%)",
+          marginRight: "calc(-50vw + 50%)",
           width: "100vw",
+          height: "400px",
           zIndex: 0,
         }}>
           <AnnouncementCarousel announcements={announcements} locale={userLocale} />
