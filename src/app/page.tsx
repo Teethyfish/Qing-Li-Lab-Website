@@ -146,20 +146,30 @@ export default async function HomePage() {
   };
 
   return (
-    <main style={grid}>
-      {/* ===== Big header at the top ===== */}
-      <header>
-        <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
-        <div className="muted">Proteomics Core Facility</div>
-      </header>
-
-      {/* ===== Announcement Carousel ===== */}
+    <>
+      {/* ===== Announcement Carousel (full-width, breaking out of container) ===== */}
       {announcements.length > 0 && (
-        <AnnouncementCarousel announcements={announcements} locale={userLocale} />
+        <div style={{
+          position: "relative",
+          zIndex: 0,
+          marginLeft: "calc(-50vw + 50%)",
+          marginRight: "calc(-50vw + 50%)",
+          marginTop: "-1.5rem",
+          marginBottom: "-80px",
+        }}>
+          <AnnouncementCarousel announcements={announcements} locale={userLocale} />
+        </div>
       )}
 
-      {/* ===== Two-column block (PI sidebar on the left) ===== */}
-      <section style={twoCols} className="home-two-cols">
+      <main style={{ ...grid, position: "relative", zIndex: 1, background: "var(--color-background)" }}>
+        {/* ===== Big header at the top ===== */}
+        <header>
+          <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
+          <div className="muted">Proteomics Core Facility</div>
+        </header>
+
+        {/* ===== Two-column block (PI sidebar on the left) ===== */}
+        <section style={twoCols} className="home-two-cols">
         {/* Sidebar: PI card */}
         <aside className="card" style={cardPad}>
           <div style={{ display: "flex", gap: "1rem" }}>
@@ -411,6 +421,7 @@ export default async function HomePage() {
           </section>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
