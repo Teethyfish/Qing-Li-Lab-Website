@@ -187,5 +187,17 @@ button.profile-pic-button:hover {
 }
 button.profile-pic-button:disabled {
   opacity: 1 !important;
+}
+
+/* Exception: carousel buttons should be transparent white */
+button.carousel-nav-button {
+  all: unset !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+button.carousel-dot-button {
+  all: unset !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
   cursor: default !important;
 }

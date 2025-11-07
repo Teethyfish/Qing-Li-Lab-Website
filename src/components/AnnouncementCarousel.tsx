@@ -145,7 +145,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
         <div
           style={{
             position: "absolute",
-            bottom: "140px",
+            bottom: "100px",
             left: 0,
             right: 0,
             padding: "2rem",
@@ -192,22 +192,20 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           {announcements.map((_, index) => (
             <button
               key={index}
+              className="carousel-dot-button"
               onClick={() => {
                 const direction = index > currentIndex ? "right" : "left";
                 handleSlideChange(index, direction);
               }}
               style={{
-                all: "unset",
                 width: "10px",
                 height: "10px",
                 borderRadius: "50%",
                 border: "2px solid #ffffff",
                 background: index === currentIndex ? "#ffffff" : "transparent",
-                cursor: "pointer",
                 transition: "all 0.3s ease",
                 display: "block",
                 flexShrink: 0,
-                boxSizing: "border-box",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.3)";
@@ -225,6 +223,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
       {announcements.length > 1 && (
         <>
           <button
+            className="carousel-nav-button"
             onClick={() =>
               handleSlideChange(
                 (prev) => (prev === 0 ? announcements.length - 1 : prev - 1),
@@ -232,7 +231,6 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               )
             }
             style={{
-              all: "unset",
               position: "absolute",
               left: "1rem",
               top: "50%",
@@ -244,13 +242,11 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               border: "none",
               color: "#ffffff",
               fontSize: "2rem",
-              cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.3s ease",
               backdropFilter: "blur(4px)",
-              boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.35)";
@@ -265,9 +261,9 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
             ‹
           </button>
           <button
+            className="carousel-nav-button"
             onClick={() => handleSlideChange((prev) => (prev + 1) % announcements.length, "right")}
             style={{
-              all: "unset",
               position: "absolute",
               right: "1rem",
               top: "50%",
@@ -279,13 +275,11 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               border: "none",
               color: "#ffffff",
               fontSize: "2rem",
-              cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.3s ease",
               backdropFilter: "blur(4px)",
-              boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.35)";
