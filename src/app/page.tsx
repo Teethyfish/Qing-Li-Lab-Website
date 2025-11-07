@@ -165,23 +165,44 @@ export default async function HomePage() {
       )}
 
       <main style={{
-        ...grid,
         position: "relative",
         zIndex: 10,
         marginTop: announcements.length > 0 ? "400px" : "0",
+        paddingBottom: "4rem",
       }}>
-        {/* Fade effect overlay at the top */}
+        <div style={{
+          ...grid,
+          maxWidth: "1280px",
+          margin: "0 auto",
+          padding: "0 1.5rem",
+        }}>
+        {/* Full background with fade effect */}
         {announcements.length > 0 && (
-          <div style={{
-            position: "absolute",
-            top: 0,
-            left: "calc(-50vw + 50%)",
-            width: "100vw",
-            height: "80px",
-            background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
-            pointerEvents: "none",
-            zIndex: -1,
-          }} />
+          <>
+            {/* Fade gradient at top */}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: "calc(-50vw + 50%)",
+              width: "100vw",
+              height: "80px",
+              background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
+              pointerEvents: "none",
+              zIndex: -1,
+            }} />
+            {/* Solid background for the rest */}
+            <div style={{
+              position: "absolute",
+              top: "80px",
+              left: "calc(-50vw + 50%)",
+              width: "100vw",
+              bottom: 0,
+              minHeight: "calc(100vh - 400px)",
+              background: "var(--color-bg)",
+              pointerEvents: "none",
+              zIndex: -1,
+            }} />
+          </>
         )}
         {/* ===== Big header at the top ===== */}
         <header>
@@ -442,6 +463,7 @@ export default async function HomePage() {
           </section>
         </div>
       </section>
+        </div>
     </main>
     </>
   );
