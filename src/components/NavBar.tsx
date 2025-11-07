@@ -76,14 +76,14 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
   return (
     <nav
       style={{
-        position: "sticky",
+        position: "fixed",
         top: 0,
+        left: 0,
+        right: 0,
         zIndex: 100,
         backdropFilter: `saturate(1.2) blur(calc(var(--nav-blur, 6) * 1px))`,
         background: "color-mix(in oklab, var(--nav-bg, #ffffff) calc(var(--nav-opacity, 90) * 1%), transparent)",
         borderBottom: "1px solid var(--nav-border, #e5e7eb)",
-        marginLeft: "calc(-50vw + 50%)",
-        marginRight: "calc(-50vw + 50%)",
         width: "100vw",
       }}
       aria-label="Primary"

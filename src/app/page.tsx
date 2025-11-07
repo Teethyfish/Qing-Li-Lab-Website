@@ -168,10 +168,21 @@ export default async function HomePage() {
         ...grid,
         position: "relative",
         zIndex: 10,
-        background: "var(--color-bg)",
-        marginTop: announcements.length > 0 ? "300px" : "0",
-        paddingTop: announcements.length > 0 ? "1.5rem" : "0",
+        marginTop: announcements.length > 0 ? "400px" : "0",
       }}>
+        {/* Fade effect overlay at the top */}
+        {announcements.length > 0 && (
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: "calc(-50vw + 50%)",
+            width: "100vw",
+            height: "80px",
+            background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
+            pointerEvents: "none",
+            zIndex: -1,
+          }} />
+        )}
         {/* ===== Big header at the top ===== */}
         <header>
           <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>

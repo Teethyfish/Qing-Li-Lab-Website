@@ -76,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
 
           {/* Page content */}
-          <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1 }}>{children}</div>
+          <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
         </TranslationsProvider>
       </body>
     </html>
