@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -24,8 +24,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
   }
 
   // Get locale from headers
-  const locale = (await import("next-intl/server")).getLocale();
-  const currentLocale = await locale();
+  const currentLocale = await getLocale();
 
   // Parse translations
   const parseTranslations = (jsonString: string) => {
