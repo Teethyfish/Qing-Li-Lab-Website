@@ -146,18 +146,16 @@ export default async function HomePage() {
   };
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* ===== Announcement Carousel (full-width, fixed behind content) ===== */}
+    <>
+      {/* ===== Announcement Carousel (full-width at top) ===== */}
       {announcements.length > 0 && (
         <div style={{
-          position: "absolute",
-          top: "-1.5rem",
-          left: 0,
-          right: 0,
           marginLeft: "calc(-50vw + 50%)",
           marginRight: "calc(-50vw + 50%)",
+          marginTop: "-1.5rem",
+          marginBottom: "-100px",
           width: "100vw",
-          height: "400px",
+          position: "relative",
           zIndex: 0,
         }}>
           <AnnouncementCarousel announcements={announcements} locale={userLocale} />
@@ -167,9 +165,9 @@ export default async function HomePage() {
       <main style={{
         ...grid,
         position: "relative",
-        zIndex: 1,
+        zIndex: 10,
         background: "var(--color-bg)",
-        marginTop: announcements.length > 0 ? "320px" : "0",
+        paddingTop: announcements.length > 0 ? "1.5rem" : "0",
       }}>
         {/* ===== Big header at the top ===== */}
         <header>
@@ -431,6 +429,6 @@ export default async function HomePage() {
         </div>
       </section>
     </main>
-    </div>
+    </>
   );
 }
