@@ -7,18 +7,25 @@ import BannerImageUpload from "@/components/BannerImageUpload";
 type Announcement = {
   id: string;
   imageUrl: string;
+  title: string;
   text: string;
   croppedArea: string | null;
   order: number;
-  isActive: boolean;
+  status: string;
+  hasDetailsPage: boolean;
+  detailsSlug: string | null;
+  detailsContent: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
 type Props = {
-  announcements: Announcement[];
+  activeAnnouncements: Announcement[];
+  archivedAnnouncements: Announcement[];
   createAnnouncement: (formData: FormData) => Promise<void>;
   updateAnnouncement: (formData: FormData) => Promise<void>;
+  archiveAnnouncement: (formData: FormData) => Promise<void>;
+  unarchiveAnnouncement: (formData: FormData) => Promise<void>;
   deleteAnnouncement: (formData: FormData) => Promise<void>;
 };
 
@@ -30,9 +37,12 @@ type TranslationWarning = {
 };
 
 export default function AnnouncementsManager({
-  announcements,
+  activeAnnouncements,
+  archivedAnnouncements,
   createAnnouncement,
   updateAnnouncement,
+  archiveAnnouncement,
+  unarchiveAnnouncement,
   deleteAnnouncement,
 }: Props) {
   const t = useTranslations('announcements');
@@ -40,10 +50,14 @@ export default function AnnouncementsManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [croppedArea, setCroppedArea] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
 
   // Language checkboxes
   const [enableChinese, setEnableChinese] = useState(false);
   const [enableKorean, setEnableKorean] = useState(false);
+
+  // Details page options
+  const [hasDetailsPage, setHasDetailsPage] = useState(false);
 
   // Warning dialog state
   const [warning, setWarning] = useState<TranslationWarning>({
@@ -65,21 +79,46 @@ export default function AnnouncementsManager({
     const missing: string[] = [];
     const enableCh = formData.get("enableChinese") === "true";
     const enableKo = formData.get("enableKorean") === "true";
+
+    // Check title
+    const titleEn = String(formData.get("title_en") || "").trim();
+    const titleZh = String(formData.get("title_zh") || "").trim();
+    const titleKo = String(formData.get("title_ko") || "").trim();
+
+    // Check text
     const textEn = String(formData.get("text_en") || "").trim();
     const textZh = String(formData.get("text_zh") || "").trim();
     const textKo = String(formData.get("text_ko") || "").trim();
 
-    if (!textEn) {
+    if (!titleEn || !textEn) {
       missing.push("English");
     }
-    if (enableCh && !textZh) {
+    if (enableCh && (!titleZh || !textZh)) {
       missing.push("Chinese");
     }
-    if (enableKo && !textKo) {
+    if (enableKo && (!titleKo || !textKo)) {
       missing.push("Korean");
     }
 
     return { valid: missing.length === 0, missing };
+  };
+
+  const buildTitleJson = (formData: FormData): string => {
+    const translations: any = {
+      en: String(formData.get("title_en") || "").trim(),
+    };
+
+    if (formData.get("enableChinese") === "true") {
+      const zh = String(formData.get("title_zh") || "").trim();
+      if (zh) translations.zh = zh;
+    }
+
+    if (formData.get("enableKorean") === "true") {
+      const ko = String(formData.get("title_ko") || "").trim();
+      if (ko) translations.ko = ko;
+    }
+
+    return JSON.stringify(translations);
   };
 
   const buildTextJson = (formData: FormData): string => {
@@ -94,6 +133,26 @@ export default function AnnouncementsManager({
 
     if (formData.get("enableKorean") === "true") {
       const ko = String(formData.get("text_ko") || "").trim();
+      if (ko) translations.ko = ko;
+    }
+
+    return JSON.stringify(translations);
+  };
+
+  const buildDetailsJson = (formData: FormData): string | null => {
+    if (formData.get("hasDetailsPage") !== "true") return null;
+
+    const translations: any = {
+      en: String(formData.get("details_en") || "").trim(),
+    };
+
+    if (formData.get("enableChinese") === "true") {
+      const zh = String(formData.get("details_zh") || "").trim();
+      if (zh) translations.zh = zh;
+    }
+
+    if (formData.get("enableKorean") === "true") {
+      const ko = String(formData.get("details_ko") || "").trim();
       if (ko) translations.ko = ko;
     }
 
@@ -124,8 +183,15 @@ export default function AnnouncementsManager({
   };
 
   const submitCreate = async (formData: FormData) => {
+    const titleJson = buildTitleJson(formData);
     const textJson = buildTextJson(formData);
+    const detailsJson = buildDetailsJson(formData);
+
+    formData.set("title", titleJson);
     formData.set("text", textJson);
+    if (detailsJson) {
+      formData.set("detailsContent", detailsJson);
+    }
 
     if (croppedImage) {
       formData.set("imageBase64", croppedImage);
@@ -140,6 +206,7 @@ export default function AnnouncementsManager({
     setCroppedArea(null);
     setEnableChinese(false);
     setEnableKorean(false);
+    setHasDetailsPage(false);
   };
 
   const handleUpdateSubmit = async (e: React.FormEvent<HTMLFormElement>, id: string) => {
@@ -167,8 +234,15 @@ export default function AnnouncementsManager({
   };
 
   const submitUpdate = async (formData: FormData, id: string) => {
+    const titleJson = buildTitleJson(formData);
     const textJson = buildTextJson(formData);
+    const detailsJson = buildDetailsJson(formData);
+
+    formData.set("title", titleJson);
     formData.set("text", textJson);
+    if (detailsJson) {
+      formData.set("detailsContent", detailsJson);
+    }
 
     if (croppedImage) {
       formData.set("imageBase64", croppedImage);
@@ -183,21 +257,40 @@ export default function AnnouncementsManager({
     setCroppedArea(null);
     setEnableChinese(false);
     setEnableKorean(false);
+    setHasDetailsPage(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('confirmDelete'))) return;
+  const handleDelete = async (id: string, hasDetails: boolean) => {
+    const message = hasDetails
+      ? "Are you sure you want to delete this announcement? This will remove both the banner and the details page."
+      : "Are you sure you want to delete this announcement?";
+
+    if (!confirm(message)) return;
 
     const formData = new FormData();
     formData.set("id", id);
     await deleteAnnouncement(formData);
   };
 
+  const handleArchive = async (id: string) => {
+    const formData = new FormData();
+    formData.set("id", id);
+    await archiveAnnouncement(formData);
+  };
+
+  const handleUnarchive = async (id: string) => {
+    const formData = new FormData();
+    formData.set("id", id);
+    await unarchiveAnnouncement(formData);
+  };
+
   const handleEdit = (announcement: Announcement) => {
-    const translations = parseTranslations(announcement.text);
+    const titleTranslations = parseTranslations(announcement.title);
+    const textTranslations = parseTranslations(announcement.text);
     setEditingId(announcement.id);
-    setEnableChinese(!!translations.zh);
-    setEnableKorean(!!translations.ko);
+    setEnableChinese(!!textTranslations.zh || !!titleTranslations.zh);
+    setEnableKorean(!!textTranslations.ko || !!titleTranslations.ko);
+    setHasDetailsPage(announcement.hasDetailsPage);
   };
 
   const inputStyle: React.CSSProperties = {
@@ -209,11 +302,47 @@ export default function AnnouncementsManager({
     boxSizing: "border-box",
   };
 
+  const currentAnnouncements = activeTab === "active" ? activeAnnouncements : archivedAnnouncements;
+
   return (
     <>
       <div style={{ display: "grid", gap: "1.5rem" }}>
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid color-mix(in oklab, var(--color-text) 10%, transparent)" }}>
+          <button
+            onClick={() => setActiveTab("active")}
+            style={{
+              padding: "0.75rem 1.5rem",
+              background: "transparent",
+              border: "none",
+              borderBottom: activeTab === "active" ? "2px solid var(--color-text)" : "2px solid transparent",
+              marginBottom: "-2px",
+              cursor: "pointer",
+              fontWeight: activeTab === "active" ? 600 : 400,
+              color: activeTab === "active" ? "var(--color-text)" : "color-mix(in oklab, var(--color-text) 60%, transparent)",
+            }}
+          >
+            Active ({activeAnnouncements.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("archived")}
+            style={{
+              padding: "0.75rem 1.5rem",
+              background: "transparent",
+              border: "none",
+              borderBottom: activeTab === "archived" ? "2px solid var(--color-text)" : "2px solid transparent",
+              marginBottom: "-2px",
+              cursor: "pointer",
+              fontWeight: activeTab === "archived" ? 600 : 400,
+              color: activeTab === "archived" ? "var(--color-text)" : "color-mix(in oklab, var(--color-text) 60%, transparent)",
+            }}
+          >
+            Archived ({archivedAnnouncements.length})
+          </button>
+        </div>
+
         {/* Add new announcement button */}
-        {!showNewForm && (
+        {!showNewForm && activeTab === "active" && (
           <button
             onClick={() => setShowNewForm(true)}
             className="btn btn-basic"
@@ -242,15 +371,29 @@ export default function AnnouncementsManager({
                 </label>
               </div>
 
-              {/* English text (required) */}
+              {/* Title (required) */}
               <div>
                 <label style={{ display: "grid", gap: "0.4rem" }}>
-                  <div style={{ fontWeight: 600 }}>{t('overlayText')} (English) *</div>
+                  <div style={{ fontWeight: 600 }}>Title (English) *</div>
+                  <input
+                    name="title_en"
+                    type="text"
+                    required
+                    placeholder="Enter announcement title..."
+                    style={inputStyle}
+                  />
+                </label>
+              </div>
+
+              {/* Subtitle/Text (required) */}
+              <div>
+                <label style={{ display: "grid", gap: "0.4rem" }}>
+                  <div style={{ fontWeight: 600 }}>Subtitle (English) *</div>
                   <textarea
                     name="text_en"
-                    rows={3}
+                    rows={2}
                     required
-                    placeholder="Enter English text..."
+                    placeholder="Enter subtitle text..."
                     style={inputStyle}
                   />
                 </label>
@@ -270,12 +413,20 @@ export default function AnnouncementsManager({
                   <span>Chinese (中文)</span>
                 </label>
                 {enableChinese && (
-                  <textarea
-                    name="text_zh"
-                    rows={3}
-                    placeholder="输入中文文字..."
-                    style={inputStyle}
-                  />
+                  <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                    <input
+                      name="title_zh"
+                      type="text"
+                      placeholder="输入中文标题..."
+                      style={inputStyle}
+                    />
+                    <textarea
+                      name="text_zh"
+                      rows={2}
+                      placeholder="输入中文副标题..."
+                      style={inputStyle}
+                    />
+                  </div>
                 )}
 
                 {/* Korean checkbox */}
@@ -288,17 +439,100 @@ export default function AnnouncementsManager({
                   <span>Korean (한국어)</span>
                 </label>
                 {enableKorean && (
-                  <textarea
-                    name="text_ko"
-                    rows={3}
-                    placeholder="한국어 텍스트를 입력하세요..."
-                    style={inputStyle}
-                  />
+                  <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                    <input
+                      name="title_ko"
+                      type="text"
+                      placeholder="한국어 제목을 입력하세요..."
+                      style={inputStyle}
+                    />
+                    <textarea
+                      name="text_ko"
+                      rows={2}
+                      placeholder="한국어 부제를 입력하세요..."
+                      style={inputStyle}
+                    />
+                  </div>
                 )}
               </div>
 
               <input type="hidden" name="enableChinese" value={enableChinese ? "true" : "false"} />
               <input type="hidden" name="enableKorean" value={enableKorean ? "true" : "false"} />
+
+              {/* Details page options */}
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={hasDetailsPage}
+                    onChange={(e) => setHasDetailsPage(e.target.checked)}
+                  />
+                  <span style={{ fontWeight: 600 }}>Enable Details Page</span>
+                </label>
+
+                {hasDetailsPage && (
+                  <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                    <div>
+                      <label style={{ display: "grid", gap: "0.4rem" }}>
+                        <div style={{ fontWeight: 600 }}>URL Slug *</div>
+                        <input
+                          name="detailsSlug"
+                          type="text"
+                          required={hasDetailsPage}
+                          placeholder="e.g., summer-symposium-2024"
+                          style={inputStyle}
+                        />
+                        <div className="muted" style={{ fontSize: "0.85rem" }}>
+                          Will be accessible at: /announcements/[your-slug]
+                        </div>
+                      </label>
+                    </div>
+
+                    <div>
+                      <label style={{ display: "grid", gap: "0.4rem" }}>
+                        <div style={{ fontWeight: 600 }}>Details Content (English) *</div>
+                        <textarea
+                          name="details_en"
+                          rows={4}
+                          required={hasDetailsPage}
+                          placeholder="Enter detailed content..."
+                          style={inputStyle}
+                        />
+                      </label>
+                    </div>
+
+                    {enableChinese && (
+                      <div>
+                        <label style={{ display: "grid", gap: "0.4rem" }}>
+                          <div style={{ fontWeight: 600 }}>Details Content (Chinese)</div>
+                          <textarea
+                            name="details_zh"
+                            rows={4}
+                            placeholder="输入详细内容..."
+                            style={inputStyle}
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    {enableKorean && (
+                      <div>
+                        <label style={{ display: "grid", gap: "0.4rem" }}>
+                          <div style={{ fontWeight: 600 }}>Details Content (Korean)</div>
+                          <textarea
+                            name="details_ko"
+                            rows={4}
+                            placeholder="자세한 내용을 입력하세요..."
+                            style={inputStyle}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <input type="hidden" name="hasDetailsPage" value={hasDetailsPage ? "true" : "false"} />
 
               <div>
                 <label style={{ display: "grid", gap: "0.4rem" }}>
@@ -324,6 +558,7 @@ export default function AnnouncementsManager({
                     setCroppedArea(null);
                     setEnableChinese(false);
                     setEnableKorean(false);
+                    setHasDetailsPage(false);
                   }}
                   className="btn btn-muted"
                 >
@@ -336,8 +571,9 @@ export default function AnnouncementsManager({
 
         {/* Existing announcements */}
         <div style={{ display: "grid", gap: "1rem" }}>
-          {announcements.map((announcement) => {
-            const translations = parseTranslations(announcement.text);
+          {currentAnnouncements.map((announcement) => {
+            const titleTranslations = parseTranslations(announcement.title);
+            const textTranslations = parseTranslations(announcement.text);
 
             return (
               <div key={announcement.id} className="card" style={{ padding: "1.5rem" }}>
@@ -359,15 +595,30 @@ export default function AnnouncementsManager({
                       </label>
                     </div>
 
+                    {/* Title (required) */}
+                    <div>
+                      <label style={{ display: "grid", gap: "0.4rem" }}>
+                        <div style={{ fontWeight: 600 }}>Title (English) *</div>
+                        <input
+                          name="title_en"
+                          type="text"
+                          required
+                          defaultValue={titleTranslations.en || ""}
+                          placeholder="Enter announcement title..."
+                          style={inputStyle}
+                        />
+                      </label>
+                    </div>
+
                     {/* English text (required) */}
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
-                        <div style={{ fontWeight: 600 }}>{t('overlayText')} (English) *</div>
+                        <div style={{ fontWeight: 600 }}>Subtitle (English) *</div>
                         <textarea
                           name="text_en"
-                          rows={3}
+                          rows={2}
                           required
-                          defaultValue={translations.en || ""}
+                          defaultValue={textTranslations.en || ""}
                           style={inputStyle}
                         />
                       </label>
@@ -387,13 +638,22 @@ export default function AnnouncementsManager({
                         <span>Chinese (中文)</span>
                       </label>
                       {enableChinese && (
-                        <textarea
-                          name="text_zh"
-                          rows={3}
-                          defaultValue={translations.zh || ""}
-                          placeholder="输入中文文字..."
-                          style={inputStyle}
-                        />
+                        <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                          <input
+                            name="title_zh"
+                            type="text"
+                            defaultValue={titleTranslations.zh || ""}
+                            placeholder="输入中文标题..."
+                            style={inputStyle}
+                          />
+                          <textarea
+                            name="text_zh"
+                            rows={2}
+                            defaultValue={textTranslations.zh || ""}
+                            placeholder="输入中文副标题..."
+                            style={inputStyle}
+                          />
+                        </div>
                       )}
 
                       {/* Korean checkbox */}
@@ -406,18 +666,103 @@ export default function AnnouncementsManager({
                         <span>Korean (한국어)</span>
                       </label>
                       {enableKorean && (
-                        <textarea
-                          name="text_ko"
-                          rows={3}
-                          defaultValue={translations.ko || ""}
-                          placeholder="한국어 텍스트를 입력하세요..."
-                          style={inputStyle}
-                        />
+                        <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                          <input
+                            name="title_ko"
+                            type="text"
+                            defaultValue={titleTranslations.ko || ""}
+                            placeholder="한국어 제목을 입력하세요..."
+                            style={inputStyle}
+                          />
+                          <textarea
+                            name="text_ko"
+                            rows={2}
+                            defaultValue={textTranslations.ko || ""}
+                            placeholder="한국어 부제를 입력하세요..."
+                            style={inputStyle}
+                          />
+                        </div>
                       )}
                     </div>
 
                     <input type="hidden" name="enableChinese" value={enableChinese ? "true" : "false"} />
                     <input type="hidden" name="enableKorean" value={enableKorean ? "true" : "false"} />
+
+                    {/* Details page options */}
+                    <div style={{ display: "grid", gap: "0.75rem" }}>
+                      <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={hasDetailsPage}
+                          onChange={(e) => setHasDetailsPage(e.target.checked)}
+                        />
+                        <span style={{ fontWeight: 600 }}>Enable Details Page</span>
+                      </label>
+
+                      {hasDetailsPage && (
+                        <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                          <div>
+                            <label style={{ display: "grid", gap: "0.4rem" }}>
+                              <div style={{ fontWeight: 600 }}>URL Slug *</div>
+                              <input
+                                name="detailsSlug"
+                                type="text"
+                                required={hasDetailsPage}
+                                defaultValue={announcement.detailsSlug || ""}
+                                placeholder="e.g., summer-symposium-2024"
+                                style={inputStyle}
+                              />
+                            </label>
+                          </div>
+
+                          <div>
+                            <label style={{ display: "grid", gap: "0.4rem" }}>
+                              <div style={{ fontWeight: 600 }}>Details Content (English) *</div>
+                              <textarea
+                                name="details_en"
+                                rows={4}
+                                required={hasDetailsPage}
+                                defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).en : ""}
+                                placeholder="Enter detailed content..."
+                                style={inputStyle}
+                              />
+                            </label>
+                          </div>
+
+                          {enableChinese && (
+                            <div>
+                              <label style={{ display: "grid", gap: "0.4rem" }}>
+                                <div style={{ fontWeight: 600 }}>Details Content (Chinese)</div>
+                                <textarea
+                                  name="details_zh"
+                                  rows={4}
+                                  defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).zh : ""}
+                                  placeholder="输入详细内容..."
+                                  style={inputStyle}
+                                />
+                              </label>
+                            </div>
+                          )}
+
+                          {enableKorean && (
+                            <div>
+                              <label style={{ display: "grid", gap: "0.4rem" }}>
+                                <div style={{ fontWeight: 600 }}>Details Content (Korean)</div>
+                                <textarea
+                                  name="details_ko"
+                                  rows={4}
+                                  defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).ko : ""}
+                                  placeholder="자세한 내용을 입력하세요..."
+                                  style={inputStyle}
+                                />
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <input type="hidden" name="hasDetailsPage" value={hasDetailsPage ? "true" : "false"} />
 
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
@@ -428,18 +773,6 @@ export default function AnnouncementsManager({
                           defaultValue={announcement.order}
                           style={inputStyle}
                         />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                        <input
-                          name="isActive"
-                          type="checkbox"
-                          value="true"
-                          defaultChecked={announcement.isActive}
-                        />
-                        <span style={{ fontWeight: 600 }}>{t('active')}</span>
                       </label>
                     </div>
 
@@ -455,6 +788,7 @@ export default function AnnouncementsManager({
                           setCroppedArea(null);
                           setEnableChinese(false);
                           setEnableKorean(false);
+                          setHasDetailsPage(false);
                         }}
                         className="btn btn-muted"
                       >
@@ -467,7 +801,7 @@ export default function AnnouncementsManager({
                     <div style={{ display: "flex", gap: "1rem", alignItems: "start" }}>
                       <img
                         src={announcement.imageUrl}
-                        alt={translations.en}
+                        alt={titleTranslations.en}
                         style={{
                           width: 200,
                           height: 100,
@@ -477,32 +811,51 @@ export default function AnnouncementsManager({
                         }}
                       />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
-                          {translations.en}
+                        <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.25rem" }}>
+                          {titleTranslations.en}
+                        </div>
+                        <div style={{ marginBottom: "0.5rem" }}>
+                          {textTranslations.en}
                         </div>
                         <div style={{ fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                          {translations.zh && (
-                            <div className="muted">🇨🇳 {translations.zh}</div>
+                          {titleTranslations.zh && (
+                            <div className="muted">🇨🇳 {titleTranslations.zh}: {textTranslations.zh}</div>
                           )}
-                          {translations.ko && (
-                            <div className="muted">🇰🇷 {translations.ko}</div>
+                          {titleTranslations.ko && (
+                            <div className="muted">🇰🇷 {titleTranslations.ko}: {textTranslations.ko}</div>
                           )}
                         </div>
                         <div className="muted" style={{ fontSize: "0.875rem" }}>
-                          {t('order')}: {announcement.order} • {announcement.isActive ? t('active') : t('inactive')}
+                          {t('order')}: {announcement.order}
+                          {announcement.hasDetailsPage && ` • Details: /announcements/${announcement.detailsSlug}`}
                         </div>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                       <button
                         onClick={() => handleEdit(announcement)}
                         className="btn btn-basic"
                       >
                         {t('edit')}
                       </button>
+                      {activeTab === "active" ? (
+                        <button
+                          onClick={() => handleArchive(announcement.id)}
+                          className="btn btn-muted"
+                        >
+                          Archive
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUnarchive(announcement.id)}
+                          className="btn btn-basic"
+                        >
+                          Unarchive
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleDelete(announcement.id)}
+                        onClick={() => handleDelete(announcement.id, announcement.hasDetailsPage)}
                         className="btn btn-warning"
                       >
                         {t('delete')}
@@ -514,9 +867,9 @@ export default function AnnouncementsManager({
             );
           })}
 
-          {announcements.length === 0 && !showNewForm && (
+          {currentAnnouncements.length === 0 && !showNewForm && (
             <div className="muted" style={{ textAlign: "center", padding: "2rem" }}>
-              {t('noAnnouncements')}
+              {activeTab === "active" ? t('noAnnouncements') : "No archived announcements."}
             </div>
           )}
         </div>

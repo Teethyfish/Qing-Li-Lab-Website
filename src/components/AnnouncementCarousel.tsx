@@ -5,7 +5,10 @@ import { useState, useEffect } from "react";
 type Announcement = {
   id: string;
   imageUrl: string;
+  title: string;
   text: string;
+  hasDetailsPage: boolean;
+  detailsSlug: string | null;
 };
 
 type Props = {
@@ -47,9 +50,10 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
   };
 
   const currentAnnouncement = announcements[currentIndex];
+  const displayTitle = getLocalizedText(currentAnnouncement.title);
   const displayText = getLocalizedText(currentAnnouncement.text);
 
-  return (
+  const bannerContent = (
     <div
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -102,15 +106,27 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
       >
         <h2
           style={{
-            fontSize: "1.75rem",
+            fontSize: "2rem",
             fontWeight: 700,
-            lineHeight: 1.3,
+            lineHeight: 1.2,
+            margin: 0,
+            marginBottom: "0.5rem",
+            textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          {displayTitle}
+        </h2>
+        <p
+          style={{
+            fontSize: "1.25rem",
+            fontWeight: 400,
+            lineHeight: 1.4,
             margin: 0,
             textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
           }}
         >
           {displayText}
-        </h2>
+        </p>
       </div>
 
       {/* Navigation dots */}
@@ -217,4 +233,23 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
       )}
     </div>
   );
+
+  // If the announcement has a details page, wrap it in a link
+  if (currentAnnouncement.hasDetailsPage && currentAnnouncement.detailsSlug) {
+    return (
+      <a
+        href={`/announcements/${currentAnnouncement.detailsSlug}`}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+          display: "block",
+          cursor: "pointer",
+        }}
+      >
+        {bannerContent}
+      </a>
+    );
+  }
+
+  return bannerContent;
 }

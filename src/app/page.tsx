@@ -106,9 +106,16 @@ export default async function HomePage() {
 
   // --- Fetch active announcements ---
   const announcements = await prisma.announcement.findMany({
-    where: { isActive: true },
+    where: { status: "ACTIVE" },
     orderBy: { order: "asc" },
-    select: { id: true, imageUrl: true, text: true },
+    select: {
+      id: true,
+      imageUrl: true,
+      title: true,
+      text: true,
+      hasDetailsPage: true,
+      detailsSlug: true,
+    },
   });
 
   // --- styles (no client handlers) ---
