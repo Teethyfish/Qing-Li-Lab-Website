@@ -91,8 +91,10 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
       <div
         style={{
           margin: "0 auto",
-          padding: "0 16px",
-          maxWidth: "1280px",
+          padding: "0 24px",
+          maxWidth: "100%",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
         <div
@@ -102,6 +104,8 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
             alignItems: "center",
             justifyContent: "space-between",
             gap: 12,
+            maxWidth: "1280px",
+            margin: "0 auto",
           }}
         >
           {/* Left: links */}

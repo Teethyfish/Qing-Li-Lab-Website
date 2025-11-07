@@ -128,15 +128,15 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           }}
         />
 
-        {/* Bottom fade to transparent */}
+        {/* Bottom fade to background color */}
         <div
           style={{
             position: "absolute",
             left: 0,
             right: 0,
             bottom: 0,
-            height: "100px",
-            background: "linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 100%)",
+            height: "120px",
+            background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
             pointerEvents: "none",
           }}
         />
