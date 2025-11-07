@@ -151,17 +151,23 @@ export default async function HomePage() {
       {announcements.length > 0 && (
         <div style={{
           position: "relative",
-          zIndex: 0,
+          zIndex: 1,
           marginLeft: "calc(-50vw + 50%)",
           marginRight: "calc(-50vw + 50%)",
           marginTop: "-1.5rem",
-          marginBottom: "-80px",
         }}>
           <AnnouncementCarousel announcements={announcements} locale={userLocale} />
         </div>
       )}
 
-      <main style={{ ...grid, position: "relative", zIndex: 1, background: "var(--color-background)" }}>
+      <main style={{
+        ...grid,
+        position: "relative",
+        zIndex: 10,
+        background: "var(--color-bg)",
+        marginTop: announcements.length > 0 ? "-100px" : "0",
+        paddingTop: announcements.length > 0 ? "1.5rem" : "0",
+      }}>
         {/* ===== Big header at the top ===== */}
         <header>
           <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>

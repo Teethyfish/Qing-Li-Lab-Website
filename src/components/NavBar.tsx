@@ -78,10 +78,11 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
       style={{
         position: "sticky",
         top: 0,
-        zIndex: 40,
+        zIndex: 100,
         backdropFilter: `saturate(1.2) blur(calc(var(--nav-blur, 6) * 1px))`,
         background: "color-mix(in oklab, var(--nav-bg, #ffffff) calc(var(--nav-opacity, 90) * 1%), transparent)",
         borderBottom: "1px solid var(--nav-border, #e5e7eb)",
+        width: "100%",
       }}
       aria-label="Primary"
     >
@@ -89,6 +90,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
         style={{
           margin: "0 auto",
           padding: "0 16px",
+          width: "100%",
         }}
       >
         <div
