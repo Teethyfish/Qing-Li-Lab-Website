@@ -189,29 +189,27 @@ button.profile-pic-button:disabled {
   opacity: 1 !important;
 }
 
-/* Exception: carousel buttons should be transparent white */
-button.carousel-nav-button {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  color: inherit !important;
-  cursor: pointer !important;
-  box-sizing: border-box !important;
-}
-button.carousel-nav-button:hover {
-  background: none !important;
-  border: none !important;
-}
+/* Exception: carousel buttons - DON'T apply global button styles */
+button.carousel-nav-button,
 button.carousel-dot-button {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  color: inherit !important;
+  /* Override the aggressive global button styles but let inline styles work */
+  background: initial !important;
+  border: initial !important;
+  padding: initial !important;
+  color: initial !important;
+  border-radius: initial !important;
+  font-weight: initial !important;
+  line-height: initial !important;
+  text-decoration: initial !important;
+  transition: initial !important;
+  display: initial !important;
+  align-items: initial !important;
+  justify-content: initial !important;
   cursor: pointer !important;
-  box-sizing: border-box !important;
-  display: block !important;
 }
+button.carousel-nav-button:hover,
 button.carousel-dot-button:hover {
-  background: none !important;
-  border: none !important;
+  background: initial !important;
+  border: initial !important;
+  border-color: initial !important;
 }
