@@ -11,7 +11,8 @@
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma:*)",
       "Bash(echo:*)",
-      "Bash(\"src\\app\\members\\announcements\\AnnouncementsManager_new.tsx\")"
+      "Bash(\"src\\app\\members\\announcements\\AnnouncementsManager_new.tsx\")",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

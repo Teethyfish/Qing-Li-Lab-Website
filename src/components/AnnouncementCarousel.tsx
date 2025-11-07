@@ -19,17 +19,38 @@ type Props = {
 export default function AnnouncementCarousel({ announcements, locale }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Handle initial load animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Auto-rotate every 5 seconds (unless hovering)
   useEffect(() => {
     if (announcements.length <= 1 || isHovering) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % announcements.length);
+      handleSlideChange((prev) => (prev + 1) % announcements.length, "right");
     }, 5000);
 
     return () => clearInterval(interval);
   }, [announcements.length, isHovering]);
+
+  const handleSlideChange = (indexOrFunction: number | ((prev: number) => number), direction: "left" | "right") => {
+    setIsTransitioning(true);
+    setSlideDirection(direction);
+
+    setTimeout(() => {
+      setCurrentIndex(indexOrFunction);
+      setIsTransitioning(false);
+    }, 300);
+  };
 
   if (announcements.length === 0) {
     return null;
@@ -66,7 +87,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
         boxShadow: "0 4px 6px color-mix(in oklab, var(--color-text) 10%, transparent)",
       }}
     >
-      {/* Background Image */}
+      {/* Content wrapper with animation */}
       <div
         style={{
           position: "absolute",
@@ -74,59 +95,76 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: `url(${currentAnnouncement.imageUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          transition: "opacity 0.5s ease-in-out",
-        }}
-      />
-
-      {/* Gradient overlay for text readability */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%)",
-        }}
-      />
-
-      {/* Text overlay */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: "2rem",
-          color: "#ffffff",
+          transform: isInitialLoad
+            ? "translateX(100px)"
+            : isTransitioning
+              ? slideDirection === "right" ? "translateX(100px)" : "translateX(-100px)"
+              : "translateX(0)",
+          opacity: isInitialLoad || isTransitioning ? 0 : 1,
+          transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
         }}
       >
-        <h2
+        {/* Background Image */}
+        <div
           style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-            lineHeight: 1.2,
-            margin: 0,
-            marginBottom: "0.5rem",
-            textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: `url(${currentAnnouncement.imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+
+        {/* Gradient overlay for text readability */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%)",
+          }}
+        />
+
+        {/* Text overlay */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "2rem",
+            color: "#ffffff",
           }}
         >
-          {displayTitle}
-        </h2>
-        <p
-          style={{
-            fontSize: "1.25rem",
-            fontWeight: 400,
-            lineHeight: 1.4,
-            margin: 0,
-            textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          {displayText}
-        </p>
+          <h2
+            style={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              lineHeight: 1.2,
+              margin: 0,
+              marginBottom: "0.5rem",
+              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            {displayTitle}
+          </h2>
+          <p
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 400,
+              lineHeight: 1.4,
+              margin: 0,
+              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            {displayText}
+          </p>
+        </div>
       </div>
 
       {/* Navigation dots */}
@@ -143,7 +181,10 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           {announcements.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => {
+                const direction = index > currentIndex ? "right" : "left";
+                handleSlideChange(index, direction);
+              }}
               style={{
                 width: 10,
                 height: 10,
@@ -151,8 +192,17 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
                 border: "2px solid #ffffff",
                 background: index === currentIndex ? "#ffffff" : "transparent",
                 cursor: "pointer",
-                transition: "background 0.3s ease",
+                transition: "all 0.3s ease",
                 padding: 0,
+                opacity: 0.8,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "scale(1.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "0.8";
+                e.currentTarget.style.transform = "scale(1)";
               }}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -165,8 +215,9 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
         <>
           <button
             onClick={() =>
-              setCurrentIndex((prev) =>
-                prev === 0 ? announcements.length - 1 : prev - 1
+              handleSlideChange(
+                (prev) => (prev === 0 ? announcements.length - 1 : prev - 1),
+                "left"
               )
             }
             style={{
@@ -177,29 +228,34 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               width: 40,
               height: 40,
               borderRadius: "50%",
-              background: "rgba(255, 255, 255, 0.3)",
-              border: "none",
+              background: "transparent",
+              border: "2px solid #ffffff",
               color: "#ffffff",
               fontSize: "1.5rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              transition: "background 0.3s ease",
+              transition: "all 0.3s ease",
               backdropFilter: "blur(4px)",
+              opacity: 0.7,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.5)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.opacity = "0.7";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
             aria-label="Previous slide"
           >
             ‹
           </button>
           <button
-            onClick={() => setCurrentIndex((prev) => (prev + 1) % announcements.length)}
+            onClick={() => handleSlideChange((prev) => (prev + 1) % announcements.length, "right")}
             style={{
               position: "absolute",
               right: "1rem",
@@ -208,22 +264,27 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               width: 40,
               height: 40,
               borderRadius: "50%",
-              background: "rgba(255, 255, 255, 0.3)",
-              border: "none",
+              background: "transparent",
+              border: "2px solid #ffffff",
               color: "#ffffff",
               fontSize: "1.5rem",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              transition: "background 0.3s ease",
+              transition: "all 0.3s ease",
               backdropFilter: "blur(4px)",
+              opacity: 0.7,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.5)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)";
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.opacity = "0.7";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
             aria-label="Next slide"
           >

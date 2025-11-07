@@ -2,7 +2,27 @@
 
 All notable changes for the Qing Li Lab Website.
 
-## [Latest] - 2025-11-05
+## [Latest] - 2025-11-06
+
+### Added
+- **Announcements System**
+  - Admin-only announcements manager at /members/announcements
+  - Banner carousel on home page displaying active announcements
+  - Create announcements with banner image upload and cropping tool
+  - Edit existing announcements with full form support
+  - Archive/unarchive announcements with separate tabs
+  - Delete announcements with confirmation dialog
+  - Multi-language support (English, Chinese, Korean) for all announcement content
+  - Optional details pages for announcements with custom URL slugs (accessible at /announcements/[slug])
+  - Display order management for controlling banner sequence
+  - Translation validation with warning dialog for missing language content
+
+### Fixed
+- Banner image size limit validation
+
+---
+
+## [Previous] - 2025-11-05
 
 ### Added
 - **Profile Picture System**
