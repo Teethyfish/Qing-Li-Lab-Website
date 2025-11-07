@@ -189,27 +189,49 @@ button.profile-pic-button:disabled {
   opacity: 1 !important;
 }
 
-/* Exception: carousel buttons - DON'T apply global button styles */
-button.carousel-nav-button,
+/* Exception: carousel buttons - COMPLETELY override global button styles */
+button.carousel-nav-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  font-weight: normal !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+button.carousel-nav-button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: none !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+
 button.carousel-dot-button {
-  /* Override the aggressive global button styles but let inline styles work */
-  background: initial !important;
-  border: initial !important;
-  padding: initial !important;
-  color: initial !important;
-  border-radius: initial !important;
-  font-weight: initial !important;
-  line-height: initial !important;
-  text-decoration: initial !important;
-  transition: initial !important;
-  display: initial !important;
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  font-weight: normal !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  display: inline-block !important;
   align-items: initial !important;
   justify-content: initial !important;
-  cursor: pointer !important;
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  min-height: 12px !important;
 }
-button.carousel-nav-button:hover,
 button.carousel-dot-button:hover {
-  background: initial !important;
-  border: initial !important;
-  border-color: initial !important;
+  background: transparent !important;
+  border: 2px solid #ffffff !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
 }
