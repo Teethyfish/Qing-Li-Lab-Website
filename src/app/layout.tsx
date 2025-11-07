@@ -57,6 +57,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           color: "var(--color-text)",
           fontFamily: "var(--font-family)",
           fontSize: "var(--font-size)",
+          margin: 0,
+          padding: 0,
+          overflowX: "hidden",
         }}
       >
         {/* Inject CSS variables for the whole site */}
@@ -73,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
 
           {/* Page content */}
-          <div className="mx-auto max-w-5xl p-6">{children}</div>
+          <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1 }}>{children}</div>
         </TranslationsProvider>
       </body>
     </html>

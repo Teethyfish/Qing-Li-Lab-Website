@@ -1,4 +1,10 @@
 /* === Theming utilities (reads CSS vars set in layout) === */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 :root {
   /* Safe fallbacks in case the DB theme hasn't loaded yet */
   --color-bg: #ffffff;
