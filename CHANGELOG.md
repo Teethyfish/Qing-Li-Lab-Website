@@ -7,7 +7,13 @@ All notable changes for the Qing Li Lab Website.
 ### Added
 - **Announcements System**
   - Admin-only announcements manager at /members/announcements
-  - Banner carousel on home page displaying active announcements
+  - Full-width edge-to-edge banner carousel on home page displaying active announcements
+  - Fixed banner positioning below navbar that stays in place while content scrolls over it
+  - Smooth slide and fade transitions between announcements (slides in direction of navigation)
+  - Initial load animation - banner fades in from the right on page load
+  - Auto-rotation every 5 seconds (pauses on hover)
+  - Custom carousel navigation with transparent white arrow buttons and page indicator dots
+  - Fade gradient effect where page content transitions over the banner
   - Create announcements with banner image upload and cropping tool
   - Edit existing announcements with full form support
   - Archive/unarchive announcements with separate tabs
@@ -17,8 +23,20 @@ All notable changes for the Qing Li Lab Website.
   - Display order management for controlling banner sequence
   - Translation validation with warning dialog for missing language content
 
+### Changed
+- **Navigation Bar**
+  - Changed navbar from sticky to fixed positioning - stays at top while scrolling
+  - Navbar extends full viewport width edge-to-edge
+  - Increased navbar z-index to 100 to ensure it stays above all content
+
+- **Home Page Layout**
+  - Page background extends edge-to-edge while content maintains centered layout with margins
+  - Content wrapper max-width of 1280px with proper padding
+
 ### Fixed
 - Banner image size limit validation
+- Carousel button styling no longer inherits global CSS (uses inline styles)
+- Horizontal overflow issues with full-width elements
 
 ---
 
