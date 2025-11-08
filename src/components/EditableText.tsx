@@ -69,9 +69,9 @@ export default function EditableText({
     }
   }, [isEditing]);
 
-  const editableStyle: React.CSSProperties = isEditMode && !isEditing
+  const editableStyle: React.CSSProperties | undefined = isEditMode && !isEditing
     ? {
-        ...style,
+        ...(style || {}),
         cursor: "pointer",
         outline: "2px dashed rgba(245, 158, 11, 0.5)",
         outlineOffset: "2px",
@@ -82,7 +82,7 @@ export default function EditableText({
     : style;
 
   const inputStyle: React.CSSProperties = {
-    ...style,
+    ...(style || {}),
     width: "100%",
     padding: "4px 8px",
     border: "2px solid var(--btn-warning-bg, #f59e0b)",
