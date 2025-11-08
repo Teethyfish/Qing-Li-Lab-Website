@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { defaultLocale } from "@/i18n/config";
 import AnnouncementCarousel from "@/components/AnnouncementCarousel";
+import EditableHomeContent from "@/components/EditableHomeContent";
 
 /**
  * Config keys this page reads:
@@ -205,10 +206,10 @@ export default async function HomePage() {
           </>
         )}
         {/* ===== Big header at the top ===== */}
-        <header>
-          <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Qing X. Li&apos;s Lab</h1>
-          <div className="muted">Proteomics Core Facility</div>
-        </header>
+        <EditableHomeContent
+          labTitle="Qing X. Li's Lab"
+          labSubtitle="Proteomics Core Facility"
+        />
 
         {/* ===== Two-column block (PI sidebar on the left) ===== */}
         <section style={twoCols} className="home-two-cols">

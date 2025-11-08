@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useEditMode } from "@/contexts/EditModeContext";
 
 function initials(name?: string | null) {
   if (!name) return "??";
@@ -56,6 +57,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
   const [busy, setBusy] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+  const { isEditMode, setIsEditMode } = useEditMode();
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
@@ -91,7 +93,7 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
       <div
         style={{
           margin: "0 auto",
-          padding: "0 24px",
+          padding: "0 max(24px, calc((100vw - 1280px) / 2 + 12px))",
           maxWidth: "100%",
           width: "100%",
           boxSizing: "border-box",
@@ -193,8 +195,23 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
             )}
           </div>
 
-          {/* Right: user + logout/login */}
+          {/* Right: edit mode + user + logout/login */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Edit Mode Toggle (Admin/PI only) */}
+            {isAdmin && (
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                className="btn btn-basic"
+                style={{
+                  fontSize: 14,
+                  background: isEditMode ? "var(--btn-warning-bg, #f59e0b)" : undefined,
+                  borderColor: isEditMode ? "var(--btn-warning-bg, #f59e0b)" : undefined,
+                }}
+              >
+                {isEditMode ? "Exit Edit Mode" : "Edit Page"}
+              </button>
+            )}
+
             {isAuthed ? (
               <>
                 {/* Profile picture with dropdown */}

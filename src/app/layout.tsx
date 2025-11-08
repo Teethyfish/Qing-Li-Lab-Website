@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "../components/NavBar";
 import TranslationsProvider from "../components/TranslationsProvider";
+import { EditModeProvider } from "@/contexts/EditModeContext";
+import EditModeSaveBar from "../components/EditModeSaveBar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
@@ -66,17 +68,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <style id="theme">{cssVars}</style>
 
         <TranslationsProvider locale={userLocale} messages={messages}>
-          {/* Global nav expects props */}
-          <NavBar
-            isAuthed={isAuthed}
-            isAdmin={isAdmin}
-            userSlug={userSlug}
-            userImageUrl={userImageUrl}
-            userName={userName}
-          />
+          <EditModeProvider>
+            {/* Global nav expects props */}
+            <NavBar
+              isAuthed={isAuthed}
+              isAdmin={isAdmin}
+              userSlug={userSlug}
+              userImageUrl={userImageUrl}
+              userName={userName}
+            />
 
-          {/* Page content */}
-          <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
+            {/* Page content */}
+            <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
+
+            {/* Edit mode save bar */}
+            <EditModeSaveBar />
+          </EditModeProvider>
         </TranslationsProvider>
       </body>
     </html>
