@@ -27,6 +27,7 @@ async function readTheme(): Promise<KV> {
 const DEFAULTS: KV = {
   // site colors
   "--color-bg": "#ffffff",
+  "--color-content-bg": "#f8fafc",
   "--color-text": "#111827",
   "--color-muted": "#6b7280",
   "--color-accent": "#2563eb",
@@ -78,7 +79,13 @@ type Field =
   | { var: string; label: string; type: "range"; min: number; max: number; step: number; unit: string; help?: string };
 
 const COLOR_FIELDS: Field[] = [
-  { var: "--color-bg", label: "Background", type: "color" },
+  { var: "--color-bg", label: "Outer Background", type: "color" },
+  {
+    var: "--color-content-bg",
+    label: "Center Content Background",
+    type: "color",
+    help: "Background for the centered page surface.",
+  },
   { var: "--color-text", label: "Text", type: "color" },
   { var: "--color-muted", label: "Muted Text", type: "color" },
   { var: "--color-accent", label: "Accent", type: "color" },

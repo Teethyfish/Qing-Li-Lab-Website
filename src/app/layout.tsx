@@ -97,7 +97,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             {/* Page content */}
             <GlobalContentEditor canEdit={isAdmin} initialContent={editableContent}>
-              <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
+              <div className="site-content-surface">
+                <div className="site-content-inner">{children}</div>
+              </div>
             </GlobalContentEditor>
 
             {/* Edit mode save bar */}

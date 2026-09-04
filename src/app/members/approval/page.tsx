@@ -228,7 +228,7 @@ export default async function ApprovalPage() {
   const denyVerb = rejectedLabel.includes("DENY") ? t('deny') : t('reject');
 
   return (
-    <main style={{ padding: 24, display: "grid", gap: 12 }}>
+    <main style={{ display: "grid", gap: 12 }}>
       <h1 style={{ fontSize: 24, fontWeight: 600 }}>{t('heading')}</h1>
       <p className="muted">
         {t('intro1')}{" "}

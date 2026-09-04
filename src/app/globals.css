@@ -20,6 +20,7 @@ html, body {
 :root {
   /* Safe fallbacks in case the DB theme hasn't loaded yet */
   --color-bg: #ffffff;
+  --color-content-bg: #f8fafc;
   --color-text: #111827;
   --color-muted: #6b7280;
   --color-primary: #2563eb;
@@ -31,6 +32,53 @@ html, body {
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
+}
+
+/*
+ * Shared page frame. The center surface is deliberately a little wider than
+ * the 1280px content column so the outer site background remains visible.
+ */
+.site-content-surface {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 1rem);
+  max-width: 1344px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--color-content-bg, #f8fafc);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-text) 6%, transparent);
+}
+
+.site-content-inner {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  padding: calc((var(--nav-height, 56) * 1px) + 1.5rem) 2rem 4rem;
+}
+
+.site-content-inner > main {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1280px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.home-content-backdrop {
+  left: -2rem !important;
+  width: calc(100% + 4rem) !important;
+}
+
+@media (max-width: 1360px) {
+  .site-content-inner {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .home-content-backdrop {
+    left: -1rem !important;
+    width: calc(100% + 2rem) !important;
+  }
 }
 
 /* Links use primary color by default */

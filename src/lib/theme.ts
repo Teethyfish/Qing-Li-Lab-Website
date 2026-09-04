@@ -6,6 +6,7 @@ export type Theme = Record<string, string>;
 
 const DEFAULT_THEME: Theme = {
   "--color-bg": "#ffffff",
+  "--color-content-bg": "#f8fafc",
   "--color-text": "#111827",
   "--color-muted": "#6b7280",
   "--color-accent": "#2563eb",

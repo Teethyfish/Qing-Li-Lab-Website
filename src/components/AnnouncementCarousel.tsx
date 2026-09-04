@@ -137,7 +137,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
             right: 0,
             bottom: 0,
             height: "120px",
-            background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
+            background: "linear-gradient(to bottom, transparent 0%, var(--color-content-bg) 100%)",
             pointerEvents: "none",
           }}
         />

@@ -157,7 +157,7 @@ export default async function HomePage() {
       {announcements.length > 0 && (
         <div style={{
           position: "fixed",
-          top: "56px",
+          top: "calc(var(--nav-height, 56) * 1px)",
           left: "50%",
           width: "calc(100% - 3rem)",
           maxWidth: "1280px",
@@ -180,33 +180,27 @@ export default async function HomePage() {
       }}>
         <div style={{
           ...grid,
-          maxWidth: "1280px",
-          margin: "0 auto",
-          padding: "0 1.5rem",
+          width: "100%",
         }}>
         {/* Full background with fade effect */}
         {announcements.length > 0 && (
           <>
             {/* Fade gradient at top */}
-            <div style={{
+            <div className="home-content-backdrop" style={{
               position: "absolute",
               top: 0,
-              left: "calc(-50vw + 50%)",
-              width: "100vw",
               height: "80px",
-              background: "linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)",
+              background: "linear-gradient(to bottom, transparent 0%, var(--color-content-bg) 100%)",
               pointerEvents: "none",
               zIndex: -1,
             }} />
             {/* Solid background for the rest */}
-            <div style={{
+            <div className="home-content-backdrop" style={{
               position: "absolute",
               top: "80px",
-              left: "calc(-50vw + 50%)",
-              width: "100vw",
               bottom: 0,
               minHeight: "calc(100vh - 400px)",
-              background: "var(--color-bg)",
+              background: "var(--color-content-bg)",
               pointerEvents: "none",
               zIndex: -1,
             }} />

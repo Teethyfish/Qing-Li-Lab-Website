@@ -4,7 +4,7 @@ import { PEOPLE } from "@/data/people";
 
 export default function PeoplePage() {
   return (
-    <main style={{ padding: 24 }}>
+    <main>
       <h1>People</h1>
       <ul style={{ lineHeight: 2 }}>
         {PEOPLE.map(p => (
