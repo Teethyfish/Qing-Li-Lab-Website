@@ -183,7 +183,7 @@ export default function RegisterForm() {
             <div
               style={{
                 padding: "0.75rem",
-                borderRadius: "8px",
+                borderRadius: "2px",
                 border: "1px solid #fecaca",
                 background: "#fef2f2",
                 color: "#b91c1c",

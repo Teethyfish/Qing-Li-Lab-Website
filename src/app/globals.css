@@ -26,12 +26,12 @@ html, body {
   --color-primary: #2563eb;
   --color-accent: #059669;
 
-  --font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-family: "Times New Roman", Times, serif;
   --font-size: 16px;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
 }
 
 /*
@@ -46,7 +46,9 @@ html, body {
   min-height: 100vh;
   margin: 0 auto;
   background: var(--color-content-bg, #f8fafc);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-text) 6%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-text) 8%, transparent),
+    0 12px 32px color-mix(in oklab, var(--color-text) 12%, transparent);
 }
 
 .site-content-inner {
@@ -89,9 +91,9 @@ a:hover { text-decoration: underline; }
 .card {
   background: var(--color-card, #fff);
   border: 1px solid color-mix(in oklab, var(--color-text) calc(var(--tile-border-opacity, 12) * 1%), transparent);
-  border-radius: calc(var(--tile-radius, 12) * 1px);
+  border-radius: calc(var(--tile-radius, 2) * 1px);
   padding: calc(var(--tile-padding, 1) * 1rem);
-  box-shadow: 0 1px 2px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 8) * 1%), transparent);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent);
 }
 
 
@@ -124,6 +126,9 @@ a:hover { text-decoration: underline; }
 .nav-item:hover {
   background: color-mix(in oklab, var(--color-text) 8%, transparent) !important;
 }
+.nav-item {
+  border-radius: 2px !important;
+}
 
 /* Safe, decoration-free tile */
 .tile {
@@ -132,15 +137,17 @@ a:hover { text-decoration: underline; }
   overflow: clip;            /* keep stray visuals inside */
   background: var(--color-card);
   border: 1px solid color-mix(in oklab, var(--color-text) calc(var(--tile-border-opacity, 12) * 1%), transparent);
-  border-radius: calc(var(--tile-radius, 12) * 1px);
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 8) * 1%), transparent);
+  border-radius: calc(var(--tile-radius, 2) * 1px);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent);
   padding: calc(var(--tile-padding, 1) * 1rem);
   text-decoration: none;
   color: inherit;
-  transition: background 120ms ease;
+  transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
 .tile:hover {
   background: color-mix(in oklab, var(--color-card) 90%, white 10%);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent);
+  transform: translateY(-1px);
 }
 .tile h3 {
   font-size: 1.05rem;
@@ -171,7 +178,7 @@ input[type="button"] {
   justify-content: center !important;
 
   padding: calc(var(--btn-py, 0.55) * 1rem) calc(var(--btn-px, 0.9) * 1rem) !important;
-  border-radius: calc(var(--btn-radius, 10) * 1px) !important;
+  border-radius: calc(var(--btn-radius, 2) * 1px) !important;
   border: 1px solid
     color-mix(in oklab, var(--color-text, #111) 20%, transparent) !important;
 
@@ -232,6 +239,30 @@ input[type="button"]:disabled {
 
 /* Ensure links styled as buttons don't turn browser-blue */
 a.btn { color: var(--_fg) !important; }
+
+input:not([type="range"]):not([type="color"]),
+textarea,
+select {
+  border-radius: 2px !important;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  margin-left: 0.08em;
+  font-weight: 400;
+  animation: typewriter-cursor-blink 420ms step-end infinite;
+}
+
+@keyframes typewriter-cursor-blink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-cursor {
+    animation: none;
+  }
+}
 
 /* Exception: profile picture button should not get button styles */
 button.profile-pic-button {

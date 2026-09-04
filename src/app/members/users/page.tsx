@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { requireAdminUser } from "@/lib/document-access";
 
 /* ---------- page-builder config helper ---------- */
 type AppRow = { value: string };
@@ -36,7 +37,8 @@ type URow = {
   email: string;
   name: string | null;
   slug: string | null;
-  role: "ADMIN" | "MEMBER";
+  role: "ADMIN" | "PI" | "MEMBER";
+  membershipStatus: "ACTIVE" | "ALUMNI" | "INACTIVE";
   mustResetPassword: boolean;
 };
 
@@ -58,6 +60,7 @@ export default async function UsersAdminPage() {
       name: true,
       slug: true,
       role: true,
+      membershipStatus: true,
       mustResetPassword: true,
     },
   })) as URow[];
@@ -65,15 +68,18 @@ export default async function UsersAdminPage() {
   /* ------------------- server actions ------------------- */
   async function setRole(formData: FormData) {
     "use server";
+    const admin = await requireAdminUser();
     const id = String(formData.get("id") || "");
     const role = String(formData.get("role") || "");
     if (!id || (role !== "ADMIN" && role !== "MEMBER")) return;
+    if (id === admin.id && role !== "ADMIN") return;
     await prisma.user.update({ where: { id }, data: { role: role as any } });
     revalidatePath("/members/users");
   }
 
   async function toggleReset(formData: FormData) {
     "use server";
+    await requireAdminUser();
     const id = String(formData.get("id") || "");
     const flag = String(formData.get("flag") || "") === "true";
     if (!id) return;
@@ -84,12 +90,26 @@ export default async function UsersAdminPage() {
     revalidatePath("/members/users");
   }
 
+  async function setMembershipStatus(formData: FormData) {
+    "use server";
+    await requireAdminUser();
+    const id = String(formData.get("id") || "");
+    const membershipStatus = String(formData.get("membershipStatus") || "");
+    if (!id || !["ACTIVE", "ALUMNI", "INACTIVE"].includes(membershipStatus)) return;
+    await prisma.user.update({
+      where: { id },
+      data: { membershipStatus: membershipStatus as "ACTIVE" | "ALUMNI" | "INACTIVE" },
+    });
+    revalidatePath("/members/users");
+  }
+
   // 🔒 Require typing DELETE to proceed (server-side check, no client JS needed)
   async function deleteUser(formData: FormData) {
     "use server";
+    const admin = await requireAdminUser();
     const id = String(formData.get("id") || "");
     const confirm = String(formData.get("confirm") || "");
-    if (!id || confirm !== "DELETE") return; // silently ignore if not confirmed
+    if (!id || id === admin.id || confirm !== "DELETE") return;
     await prisma.user.delete({ where: { id } });
     revalidatePath("/members/users");
   }
@@ -115,6 +135,7 @@ export default async function UsersAdminPage() {
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableSlug')}</th>
                 )}
                 <th style={{ textAlign: "left", padding: "8px" }}>{t('tableRole')}</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>Membership</th>
                 {cfg.showResetCol !== false && (
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableMustResetPW')}</th>
                 )}
@@ -137,6 +158,17 @@ export default async function UsersAdminPage() {
                       <td style={{ padding: "8px" }}>{u.slug ?? <em className="muted">—</em>}</td>
                     )}
                     <td style={{ padding: "8px" }}>{u.role}</td>
+                    <td style={{ padding: "8px" }}>
+                      <form action={setMembershipStatus} style={{ display: "flex", gap: 6 }}>
+                        <input type="hidden" name="id" value={u.id} />
+                        <select name="membershipStatus" defaultValue={u.membershipStatus}>
+                          <option value="ACTIVE">Active</option>
+                          <option value="ALUMNI">Alumni</option>
+                          <option value="INACTIVE">Inactive</option>
+                        </select>
+                        <button className="btn btn-muted" type="submit">Save</button>
+                      </form>
+                    </td>
                     {cfg.showResetCol !== false && (
                       <td style={{ padding: "8px" }}>{u.mustResetPassword ? t('yes') : t('no')}</td>
                     )}

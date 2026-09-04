@@ -60,7 +60,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
         style={{
           width: "100%",
           height: 400,
-          borderRadius: 12,
+          borderRadius: 2,
           overflow: "hidden",
           marginBottom: "2rem",
           position: "relative",

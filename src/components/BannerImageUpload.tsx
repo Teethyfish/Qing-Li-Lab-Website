@@ -3,6 +3,10 @@
 import { useState, useRef } from "react";
 import BannerImageCropper from "./BannerImageCropper";
 import { Area } from "react-easy-crop";
+import {
+  BANNER_RECOMMENDED_HEIGHT,
+  BANNER_RECOMMENDED_WIDTH,
+} from "@/lib/banner";
 
 type Props = {
   currentImageUrl?: string | null;
@@ -24,9 +28,12 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        if (img.width < 1200 || img.height < 500) {
+        if (
+          img.width < BANNER_RECOMMENDED_WIDTH ||
+          img.height < BANNER_RECOMMENDED_HEIGHT
+        ) {
           const proceed = confirm(
-            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended 1200x500px minimum. The image may not look good on the banner. Do you want to continue anyway?`
+            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended ${BANNER_RECOMMENDED_WIDTH}x${BANNER_RECOMMENDED_HEIGHT}px minimum. The image may not look good on the banner. Do you want to continue anyway?`
           );
           if (!proceed) {
             if (fileInputRef.current) {
@@ -92,7 +99,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
               width: "100%",
               maxWidth: 600,
               height: 250,
-              borderRadius: 8,
+              borderRadius: 2,
               overflow: "hidden",
               border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
               display: "flex",
@@ -148,7 +155,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
           <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {previewUrl
               ? "Upload a new image or click the preview to re-crop"
-              : "Upload a banner image (recommended: 1200x500px or larger)"}
+              : `Upload a banner image (recommended: ${BANNER_RECOMMENDED_WIDTH}x${BANNER_RECOMMENDED_HEIGHT}px or larger, 12:5 ratio)`}
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { Area, Point } from "react-easy-crop";
+import { BANNER_ASPECT_RATIO } from "@/lib/banner";
 
 type Props = {
   imageSrc: string;
@@ -105,7 +106,7 @@ export default function BannerImageCropper({ imageSrc, onComplete, onCancel }: P
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={12 / 5} // 12:5 aspect ratio for banner (1200x500)
+          aspect={BANNER_ASPECT_RATIO}
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}

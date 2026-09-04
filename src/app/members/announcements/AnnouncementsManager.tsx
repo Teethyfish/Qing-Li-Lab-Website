@@ -805,10 +805,10 @@ export default function AnnouncementsManager({
                         src={announcement.imageUrl}
                         alt={titleTranslations.en}
                         style={{
-                          width: 200,
+                          width: 240,
                           height: 100,
                           objectFit: "cover",
-                          borderRadius: 8,
+                          borderRadius: 2,
                           border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
                         }}
                       />

@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { defaultLocale } from "@/i18n/config";
 import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 import EditableHomeContent from "@/components/EditableHomeContent";
+import { BANNER_ASPECT_RATIO, BANNER_MAX_WIDTH } from "@/lib/banner";
 
 /**
  * Config keys this page reads:
@@ -89,7 +90,7 @@ export default async function HomePage() {
   const labSubtitle =
     (await getConfig<string>("home.labSubtitle")) || "Proteomics Core Facility";
 
-  const alumni =
+  const configuredAlumni =
     (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
       "home.alumni"
     )) || [];
@@ -102,6 +103,7 @@ export default async function HomePage() {
   // --- Live members from DB (current members: MEMBER, PI, ADMIN) ---
   const members = await prisma.user.findMany({
     where: {
+      membershipStatus: "ACTIVE",
       role: {
         in: ["MEMBER", "PI", "ADMIN"] as any[]
       }
@@ -109,6 +111,24 @@ export default async function HomePage() {
     select: { name: true, slug: true, imageUrl: true, role: true },
     orderBy: { name: "asc" },
   });
+
+  const accountAlumni = await prisma.user.findMany({
+    where: { membershipStatus: "ALUMNI" },
+    select: { name: true, slug: true, imageUrl: true, role: true },
+    orderBy: { name: "asc" },
+  });
+
+  const alumni = [
+    ...accountAlumni,
+    ...configuredAlumni.filter(
+      (configured) =>
+        !accountAlumni.some(
+          (account) =>
+            (configured.slug && configured.slug === account.slug) ||
+            configured.name.toLowerCase() === (account.name || "").toLowerCase()
+        )
+    ),
+  ];
 
   // --- Fetch active announcements ---
   const announcements = await prisma.announcement.findMany({
@@ -160,13 +180,13 @@ export default async function HomePage() {
           top: "calc(var(--nav-height, 56) * 1px)",
           left: "50%",
           width: "calc(100% - 3rem)",
-          maxWidth: "1280px",
-          height: "500px",
+          maxWidth: BANNER_MAX_WIDTH,
+          aspectRatio: BANNER_ASPECT_RATIO,
           transform: "translateX(-50%)",
           zIndex: 1,
           pointerEvents: "none",
         }}>
-          <div style={{ pointerEvents: "auto" }}>
+          <div style={{ height: "100%", pointerEvents: "auto" }}>
             <AnnouncementCarousel announcements={announcements} locale={userLocale} />
           </div>
         </div>
@@ -175,11 +195,17 @@ export default async function HomePage() {
       <main style={{
         position: "relative",
         zIndex: 10,
-        marginTop: announcements.length > 0 ? "500px" : "0",
         paddingBottom: "4rem",
       }}>
+        {announcements.length > 0 && (
+          <div
+            aria-hidden="true"
+            style={{ width: "100%", aspectRatio: BANNER_ASPECT_RATIO }}
+          />
+        )}
         <div style={{
           ...grid,
+          position: "relative",
           width: "100%",
         }}>
         {/* Full background with fade effect */}
@@ -188,8 +214,8 @@ export default async function HomePage() {
             {/* Fade gradient at top */}
             <div className="home-content-backdrop" style={{
               position: "absolute",
-              top: 0,
-              height: "80px",
+              top: "-160px",
+              height: "160px",
               background: "linear-gradient(to bottom, transparent 0%, var(--color-content-bg) 100%)",
               pointerEvents: "none",
               zIndex: -1,
@@ -197,7 +223,7 @@ export default async function HomePage() {
             {/* Solid background for the rest */}
             <div className="home-content-backdrop" style={{
               position: "absolute",
-              top: "80px",
+              top: 0,
               bottom: 0,
               minHeight: "calc(100vh - 400px)",
               background: "var(--color-content-bg)",
@@ -388,7 +414,7 @@ export default async function HomePage() {
                       {a.imageUrl ? (
                         <Image
                           src={a.imageUrl}
-                          alt={a.name}
+                          alt={a.name || "Alumni"}
                           width={80}
                           height={80}
                           style={{ objectFit: "cover", borderRadius: "9999px" }}
@@ -398,7 +424,7 @@ export default async function HomePage() {
                       )}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontWeight: 600 }}>{a.name}</div>
+                      <div style={{ fontWeight: 600 }}>{a.name || "Alumni"}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
                         {a.role || "Alumni"}
                       </div>

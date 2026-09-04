@@ -7,8 +7,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")  // pooled
-  directUrl = env("DIRECT_URL")    // direct for migrate/generate
+  url       = env("DATABASE_URL") // pooled
+  directUrl = env("DIRECT_URL") // direct for migrate/generate
 }
 
 enum Role {
@@ -17,19 +17,29 @@ enum Role {
   MEMBER
 }
 
+enum MembershipStatus {
+  ACTIVE
+  ALUMNI
+  INACTIVE
+}
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  role         Role     @default(MEMBER)
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  about        String?
-  slug         String?   @unique
-  imageUrl     String?
-  locale       String   @default("en")
-  mustResetPassword Boolean @default(false)
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  name               String?
+  role               Role                @default(MEMBER)
+  passwordHash       String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  about              String?
+  slug               String?             @unique
+  imageUrl           String?
+  locale             String              @default("en")
+  mustResetPassword  Boolean             @default(false)
+  membershipStatus   MembershipStatus    @default(ACTIVE)
+  documentsCreated   LabDocument[]       @relation("DocumentCreator")
+  documentRecipients DocumentRecipient[]
+  notifications      Notification[]
 }
 
 model AppConfig {
@@ -38,15 +48,15 @@ model AppConfig {
 }
 
 model PendingInvite {
-  id          String   @id @default(cuid())
-  email       String   @unique
+  id          String       @id @default(cuid())
+  email       String       @unique
   name        String
-  slug        String   @unique // desired public URL part, e.g. "lynn-zhang"
-  note        String?          // optional message from the requester
+  slug        String       @unique // desired public URL part, e.g. "lynn-zhang"
+  note        String? // optional message from the requester
   status      InviteStatus @default(PENDING)
-  requestedAt DateTime  @default(now())
-  decidedAt   DateTime?        // when approved/denied
-  decidedById String?          // User.id of the approver (ADMIN or PI)
+  requestedAt DateTime     @default(now())
+  decidedAt   DateTime? // when approved/denied
+  decidedById String? // User.id of the approver (ADMIN or PI)
 }
 
 enum InviteStatus {
@@ -61,17 +71,71 @@ enum AnnouncementStatus {
 }
 
 model Announcement {
-  id              String             @id @default(cuid())
-  imageUrl        String             // URL to the banner image
-  title           String             @default("{\"en\":\"\"}") // JSON object storing title translations {en: string, zh?: string, ko?: string}
-  text            String             // JSON object storing subtitle translations {en: string, zh?: string, ko?: string}
-  croppedArea     String?            // JSON string storing crop coordinates {x, y, width, height}
-  order           Int                @default(0) // Display order (lower numbers first)
-  status          AnnouncementStatus @default(ACTIVE) // ACTIVE shows on homepage, ARCHIVED keeps details page only
-  hasDetailsPage  Boolean            @default(false) // Whether this announcement has a details page
-  detailsSlug     String?            @unique // URL slug for details page (e.g., "summer-symposium-2024")
-  detailsContent  String?            // JSON object storing detailed content translations
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id             String             @id @default(cuid())
+  imageUrl       String // URL to the banner image
+  title          String             @default("{\"en\":\"\"}") // JSON object storing title translations {en: string, zh?: string, ko?: string}
+  text           String // JSON object storing subtitle translations {en: string, zh?: string, ko?: string}
+  croppedArea    String? // JSON string storing crop coordinates {x, y, width, height}
+  order          Int                @default(0) // Display order (lower numbers first)
+  status         AnnouncementStatus @default(ACTIVE) // ACTIVE shows on homepage, ARCHIVED keeps details page only
+  hasDetailsPage Boolean            @default(false) // Whether this announcement has a details page
+  detailsSlug    String?            @unique // URL slug for details page (e.g., "summer-symposium-2024")
+  detailsContent String? // JSON object storing detailed content translations
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
 
+model LabDocument {
+  id            String              @id @default(cuid())
+  title         String
+  description   String
+  emailSubject  String
+  fileName      String
+  mimeType      String
+  sizeBytes     Int
+  driveFileId   String              @unique
+  isPublic      Boolean             @default(false)
+  createdById   String?
+  createdBy     User?               @relation("DocumentCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  recipients    DocumentRecipient[]
+  notifications Notification[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([isPublic, createdAt])
+}
+
+model DocumentRecipient {
+  documentId   String
+  userId       String
+  notifiedAt   DateTime?
+  downloadedAt DateTime?
+  document     LabDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, userId])
+  @@index([userId])
+}
+
+model Notification {
+  id         String       @id @default(cuid())
+  userId     String
+  documentId String?
+  title      String
+  message    String
+  href       String
+  readAt     DateTime?
+  createdAt  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document   LabDocument? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model GoogleConnection {
+  id                    String   @id @default("google")
+  email                 String
+  encryptedRefreshToken String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

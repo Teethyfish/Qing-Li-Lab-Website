@@ -29,6 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   // Get user's locale, slug, and imageUrl for profile link and navbar
   let userSlug: string | null = null;
+  let userId: string | null = null;
   let userImageUrl: string | null = null;
   let userName: string | null = null;
   let userLocale: string = defaultLocale;
@@ -36,13 +37,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (email) {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { slug: true, imageUrl: true, name: true, locale: true },
+      select: { id: true, slug: true, imageUrl: true, name: true, locale: true },
     });
+    userId = user?.id ?? null;
     userSlug = user?.slug ?? null;
     userImageUrl = user?.imageUrl ?? null;
     userName = user?.name ?? null;
     userLocale = user?.locale ?? defaultLocale;
   }
+
+  const unreadNotificationCount = userId
+    ? await prisma.notification.count({ where: { userId, readAt: null } })
+    : 0;
 
   // Load translation messages for the user's locale
   const messages = (await import(`@/i18n/messages/${userLocale}.json`)).default;
@@ -93,6 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               userSlug={userSlug}
               userImageUrl={userImageUrl}
               userName={userName}
+              unreadNotificationCount={unreadNotificationCount}
             />
 
             {/* Page content */}

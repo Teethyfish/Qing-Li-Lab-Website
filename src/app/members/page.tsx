@@ -47,14 +47,37 @@ export default async function MembersPage() {
           description: t('yourProfileDesc'),
         },
         {
-          href: "/members/reading-list",
-          title: t('readingList'),
-          description: t('readingListDesc'),
+          href: "/database",
+          title: "Document database",
+          description: "View public resources and documents shared with you.",
+        },
+        {
+          href: "/members/notifications",
+          title: "Notifications",
+          description: "Review new documents and lab updates.",
         },
       ],
     } as MembersPageConfig);
 
-  const tiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
+  const configuredTiles = Array.isArray(cfg.tiles) ? cfg.tiles : [];
+  const requiredTiles: Tile[] = [
+    {
+      href: "/database",
+      title: "Document database",
+      description: "View public resources and documents shared with you.",
+    },
+    {
+      href: "/members/notifications",
+      title: "Notifications",
+      description: "Review new documents and lab updates.",
+    },
+  ];
+  const tiles = [
+    ...configuredTiles.filter((tile) => tile.href !== "/members/reading-list"),
+    ...requiredTiles.filter(
+      (required) => !configuredTiles.some((tile) => tile.href === required.href)
+    ),
+  ];
 
   return (
     <main className="mx-auto max-w-5xl p-6 space-y-6">

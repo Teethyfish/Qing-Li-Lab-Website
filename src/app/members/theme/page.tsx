@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { normalizeLegacyTheme } from "@/lib/theme";
 
 /** Theme is a flat map of CSS var -> value, stored in AppConfig under key "theme". */
 type KV = Record<string, string>;
@@ -32,15 +33,16 @@ const DEFAULTS: KV = {
   "--color-muted": "#6b7280",
   "--color-accent": "#2563eb",
   "--color-card": "#ffffff",
+  "--font-family": "\"Times New Roman\", Times, serif",
 
   // === Cards/Tiles ===
-  "--tile-radius": "12",
+  "--tile-radius": "2",
   "--tile-padding": "1",
   "--tile-border-opacity": "12",
-  "--tile-shadow-opacity": "8",
+  "--tile-shadow-opacity": "14",
 
   // === Buttons ===
-  "--btn-radius": "10",
+  "--btn-radius": "2",
   "--btn-py": "0.55",
   "--btn-px": "0.9",
   "--btn-weight": "600",
@@ -99,6 +101,15 @@ const TILE_FIELDS: Field[] = [
   { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
 ];
 
+const TYPOGRAPHY_FIELDS: Field[] = [
+  {
+    var: "--font-family",
+    label: "Font family",
+    type: "text",
+    help: "CSS font stack used across the site.",
+  },
+];
+
 const SHAPE_FIELDS: Field[] = [
   { var: "--btn-radius", label: "Button Radius", type: "range", min: 0, max: 20, step: 1, unit: "px" },
   { var: "--btn-py", label: "Button Padding Y", type: "range", min: 0.25, max: 1.5, step: 0.05, unit: "rem" },
@@ -148,7 +159,7 @@ export default async function ThemeEditorPage() {
 
   // Merge defaults with saved values
   const current = await readTheme();
-  const theme: KV = { ...DEFAULTS, ...current };
+  const theme: KV = { ...DEFAULTS, ...normalizeLegacyTheme(current) };
 
   // --- Server action to save ---
   async function saveTheme(formData: FormData) {
@@ -156,6 +167,7 @@ export default async function ThemeEditorPage() {
     const incoming: KV = {};
     const all = [
       ...COLOR_FIELDS,
+      ...TYPOGRAPHY_FIELDS,
       ...TILE_FIELDS,
       ...NAVBAR_COLOR_FIELDS,
       ...NAVBAR_SIZE_FIELDS,
@@ -284,6 +296,16 @@ export default async function ThemeEditorPage() {
                 <CompactColorField key={f.var} field={f} />
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Typography */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Typography</h2>
+          <div className="tile" style={{ padding: "1rem" }}>
+            {TYPOGRAPHY_FIELDS.map((f) => (
+              <CompactTextField key={f.var} field={f} />
+            ))}
           </div>
         </section>
 

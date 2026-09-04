@@ -24,7 +24,7 @@ This repo includes registration → approval workflow, credential auth, email no
   - Access to `/members/*` blocked until reset is complete
 
 - **User Management (Admin)**
-  - List, promote/demote, and delete
+  - List, promote/demote, classify as active/alumni/inactive, and delete
   - Self-demotion blocked
   - Delete requires typing **DELETE**
 
@@ -45,6 +45,13 @@ This repo includes registration → approval workflow, credential auth, email no
   - Reset to Defaults button to restore all theme settings
   - Utility classes: `tile`, `muted`, `btn`, `nav-item`
   - Full-width navbar with hover effects
+
+- **Document Database & Notifications**
+  - Admins upload arbitrary file types directly to the lab Google Drive
+  - Recipient groups and individual recipients are snapshotted per document
+  - Private documents are only listed and downloaded for their recipients (plus admins)
+  - Public documents are visible without an account
+  - Website notifications and individual Gmail messages link back to the protected download
 
 - **Profile Pictures**
   - Upload and crop profile pictures with interactive cropper
@@ -104,3 +111,16 @@ Before deploying a fresh database, apply the checked-in migrations:
 ```bash
 npx prisma migrate deploy
 ```
+
+## Google Drive and Gmail connection
+
+Create a Google OAuth 2.0 web client, enable the Drive and Gmail APIs, and add
+the callback URL from `GOOGLE_REDIRECT_URI` as an authorized redirect URI. Set
+the `GOOGLE_*` variables from `.env.example`, deploy the database migration,
+then sign in as an admin and open **Admin Only → Documents → Connect Google
+Drive and Gmail**. Connect only `qinglilab@gmail.com`.
+
+The app requests `drive.file` and `gmail.send`, stores the refresh token
+encrypted, uploads files directly from the browser with Drive's resumable upload
+flow, and keeps Drive files private. Website authorization is checked again on
+every download.

@@ -239,7 +239,7 @@ export default async function ApprovalPage() {
         style={{
           overflowX: "auto",
           border: "1px solid var(--border)",
-          borderRadius: 10,
+          borderRadius: 2,
         }}
       >
         <table style={{ minWidth: "100%", fontSize: 14, borderCollapse: "separate", borderSpacing: 0 }}>

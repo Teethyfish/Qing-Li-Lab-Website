@@ -21,6 +21,7 @@ type Props = {
   userSlug?: string | null;
   userImageUrl?: string | null;
   userName?: string | null;
+  unreadNotificationCount: number;
 };
 
 function NavItem({
@@ -52,7 +53,7 @@ function NavItem({
   );
 }
 
-export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName }: Props) {
+export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount }: Props) {
   const t = useTranslations('navigation');
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
@@ -71,6 +72,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
+    { href: "/database", label: t('database'), show: true },
     { href: "/members", label: t('members'), show: isAuthed },
     { href: "/register", label: t('register'), show: !isAuthed },
     { href: "/login", label: t('login'), show: !isAuthed },
@@ -80,6 +82,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
     { href: "/members/approval", label: t('approval') },
     { href: "/members/users", label: t('users') },
     { href: "/members/announcements", label: t('announcements') },
+    { href: "/members/documents", label: t('documents') },
     { href: "/members/theme", label: t('theme') },
   ];
 
@@ -168,7 +171,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                         minWidth: 160,
                         background: "var(--color-card, #ffffff)",
                         border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-                        borderRadius: "8px",
+                        borderRadius: "2px",
                         boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) 15%, transparent)",
                         overflow: "hidden",
                       }}
@@ -226,6 +229,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                 <div style={{ position: "relative" }}>
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    aria-label={unreadNotificationCount ? `Profile, ${unreadNotificationCount} unread notifications` : "Profile"}
                     style={{
                       width: 36,
                       height: 36,
@@ -255,6 +259,31 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                       initials(userName)
                     )}
                   </button>
+                  {unreadNotificationCount > 0 ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        top: -6,
+                        right: -6,
+                        minWidth: 16,
+                        height: 16,
+                        padding: "0 3px",
+                        boxSizing: "border-box",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "var(--color-text)",
+                        color: "var(--color-content-bg)",
+                        border: "1px solid var(--color-content-bg)",
+                        borderRadius: 2,
+                        fontSize: 10,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
+                    </span>
+                  ) : null}
 
                   {/* Dropdown menu */}
                   {profileDropdownOpen && (
@@ -281,7 +310,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                           minWidth: 180,
                           background: "var(--color-card, #ffffff)",
                           border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-                          borderRadius: "8px",
+                          borderRadius: "2px",
                           boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) 15%, transparent)",
                           overflow: "hidden",
                         }}
@@ -325,6 +354,20 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                           }}
                         >
                           {t('editProfile')}
+                        </Link>
+                        <Link
+                          href="/members/notifications"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          style={{
+                            display: "block",
+                            padding: "0.75rem 1rem",
+                            textDecoration: "none",
+                            color: "var(--color-text)",
+                            fontSize: "0.9rem",
+                            borderBottom: "1px solid color-mix(in oklab, var(--color-text) 8%, transparent)",
+                          }}
+                        >
+                          {t('notifications')}{unreadNotificationCount ? ` (${unreadNotificationCount})` : ""}
                         </Link>
                         <Link
                           href="/members/settings"

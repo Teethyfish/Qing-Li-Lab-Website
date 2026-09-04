@@ -137,7 +137,7 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
             position: "relative",
             height: "400px",
             background: "#000",
-            borderRadius: "8px",
+            borderRadius: "2px",
             overflow: "hidden",
           }}
         >
