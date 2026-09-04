@@ -654,7 +654,7 @@
     "active": "活跃",
     "inactive": "不活跃",
     "order": "顺序",
-    "create": "创建",
+    "create": "创建", "creating": "创建中…", "createFailed": "无法创建公告。请检查表单后重试。",
     "save": "保存",
     "edit": "编辑",
     "delete": "删除",

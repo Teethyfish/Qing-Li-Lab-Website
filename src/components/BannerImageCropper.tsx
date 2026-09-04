@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { Area, Point } from "react-easy-crop";
-import { BANNER_ASPECT_RATIO } from "@/lib/banner";
+import { BANNER_ASPECT_RATIO, BANNER_MAX_WIDTH } from "@/lib/banner";
 import { useTranslations } from "next-intl";
 
 type Props = {
@@ -23,9 +23,10 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
     throw new Error("No 2d context");
   }
 
-  // Set canvas size to match the crop area
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+  // Resize and compress so the base64 server-action payload stays small.
+  const scale = Math.min(1, BANNER_MAX_WIDTH / pixelCrop.width);
+  canvas.width = Math.max(1, Math.round(pixelCrop.width * scale));
+  canvas.height = Math.max(1, Math.round(pixelCrop.height * scale));
 
   // Draw the cropped image
   ctx.drawImage(
@@ -36,20 +37,17 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
     pixelCrop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height
+    canvas.width,
+    canvas.height
   );
 
-  // Convert canvas to blob
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("Canvas is empty"));
-      }
-    }, "image/jpeg", 0.95);
+  const encode = (quality: number) => new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Canvas is empty")), "image/jpeg", quality);
   });
+  let blob = await encode(0.78);
+  if (blob.size > 600_000) blob = await encode(0.58);
+  if (blob.size > 700_000) blob = await encode(0.42);
+  return blob;
 }
 
 function createImage(url: string): Promise<HTMLImageElement> {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 type Announcement = {
@@ -12,293 +13,111 @@ type Announcement = {
   detailsSlug: string | null;
 };
 
-type Props = {
-  announcements: Announcement[];
-  locale: string;
-};
+type Props = { announcements: Announcement[]; locale: string };
 
 export default function AnnouncementCarousel({ announcements, locale }: Props) {
-  const t = useTranslations('home');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const t = useTranslations("home");
+  const count = announcements.length;
+  const [trackIndex, setTrackIndex] = useState(count > 1 ? 1 : 0);
+  const [animated, setAnimated] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
+  const [isMoving, setIsMoving] = useState(false);
 
-  // Auto-rotate every 5 seconds (unless hovering)
+  const slides = useMemo(() => count > 1
+    ? [announcements[count - 1], ...announcements, announcements[0]]
+    : announcements,
+  [announcements, count]);
+
+  const currentIndex = count <= 1 ? 0 : trackIndex === 0 ? count - 1 : trackIndex === count + 1 ? 0 : trackIndex - 1;
+
   useEffect(() => {
-    if (announcements.length <= 1 || isHovering) return;
+    setAnimated(false);
+    setTrackIndex(count > 1 ? 1 : 0);
+    setIsMoving(false);
+    const frame = requestAnimationFrame(() => setAnimated(true));
+    return () => cancelAnimationFrame(frame);
+  }, [count]);
 
-    const interval = setInterval(() => {
-      handleSlideChange((prev) => (prev + 1) % announcements.length, "right");
-    }, 5000);
+  const move = useCallback((direction: -1 | 1) => {
+    if (count <= 1 || isMoving) return;
+    setAnimated(true);
+    setIsMoving(true);
+    setTrackIndex((index) => index + direction);
+  }, [count, isMoving]);
 
-    return () => clearInterval(interval);
-  }, [announcements.length, isHovering]);
+  useEffect(() => {
+    if (count <= 1 || isHovering || isMoving) return;
+    const timer = window.setInterval(() => move(1), 5000);
+    return () => window.clearInterval(timer);
+  }, [count, isHovering, isMoving, move]);
 
-  const handleSlideChange = (indexOrFunction: number | ((prev: number) => number), direction: "left" | "right") => {
-    setIsTransitioning(true);
-    setSlideDirection(direction);
+  if (!count) return null;
 
-    setTimeout(() => {
-      setCurrentIndex(indexOrFunction);
-      setIsTransitioning(false);
-    }, 300);
-  };
-
-  if (announcements.length === 0) {
-    return null;
-  }
-
-  const parseTranslations = (textJson: string) => {
+  const localized = (value: string) => {
     try {
-      return JSON.parse(textJson);
+      const translations = JSON.parse(value) as Record<string, string>;
+      return translations[locale] || translations.en || "";
     } catch {
-      return { en: textJson };
+      return value;
     }
   };
 
-  const getLocalizedText = (textJson: string) => {
-    const translations = parseTranslations(textJson);
-    // Try to get the text in the user's locale, fall back to English
-    return translations[locale] || translations.en || "";
+  const finishMove = () => {
+    if (trackIndex === 0 || trackIndex === count + 1) {
+      setAnimated(false);
+      setTrackIndex(trackIndex === 0 ? count : 1);
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+    }
+    setIsMoving(false);
   };
 
-  const currentAnnouncement = announcements[currentIndex];
-  const displayTitle = getLocalizedText(currentAnnouncement.title);
-  const displayText = getLocalizedText(currentAnnouncement.text);
+  const goTo = (index: number) => {
+    if (isMoving || index === currentIndex) return;
+    setAnimated(true);
+    setIsMoving(true);
+    setTrackIndex(index + 1);
+  };
 
-  const bannerContent = (
+  return <div className="announcement-carousel" data-edit-ignore="true" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
     <div
-      data-edit-ignore="true"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      className="announcement-track"
+      onTransitionEnd={finishMove}
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
+        width: `${slides.length * 100}%`,
+        transform: `translate3d(-${trackIndex * (100 / slides.length)}%, 0, 0)`,
+        transition: animated ? "transform 650ms cubic-bezier(.22,.61,.36,1)" : "none",
       }}
     >
-      {/* Content wrapper with animation */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          transform: isTransitioning
-            ? slideDirection === "right" ? "translateX(100px)" : "translateX(-100px)"
-            : "translateX(0)",
-          opacity: isTransitioning ? 0 : 1,
-          transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
-        }}
-      >
-        {/* Background Image */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundImage: `url(${currentAnnouncement.imageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
-
-        {/* Gradient overlay for text readability */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%)",
-          }}
-        />
-
-        {/* Text overlay */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "50px",
-            left: 0,
-            right: 0,
-            padding: "2rem",
-            color: "#ffffff",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "2rem",
-              fontWeight: 700,
-              lineHeight: 1.2,
-              margin: 0,
-              marginBottom: "0.5rem",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            {displayTitle}
-          </h2>
-          <p
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 400,
-              lineHeight: 1.4,
-              margin: 0,
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            {displayText}
-          </p>
-        </div>
-      </div>
-
-      {/* Navigation dots */}
-      {announcements.length > 1 && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "1rem",
-            right: "1rem",
-            display: "flex",
-            gap: "0.5rem",
-          }}
-        >
-          {announcements.map((_, index) => (
-            <button
-              key={index}
-              className="carousel-dot-button"
-              onClick={() => {
-                const direction = index > currentIndex ? "right" : "left";
-                handleSlideChange(index, direction);
-              }}
-              style={{
-                width: "12px",
-                height: "12px",
-                minWidth: "12px",
-                minHeight: "12px",
-                borderRadius: "50%",
-                border: "2px solid #ffffff",
-                background: index === currentIndex ? "#ffffff" : "transparent",
-                transition: "all 0.3s ease",
-                display: "inline-block",
-                flexShrink: 0,
-                padding: 0,
-                margin: 0,
-                boxSizing: "border-box",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-              aria-label={t('goToSlide', {number: index + 1})}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Navigation arrows */}
-      {announcements.length > 1 && (
-        <>
-          <button
-            className="carousel-nav-button"
-            onClick={() =>
-              handleSlideChange(
-                (prev) => (prev === 0 ? announcements.length - 1 : prev - 1),
-                "left"
-              )
-            }
-            style={{
-              position: "absolute",
-              left: "1rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "transparent",
-              border: "none",
-              color: "#ffffff",
-              fontSize: "2rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.3s ease",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.7)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
-              e.currentTarget.style.transform = "translateY(-50%) scale(1.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
-            }}
-            aria-label={t('previousSlide')}
-          >
-            ‹
-          </button>
-          <button
-            className="carousel-nav-button"
-            onClick={() => handleSlideChange((prev) => (prev + 1) % announcements.length, "right")}
-            style={{
-              position: "absolute",
-              right: "1rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: "transparent",
-              border: "none",
-              color: "#ffffff",
-              fontSize: "2rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.3s ease",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.7)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
-              e.currentTarget.style.transform = "translateY(-50%) scale(1.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.transform = "translateY(-50%) scale(1)";
-            }}
-            aria-label={t('nextSlide')}
-          >
-            ›
-          </button>
-        </>
-      )}
+      {slides.map((announcement, index) => {
+        const content = <div className="announcement-slide-content">
+          <div className="announcement-slide-image" style={{ backgroundImage: `url(${announcement.imageUrl})` }} />
+          <div className="announcement-slide-shade" />
+          <div className="announcement-slide-copy">
+            <h2>{localized(announcement.title)}</h2>
+            <p>{localized(announcement.text)}</p>
+          </div>
+        </div>;
+        return <div className="announcement-slide" style={{ width: `${100 / slides.length}%` }} key={`${announcement.id}-${index}`}>
+          {announcement.hasDetailsPage && announcement.detailsSlug
+            ? <Link className="announcement-slide-link" href={`/announcements/${announcement.detailsSlug}`}>{content}</Link>
+            : content}
+        </div>;
+      })}
     </div>
-  );
 
-  // If the announcement has a details page, wrap it in a link
-  if (currentAnnouncement.hasDetailsPage && currentAnnouncement.detailsSlug) {
-    return (
-      <a
-        href={`/announcements/${currentAnnouncement.detailsSlug}`}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-          display: "block",
-          height: "100%",
-          cursor: "pointer",
-        }}
-      >
-        {bannerContent}
-      </a>
-    );
-  }
-
-  return bannerContent;
+    {count > 1 ? <>
+      <div className="announcement-dots">
+        {announcements.map((announcement, index) => <button
+          key={announcement.id}
+          type="button"
+          className={`carousel-dot-button${index === currentIndex ? " active" : ""}`}
+          onClick={() => goTo(index)}
+          aria-label={t("goToSlide", { number: index + 1 })}
+          aria-current={index === currentIndex ? "true" : undefined}
+        />)}
+      </div>
+      <button type="button" className="carousel-nav-button announcement-arrow previous" onClick={() => move(-1)} aria-label={t("previousSlide")}>‹</button>
+      <button type="button" className="carousel-nav-button announcement-arrow next" onClick={() => move(1)} aria-label={t("nextSlide")}>›</button>
+    </> : null}
+  </div>;
 }

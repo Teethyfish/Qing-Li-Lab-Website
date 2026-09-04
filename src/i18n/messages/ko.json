@@ -654,7 +654,7 @@
     "active": "활성",
     "inactive": "비활성",
     "order": "순서",
-    "create": "만들기",
+    "create": "만들기", "creating": "생성 중…", "createFailed": "공지사항을 만들지 못했습니다. 양식을 확인한 후 다시 시도하세요.",
     "save": "저장",
     "edit": "편집",
     "delete": "삭제",

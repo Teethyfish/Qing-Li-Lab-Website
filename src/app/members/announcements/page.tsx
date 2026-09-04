@@ -38,7 +38,7 @@ export default async function AnnouncementsPage() {
     const session = await getServerSession(authOptions);
     const role = (session?.user as any)?.role ?? null;
     if (typeof role !== "string" || role.toUpperCase() !== "ADMIN") {
-      return;
+      return { success: false, error: "Your administrator session has expired. Sign in again." };
     }
 
     const imageBase64 = formData.get("imageBase64") as string;
@@ -50,28 +50,33 @@ export default async function AnnouncementsPage() {
     const detailsSlug = hasDetailsPage ? String(formData.get("detailsSlug") || "").trim() : null;
     const detailsContent = hasDetailsPage ? String(formData.get("detailsContent") || "").trim() : null;
 
-    if (!imageBase64 || !title || !text) return;
-    if (hasDetailsPage && !detailsSlug) return;
+    if (!imageBase64 || !title || !text) return { success: false, error: "Add an image, title, and subtitle before creating the announcement." };
+    if (hasDetailsPage && !detailsSlug) return { success: false, error: "Add a page URL for the announcement details page." };
 
-    await prisma.announcement.create({
-      data: {
-        imageUrl: imageBase64,
-        title,
-        text,
-        croppedArea,
-        order,
-        status: "ACTIVE",
-        hasDetailsPage,
-        detailsSlug,
-        detailsContent,
-      },
-    });
+    try {
+      await prisma.announcement.create({
+        data: {
+          imageUrl: imageBase64,
+          title,
+          text,
+          croppedArea,
+          order,
+          status: "ACTIVE",
+          hasDetailsPage,
+          detailsSlug,
+          detailsContent,
+        },
+      });
+    } catch {
+      return { success: false, error: "The announcement could not be saved. Check that its page URL is unique and try again." };
+    }
 
     revalidatePath("/members/announcements");
     revalidatePath("/");
     if (detailsSlug) {
       revalidatePath(`/announcements/${detailsSlug}`);
     }
+    return { success: true };
   }
 
   async function updateAnnouncement(formData: FormData) {

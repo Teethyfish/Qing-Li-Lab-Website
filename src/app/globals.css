@@ -1499,6 +1499,32 @@ button.carousel-dot-button:hover {
   color: #ffffff !important;
 }
 
+.announcement-carousel { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.announcement-track { display: flex; height: 100%; will-change: transform; }
+.announcement-slide { position: relative; height: 100%; flex: 0 0 auto; overflow: hidden; }
+.announcement-slide-link { display: block; width: 100%; height: 100%; color: inherit; text-decoration: none; }
+.announcement-slide-content { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.announcement-slide-image, .announcement-slide-shade { position: absolute; inset: 0; }
+.announcement-slide-image { background-position: center; background-size: cover; }
+.announcement-slide-shade { background: linear-gradient(to top, rgb(0 0 0 / 72%) 0%, rgb(0 0 0 / 34%) 50%, transparent 100%); }
+.announcement-slide-copy { position: absolute; right: 0; bottom: 50px; left: 0; padding: 2rem; color: white; }
+.announcement-slide-copy h2 { margin: 0 0 .5rem; font-size: 2rem; font-weight: 700; line-height: 1.2; text-shadow: 0 2px 4px rgb(0 0 0 / 55%); }
+.announcement-slide-copy p { margin: 0; color: white; font-size: 1.25rem; line-height: 1.4; text-shadow: 0 2px 4px rgb(0 0 0 / 55%); }
+.announcement-dots { position: absolute; right: 1rem; bottom: 1rem; z-index: 3; display: flex; gap: .5rem; }
+button.carousel-dot-button.active { background: white !important; }
+button.announcement-arrow { position: absolute; top: 50%; z-index: 3; width: 40px; height: 40px; transform: translateY(-50%); font-size: 2rem !important; text-shadow: 0 2px 4px rgb(0 0 0 / 70%); }
+button.announcement-arrow.previous { left: 1rem; }
+button.announcement-arrow.next { right: 1rem; }
+button.announcement-arrow:hover { transform: translateY(-50%) scale(1.12); }
+
+@media (max-width: 640px) {
+  .announcement-slide-copy { bottom: 34px; padding: 1rem 3rem; }
+  .announcement-slide-copy h2 { font-size: 1.3rem; }
+  .announcement-slide-copy p { font-size: .95rem; }
+  button.announcement-arrow.previous { left: .4rem; }
+  button.announcement-arrow.next { right: .4rem; }
+}
+
 /* Theme catalog and compact header preferences */
 .theme-catalog { display: grid; gap: 1.25rem; }
 .theme-catalog-group { display: grid; gap: .65rem; }

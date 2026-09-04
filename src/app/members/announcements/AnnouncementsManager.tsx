@@ -22,7 +22,7 @@ type Announcement = {
 type Props = {
   activeAnnouncements: Announcement[];
   archivedAnnouncements: Announcement[];
-  createAnnouncement: (formData: FormData) => Promise<void>;
+  createAnnouncement: (formData: FormData) => Promise<{ success: boolean; error?: string }>;
   updateAnnouncement: (formData: FormData) => Promise<void>;
   archiveAnnouncement: (formData: FormData) => Promise<void>;
   unarchiveAnnouncement: (formData: FormData) => Promise<void>;
@@ -51,6 +51,8 @@ export default function AnnouncementsManager({
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [croppedArea, setCroppedArea] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   // Language checkboxes
   const [enableChinese, setEnableChinese] = useState(false);
@@ -200,13 +202,25 @@ export default function AnnouncementsManager({
       formData.set("croppedArea", croppedArea);
     }
 
-    await createAnnouncement(formData);
-    setShowNewForm(false);
-    setCroppedImage(null);
-    setCroppedArea(null);
-    setEnableChinese(false);
-    setEnableKorean(false);
-    setHasDetailsPage(false);
+    setCreating(true);
+    setCreateError("");
+    try {
+      const result = await createAnnouncement(formData);
+      if (!result.success) {
+        setCreateError(result.error || t("createFailed"));
+        return;
+      }
+      setShowNewForm(false);
+      setCroppedImage(null);
+      setCroppedArea(null);
+      setEnableChinese(false);
+      setEnableKorean(false);
+      setHasDetailsPage(false);
+    } catch {
+      setCreateError(t("createFailed"));
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleUpdateSubmit = async (e: React.FormEvent<HTMLFormElement>, id: string) => {
@@ -304,7 +318,7 @@ export default function AnnouncementsManager({
 
   return (
     <>
-      <div style={{ display: "grid", gap: "1.5rem" }}>
+      <div data-edit-ignore="true" style={{ display: "grid", gap: "1.5rem" }}>
         {/* Tabs */}
         <div style={{ display: "flex", gap: "0.5rem", borderBottom: "2px solid color-mix(in oklab, var(--color-text) 10%, transparent)" }}>
           <button
@@ -342,7 +356,14 @@ export default function AnnouncementsManager({
         {/* Add new announcement button */}
         {!showNewForm && activeTab === "active" && (
           <button
-            onClick={() => setShowNewForm(true)}
+            type="button"
+            aria-controls="new-announcement-form"
+            onClick={() => {
+              setEditingId(null);
+              setCreateError("");
+              setShowNewForm(true);
+              window.setTimeout(() => document.getElementById("new-announcement-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+            }}
             className="btn btn-basic"
           >
             {t('addNew')}
@@ -351,7 +372,7 @@ export default function AnnouncementsManager({
 
         {/* New announcement form */}
         {showNewForm && (
-          <div className="card" style={{ padding: "1.5rem" }}>
+          <div id="new-announcement-form" className="card" style={{ padding: "1.5rem" }}>
             <h2 style={{ fontSize: "1.125rem", fontWeight: 600, marginBottom: "1rem" }}>
               {t('createNew')}
             </h2>
@@ -545,8 +566,8 @@ export default function AnnouncementsManager({
               </div>
 
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button type="submit" className="btn btn-basic">
-                  {t('create')}
+                <button type="submit" className="btn btn-basic" disabled={creating}>
+                  {creating ? t('creating') : t('create')}
                 </button>
                 <button
                   type="button"
@@ -559,10 +580,12 @@ export default function AnnouncementsManager({
                     setHasDetailsPage(false);
                   }}
                   className="btn btn-muted"
+                  disabled={creating}
                 >
                   {t('cancel')}
                 </button>
               </div>
+              {createError ? <p role="alert" style={{ margin: 0, color: "#b91c1c", fontWeight: 600 }}>{createError}</p> : null}
             </form>
           </div>
         )}
