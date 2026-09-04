@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/document-access";
 import { documentViewerKind, findAccessibleDocument } from "@/lib/document-delivery";
+import { getTranslations } from "next-intl/server";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -15,6 +16,7 @@ function formatBytes(bytes: number) {
 
 export default async function DocumentViewerPage({ params }: Props) {
   const { id } = await params;
+  const [t, td] = await Promise.all([getTranslations("sitePages.viewer"), getTranslations("sitePages.database")]);
   const user = await getCurrentUser();
   const document = await findAccessibleDocument(id, user);
   if (!document) notFound();
@@ -29,22 +31,22 @@ export default async function DocumentViewerPage({ params }: Props) {
     <main style={{ display: "grid", gap: "1.25rem" }}>
       <header className="tile" style={{ display: "grid", gap: "0.75rem" }}>
         <div>
-          <Link href="/database">← Back to document database</Link>
+          <Link href="/database">{t("back")}</Link>
         </div>
         <div>
           <h1 style={{ margin: 0 }}>{document.title}</h1>
           <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
           <p className="muted" style={{ marginBottom: 0 }}>
-            {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? "Public" : "Private"}
+            {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? td("public") : td("private")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           {kind !== "unsupported" ? (
             <a className="btn btn-muted" href={contentUrl} target="_blank" rel="noreferrer">
-              Open viewer in new tab
+              {t("openNewTab")}
             </a>
           ) : null}
-          <a className="btn btn-basic" href={downloadUrl}>Download original</a>
+          <a className="btn btn-basic" href={downloadUrl}>{t("downloadOriginal")}</a>
         </div>
       </header>
 
@@ -75,23 +77,21 @@ export default async function DocumentViewerPage({ params }: Props) {
 
         {kind === "audio" ? (
           <audio controls preload="metadata" src={contentUrl} style={{ width: "100%" }}>
-            Your browser does not support this audio format.
+            {t("audioUnsupported")}
           </audio>
         ) : null}
 
         {kind === "video" ? (
           <video controls preload="metadata" src={contentUrl} style={{ width: "100%", maxHeight: "75vh" }}>
-            Your browser does not support this video format.
+            {t("videoUnsupported")}
           </video>
         ) : null}
 
         {kind === "unsupported" ? (
           <div style={{ maxWidth: 640, margin: "4rem auto", textAlign: "center" }}>
-            <h2>Preview unavailable</h2>
-            <p className="muted">
-              This file format cannot be displayed safely by the browser. Download the original file to open it in its native application.
-            </p>
-            <a className="btn btn-basic" href={downloadUrl}>Download original</a>
+            <h2>{t("previewUnavailable")}</h2>
+            <p className="muted">{t("unsupported")}</p>
+            <a className="btn btn-basic" href={downloadUrl}>{t("downloadOriginal")}</a>
           </div>
         ) : null}
       </section>

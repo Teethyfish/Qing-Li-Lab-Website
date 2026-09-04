@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 export default async function NotificationsPage() {
   const user = await getCurrentUser();
+  const t = await getTranslations("sitePages.notifications");
   if (!user) redirect("/login");
   const notifications = await prisma.notification.findMany({
     where: { userId: user.id },
@@ -41,16 +43,16 @@ export default async function NotificationsPage() {
     <main style={{ display: "grid", gap: "1.5rem" }}>
       <header style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "end" }}>
         <div>
-          <h1>Notifications</h1>
-          <p className="muted">Documents and updates sent to your lab account.</p>
+          <h1>{t("title")}</h1>
+          <p className="muted">{t("subtitle")}</p>
         </div>
         {notifications.some((notification) => !notification.readAt) ? (
-          <form action={markAllRead}><button className="btn btn-muted">Mark all read</button></form>
+          <form action={markAllRead}><button className="btn btn-muted">{t("markAllRead")}</button></form>
         ) : null}
       </header>
 
       <section style={{ display: "grid", gap: "1rem" }}>
-        {notifications.length === 0 ? <p className="muted">You have no notifications.</p> : null}
+        {notifications.length === 0 ? <p className="muted">{t("empty")}</p> : null}
         {notifications.map((notification) => (
           <article
             key={notification.id}
@@ -62,7 +64,7 @@ export default async function NotificationsPage() {
             <p className="muted">{notification.createdAt.toLocaleString()}</p>
             <form action={openNotification}>
               <input type="hidden" name="id" value={notification.id} />
-              <button className="btn btn-basic" type="submit">Open</button>
+              <button className="btn btn-basic" type="submit">{t("open")}</button>
             </form>
           </article>
         ))}

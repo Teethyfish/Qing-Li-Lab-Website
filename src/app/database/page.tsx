@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -12,6 +13,7 @@ function formatBytes(bytes: number) {
 
 export default async function DocumentDatabasePage() {
   const user = await getCurrentUser();
+  const t = await getTranslations("sitePages.database");
   const isAdmin = user?.role === "ADMIN";
   const documents = await prisma.labDocument.findMany({
     where: isAdmin
@@ -26,20 +28,18 @@ export default async function DocumentDatabasePage() {
   return (
     <main style={{ display: "grid", gap: "1.5rem" }}>
       <header>
-        <h1>Lab document database</h1>
-        <p className="muted">
-          Public resources are available to everyone. Signed-in members also see documents sent directly to them.
-        </p>
+        <h1>{t("title")}</h1>
+        <p className="muted">{t("subtitle")}</p>
       </header>
 
       {!user ? (
         <p className="tile">
-          You are viewing the public collection. <Link href="/login">Sign in</Link> to see documents shared with your account.
+          {t("publicNoticeBefore")} <Link href="/login">{t("signIn")}</Link> {t("publicNoticeAfter")}
         </p>
       ) : null}
 
       <section style={{ display: "grid", gap: "1rem" }}>
-        {documents.length === 0 ? <p className="muted">No documents are available to you yet.</p> : null}
+        {documents.length === 0 ? <p className="muted">{t("empty")}</p> : null}
         {documents.map((document) => {
           const recipients = document.recipients;
           return (
@@ -49,17 +49,17 @@ export default async function DocumentDatabasePage() {
                   <h2 style={{ margin: 0 }}>{document.title}</h2>
                   <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
                   <p className="muted" style={{ marginBottom: 0 }}>
-                    {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? "Public" : "Private"} · {document.createdAt.toLocaleDateString()}
+                    {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? t("public") : t("private")} · {document.createdAt.toLocaleDateString()}
                   </p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", flex: "0 0 auto", alignSelf: "flex-start" }}>
-                  <Link className="btn btn-basic" href={`/documents/${document.id}`}>View</Link>
-                  <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>Download</a>
+                  <Link className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</Link>
+                  <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
                 </div>
               </div>
               {isAdmin && recipients.length ? (
                 <details style={{ marginTop: "1rem" }}>
-                  <summary>Visible to {recipients.length} recipient(s)</summary>
+                  <summary>{t("visibleTo", { count: recipients.length })}</summary>
                   <ul>
                     {recipients.map(({ user: recipient }) => (
                       <li key={recipient.email}>{recipient.name || recipient.email} ({recipient.email})</li>

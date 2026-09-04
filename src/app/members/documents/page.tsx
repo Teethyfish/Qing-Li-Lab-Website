@@ -6,6 +6,7 @@ import DocumentUploadForm from "./DocumentUploadForm";
 import { requireAdminUser } from "@/lib/document-access";
 import { deleteDriveDocument } from "@/lib/google";
 import { prisma } from "@/lib/prisma";
+import { getTranslations } from "next-intl/server";
 
 type Props = { searchParams: Promise<{ google?: string }> };
 
@@ -17,6 +18,7 @@ function formatBytes(bytes: number) {
 
 export default async function AdminDocumentsPage({ searchParams }: Props) {
   await requireAdminUser().catch(() => redirect("/"));
+  const t = await getTranslations("sitePages.documentsAdmin");
   const params = await searchParams;
   const googleOAuthConfigured = Boolean(
     process.env.GOOGLE_CLIENT_ID &&
@@ -74,51 +76,51 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
   return (
     <main style={{ display: "grid", gap: "2rem" }}>
       <header>
-        <h1>Document distribution</h1>
-        <p className="muted">Upload to the lab Google Drive, assign access, and notify recipients.</p>
+        <h1>{t("title")}</h1>
+        <p className="muted">{t("subtitle")}</p>
       </header>
 
       <section className="tile">
-        <h2 style={{ marginTop: 0 }}>Google connection</h2>
+        <h2 style={{ marginTop: 0 }}>{t("googleConnection")}</h2>
         {connection ? (
           <p style={{ marginBottom: 0 }}>
-            Connected as <strong>{connection.email}</strong>. Files remain private in this Drive and are downloaded through the website’s access checks.
+            {t("connectedAs")} <strong>{connection.email}</strong>. {t("connectedDetail")}
           </p>
         ) : googleOAuthConfigured ? (
           <div>
-            <p className="muted">Connect qinglilab@gmail.com before uploading documents.</p>
-            <a className="btn btn-basic" href="/api/google/connect">Connect Google Drive and Gmail</a>
+            <p className="muted">{t("connectPrompt")}</p>
+            <a className="btn btn-basic" href="/api/google/connect">{t("connectButton")}</a>
           </div>
         ) : (
           <p className="muted">
-            Add the Google OAuth variables from <code>.env.example</code> before connecting the lab account.
+            {t("configMissing")}
           </p>
         )}
         {params.google && params.google !== "connected" ? (
-          <p role="alert" style={{ color: "#991b1b" }}>Google connection failed: {params.google}</p>
+          <p role="alert" style={{ color: "#991b1b" }}>{t("connectionFailed", { reason: params.google })}</p>
         ) : null}
       </section>
 
       {connection ? (
         <section>
-          <h2>Upload a document</h2>
+          <h2>{t("uploadHeading")}</h2>
           <DocumentUploadForm users={users} />
         </section>
       ) : null}
 
       <section>
-        <h2>Uploaded documents</h2>
+        <h2>{t("uploadedHeading")}</h2>
         <div style={{ display: "grid", gap: "1rem" }}>
-          {documents.length === 0 ? <p className="muted">No documents have been uploaded yet.</p> : null}
+          {documents.length === 0 ? <p className="muted">{t("noDocuments")}</p> : null}
           {documents.map((document) => (
             <article key={document.id} className="tile">
               <h3>{document.title}</h3>
               <p>{document.description}</p>
               <p className="muted">
-                {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? "Public" : "Private"}
+                {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? t("public") : t("private")}
               </p>
               <details>
-                <summary>Recipients ({document.recipients.length})</summary>
+                <summary>{t("recipients", { count: document.recipients.length })}</summary>
                 <ul>
                   {document.recipients.map(({ user }) => (
                     <li key={user.email}>{user.name || user.email} ({user.email})</li>
@@ -126,34 +128,34 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
                 </ul>
               </details>
               <details style={{ marginTop: "1rem" }}>
-                <summary>Edit document listing</summary>
+                <summary>{t("editListing")}</summary>
                 <form action={updateDocument} style={{ display: "grid", gap: "0.75rem", marginTop: "0.75rem" }}>
                   <input type="hidden" name="id" value={document.id} />
                   <label style={{ display: "grid", gap: 4 }}>
-                    <span>Title</span>
+                    <span>{t("titleField")}</span>
                     <input name="title" defaultValue={document.title} required />
                   </label>
                   <label style={{ display: "grid", gap: 4 }}>
-                    <span>Description</span>
+                    <span>{t("description")}</span>
                     <textarea name="description" defaultValue={document.description} rows={3} required />
                   </label>
                   <label style={{ display: "grid", gap: 4 }}>
-                    <span>Email title (record only; saving does not resend)</span>
+                    <span>{t("emailRecord")}</span>
                     <input name="emailSubject" defaultValue={document.emailSubject} required />
                   </label>
                   <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <input name="isPublic" type="checkbox" defaultChecked={document.isPublic} /> Public
+                    <input name="isPublic" type="checkbox" defaultChecked={document.isPublic} /> {t("public")}
                   </label>
-                  <div><button className="btn btn-basic" type="submit">Save listing</button></div>
+                  <div><button className="btn btn-basic" type="submit">{t("saveListing")}</button></div>
                 </form>
               </details>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1rem" }}>
-                <a className="btn btn-basic" href={`/documents/${document.id}`}>View</a>
-                <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>Download</a>
+                <a className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</a>
+                <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
                 <form action={deleteDocument} style={{ display: "flex", gap: 6 }}>
                   <input type="hidden" name="id" value={document.id} />
-                  <input name="confirmation" placeholder="Type DELETE" aria-label="Type DELETE to confirm" />
-                  <button className="btn btn-warning" type="submit">Delete from site and Drive</button>
+                  <input name="confirmation" placeholder={t("typeDelete")} aria-label={t("typeDelete")} />
+                  <button className="btn btn-warning" type="submit">{t("deleteDrive")}</button>
                 </form>
               </div>
             </article>

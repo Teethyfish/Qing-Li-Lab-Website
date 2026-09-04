@@ -187,11 +187,6 @@ export default async function HomePage() {
           labSubtitle={labSubtitle}
         />
 
-        <Link href="/hiring" className="tile" style={{ display: "block" }}>
-          <h2 style={{ margin: 0, fontSize: "1.2rem" }}>Hiring and Expert Opportunities</h2>
-          <p>View current opportunities to join or collaborate with the Qing X. Li Lab.</p>
-        </Link>
-
         {/* ===== Announcement Carousel ===== */}
         {announcements.length > 0 && (
           <section
@@ -215,7 +210,8 @@ export default async function HomePage() {
         {/* ===== Two-column block (PI sidebar on the left) ===== */}
         <section style={twoCols} className="home-two-cols">
         {/* Sidebar: PI card */}
-        <aside className="card" style={cardPad}>
+        <aside style={{ display: "grid", gap: "1rem" }}>
+          <div className="card" style={cardPad}>
           <div style={{ display: "flex", gap: "1rem" }}>
             <div style={{ flexShrink: 0 }}>
               {pi.imageUrl ? (
@@ -289,6 +285,18 @@ export default async function HomePage() {
               {pi.intro}
             </p>
           )}
+          </div>
+
+          <Link
+            href="/hiring"
+            className="tile"
+            style={{ display: "block", padding: "0.85rem 1rem" }}
+          >
+            <h2 style={{ margin: 0, fontSize: "1rem" }}>{t("hiringTitle")}</h2>
+            <p style={{ margin: "0.35rem 0 0", fontSize: "0.875rem" }}>
+              {t("hiringText")}
+            </p>
+          </Link>
         </aside>
 
         {/* Main column */}

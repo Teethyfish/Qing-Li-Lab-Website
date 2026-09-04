@@ -37,15 +37,15 @@ export default async function MembersPage() {
   ]);
   const configured = cfg ?? {
     heading: t("heading"),
-    subheading: `Welcome, ${user.name || user.email}`,
+    subheading: t("welcomeName", { name: user.name || user.email }),
     tiles: [],
   };
   const requiredTiles: Tile[] = [
-    { href: "/members/profile", title: "Public profile", description: "Update your biography, contact details, publications, and profile tiles." },
-    { href: "/database", title: "Document database", description: "Open public resources and documents shared directly with you." },
-    { href: "/members/notifications", title: "Notifications", description: "Review document notices, instrument requests, and lab updates." },
-    { href: "/members/notes", title: "Private notes", description: "Use private pages, sticky notes, drawings, and scheduled reminders." },
-    { href: "/members/settings", title: "Account settings", description: "Change your password, language, and account preferences." },
+    { href: "/members/profile", title: t("publicProfile"), description: t("publicProfileDesc") },
+    { href: "/database", title: t("documentDatabase"), description: t("documentDatabaseDesc") },
+    { href: "/members/notifications", title: t("notifications"), description: t("notificationsDesc") },
+    { href: "/members/notes", title: t("privateNotes"), description: t("privateNotesDesc") },
+    { href: "/members/settings", title: t("accountSettings"), description: t("accountSettingsDesc") },
   ];
   const configuredTiles = Array.isArray(configured.tiles) ? configured.tiles.filter((tile) => tile.href !== "/members/reading-list") : [];
   const tiles = [...configuredTiles, ...requiredTiles.filter((required) => !configuredTiles.some((tile) => tile.href === required.href))];
@@ -53,17 +53,17 @@ export default async function MembersPage() {
   return <main className="members-dashboard">
     <header className="members-dashboard-header">
       <div>
-        <span className="dashboard-eyebrow">Member workspace</span>
+        <span className="dashboard-eyebrow">{t("workspace")}</span>
         <h1>{configured.heading || t("heading")}</h1>
-        <p className="muted">{configured.subheading || `Welcome, ${user.name || user.email}`}</p>
+        <p className="muted">{configured.subheading || t("welcomeName", { name: user.name || user.email })}</p>
       </div>
       <div className="dashboard-account-chip" data-edit-ignore="true"><span>{user.name || user.email}</span><small>{user.role}</small></div>
     </header>
 
-    <section className="dashboard-summary" aria-label="Workspace summary" data-edit-ignore="true">
-      <div><strong>{unreadCount}</strong><span>Unread notifications</span></div>
-      <div><strong>{accessibleDocuments}</strong><span>Available documents</span></div>
-      <div><strong>{user.membershipStatus.toLowerCase()}</strong><span>Membership status</span></div>
+    <section className="dashboard-summary" aria-label={t("workspaceSummary")} data-edit-ignore="true">
+      <div><strong>{unreadCount}</strong><span>{t("unreadNotifications")}</span></div>
+      <div><strong>{accessibleDocuments}</strong><span>{t("availableDocuments")}</span></div>
+      <div><strong>{user.membershipStatus.toLowerCase()}</strong><span>{t("membershipStatus")}</span></div>
     </section>
 
     <section className="member-dashboard-grid">

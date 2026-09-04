@@ -2,9 +2,11 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import InstrumentManager from "./InstrumentManager";
+import { getTranslations } from "next-intl/server";
 
 export default async function InstrumentAdminPage() {
   const user = await getCurrentUser();
+  const t = await getTranslations("sitePages.instrumentAdmin");
   if (!user?.isActive || user.role !== "ADMIN") redirect("/");
   const [instruments, requests] = await Promise.all([
     prisma.instrument.findMany({ orderBy: { name: "asc" } }),
@@ -12,7 +14,7 @@ export default async function InstrumentAdminPage() {
   ]);
 
   return <main style={{ display: "grid", gap: "1.5rem" }}>
-    <header><h1>Manage Instruments</h1><p className="muted">Add equipment, control public availability, and review access requests.</p></header>
+    <header><h1>{t("title")}</h1><p className="muted">{t("subtitle")}</p></header>
     <InstrumentManager
       instruments={instruments}
       requests={requests.map((request) => ({

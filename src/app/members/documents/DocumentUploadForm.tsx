@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type UserOption = {
   id: string;
@@ -12,6 +13,7 @@ type UserOption = {
 type Props = { users: UserOption[] };
 
 export default function DocumentUploadForm({ users }: Props) {
+  const t = useTranslations("sitePages.documentsAdmin");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
@@ -36,12 +38,12 @@ export default function DocumentUploadForm({ users }: Props) {
     const data = new FormData(form);
     const file = data.get("file");
     if (!(file instanceof File) || file.size === 0) {
-      setStatus("Choose a document first.");
+      setStatus(t("chooseDocument"));
       return;
     }
 
     setBusy(true);
-    setStatus("Starting secure Google Drive upload…");
+    setStatus(t("starting"));
     try {
       const startResponse = await fetch("/api/documents/upload/start", {
         method: "POST",
@@ -64,7 +66,7 @@ export default function DocumentUploadForm({ users }: Props) {
         const end = Math.min(offset + chunkSize, file.size);
         const chunk = file.slice(offset, end);
         const percent = Math.round((end / file.size) * 100);
-        setStatus(`Uploading securely through the lab website… ${percent}%`);
+        setStatus(t("uploading", { percent }));
         const uploadResponse = await fetch("/api/documents/upload/chunk", {
           method: "POST",
           headers: {
@@ -94,7 +96,7 @@ export default function DocumentUploadForm({ users }: Props) {
 
       if (!uploaded.id) throw new Error("Google Drive did not confirm the upload.");
 
-      setStatus("Creating notifications and sending email…");
+      setStatus(t("creatingNotices"));
       const completeResponse = await fetch("/api/documents/upload/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,9 +114,9 @@ export default function DocumentUploadForm({ users }: Props) {
       if (!completeResponse.ok) throw new Error(completed.error || "Could not publish document.");
 
       const emailNote = completed.emailFailureCount
-        ? ` ${completed.emailFailureCount} email notification(s) failed; the website notifications were still created.`
-        : " Email and website notifications were sent.";
-      setStatus(`Published to ${completed.recipientCount} recipient(s).${emailNote}`);
+        ? t("emailFailures", { count: completed.emailFailureCount })
+        : t("emailsSent");
+      setStatus(`${t("published", { count: completed.recipientCount })} ${emailNote}`);
       form.reset();
       setTitle("");
       setAutoTitle("");
@@ -137,13 +139,13 @@ export default function DocumentUploadForm({ users }: Props) {
   return (
     <form onSubmit={submit} className="tile" style={{ display: "grid", gap: "1rem" }}>
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Document</strong>
+        <strong>{t("document")}</strong>
         <input name="file" type="file" required onChange={handleFileChange} style={inputStyle} />
-        <small className="muted">Any file type. The website securely transfers it to the lab Google Drive.</small>
+        <small className="muted">{t("documentHelp")}</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Document Title</strong>
+        <strong>{t("documentTitle")}</strong>
         <input
           name="title"
           required
@@ -151,27 +153,27 @@ export default function DocumentUploadForm({ users }: Props) {
           onChange={(event) => setTitle(event.target.value)}
           style={inputStyle}
         />
-        <small className="muted">Filled from the filename automatically; edit it if needed.</small>
+        <small className="muted">{t("titleHelp")}</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Document summary and relevance</strong>
+        <strong>{t("summary")}</strong>
         <textarea name="description" rows={4} required style={inputStyle} />
-        <small className="muted">Briefly describe the document and explain its relevance to recipients.</small>
+        <small className="muted">{t("summaryHelp")}</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Email title</strong>
+        <strong>{t("emailTitle")}</strong>
         <input name="emailSubject" required style={inputStyle} />
       </label>
 
       <fieldset style={{ border: "1px solid color-mix(in oklab, var(--color-text) 18%, transparent)", padding: "1rem" }}>
-        <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>Audience groups</legend>
+        <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>{t("audienceGroups")}</legend>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem 1.5rem" }}>
           {[
-            ["ACTIVE", "Active members"],
-            ["ALUMNI", "Alumni"],
-            ["INACTIVE", "Inactive members"],
+            ["ACTIVE", t("activeMembers")],
+            ["ALUMNI", t("alumni")],
+            ["INACTIVE", t("inactiveMembers")],
           ].map(([value, label]) => (
             <label key={value} style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <input type="checkbox" name="groups" value={value} /> {label}
@@ -181,7 +183,7 @@ export default function DocumentUploadForm({ users }: Props) {
       </fieldset>
 
       <fieldset style={{ border: "1px solid color-mix(in oklab, var(--color-text) 18%, transparent)", padding: "1rem" }}>
-        <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>Additional individual recipients</legend>
+        <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>{t("individuals")}</legend>
         {users.length ? (
           <div
             style={{
@@ -204,18 +206,18 @@ export default function DocumentUploadForm({ users }: Props) {
             ))}
           </div>
         ) : (
-          <p className="muted" style={{ margin: 0 }}>No user accounts are available.</p>
+          <p className="muted" style={{ margin: 0 }}>{t("noUsers")}</p>
         )}
       </fieldset>
 
       <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input type="checkbox" name="isPublic" />
-        <span>Also place this in the public database (visible without signing in)</span>
+        <span>{t("publicDatabase")}</span>
       </label>
 
       <div>
         <button type="submit" className="btn btn-basic" disabled={busy}>
-          {busy ? "Publishing…" : "Upload and notify"}
+          {busy ? t("publishing") : t("uploadNotify")}
         </button>
       </div>
       {status ? <p role="status" style={{ margin: 0 }}>{status}</p> : null}

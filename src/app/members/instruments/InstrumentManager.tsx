@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Instrument = {
   id: string;
@@ -50,6 +51,7 @@ function resizeImage(file: File) {
 }
 
 export default function InstrumentManager({ instruments, requests }: { instruments: Instrument[]; requests: AccessRequest[] }) {
+  const t = useTranslations("sitePages.instrumentAdmin");
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -123,60 +125,60 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
   return (
     <div data-edit-ignore="true" style={{ display: "grid", gap: "2rem" }}>
       <section className="card">
-        <h2 style={{ marginTop: 0 }}>Add an instrument</h2>
+        <h2 style={{ marginTop: 0 }}>{t("add")}</h2>
         <form onSubmit={handleCreate} style={{ display: "grid", gap: "1rem" }}>
-          <label className="form-field"><strong>Instrument name</strong><input name="name" required maxLength={160} /></label>
-          <label className="form-field"><strong>Image</strong><input type="file" accept="image/*" required={!imageUrl} onChange={async (event) => {
+          <label className="form-field"><strong>{t("name")}</strong><input name="name" required maxLength={160} /></label>
+          <label className="form-field"><strong>{t("image")}</strong><input type="file" accept="image/*" required={!imageUrl} onChange={async (event) => {
             const file = event.target.files?.[0];
             if (!file) return setImageUrl("");
             try { setImageUrl(await resizeImage(file)); setError(null); }
             catch (caught) { setImageUrl(""); setError(caught instanceof Error ? caught.message : "Could not process image."); }
           }} /></label>
           {imageUrl ? <img src={imageUrl} alt="Instrument preview" style={{ width: 240, height: 150, objectFit: "cover", border: "1px solid #d1d5db" }} /> : null}
-          <label className="form-field"><strong>Description</strong><textarea name="description" rows={5} required maxLength={5000} /></label>
-          <label className="form-field"><strong>Location</strong><input name="location" required maxLength={300} /></label>
-          <label style={{ display: "flex", gap: ".5rem", alignItems: "center" }}><input name="isAvailable" type="checkbox" defaultChecked /> Available now</label>
-          <button className="btn btn-basic" disabled={busy === "create"}>{busy === "create" ? "Adding…" : "Add Instrument"}</button>
+          <label className="form-field"><strong>{t("description")}</strong><textarea name="description" rows={5} required maxLength={5000} /></label>
+          <label className="form-field"><strong>{t("location")}</strong><input name="location" required maxLength={300} /></label>
+          <label style={{ display: "flex", gap: ".5rem", alignItems: "center" }}><input name="isAvailable" type="checkbox" defaultChecked /> {t("availableNow")}</label>
+          <button className="btn btn-basic" disabled={busy === "create"}>{busy === "create" ? t("adding") : t("addButton")}</button>
         </form>
         {error ? <p role="alert" style={{ color: "#b91c1c" }}>{error}</p> : null}
       </section>
 
       <section>
-        <h2>Current instruments</h2>
+        <h2>{t("current")}</h2>
         <div className="instrument-grid">
           {instruments.map((instrument) => <article className="card" key={instrument.id}>
             <img src={instrument.imageUrl} alt={instrument.name} className="instrument-image" />
             <div style={{ paddingTop: "1rem" }}>
-              <span className={`status-label ${instrument.isAvailable ? "available" : "unavailable"}`}>{instrument.isAvailable ? "Available" : "Unavailable"}</span>
+              <span className={`status-label ${instrument.isAvailable ? "available" : "unavailable"}`}>{instrument.isAvailable ? t("available") : t("unavailable")}</span>
               <h3>{instrument.name}</h3>
               <p>{instrument.description}</p>
-              <p><strong>Location:</strong> {instrument.location}</p>
+              <p><strong>{t("location")}:</strong> {instrument.location}</p>
               <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-                <button className="btn btn-muted" disabled={busy === instrument.id} onClick={() => toggle(instrument)}>Mark {instrument.isAvailable ? "Unavailable" : "Available"}</button>
-                <button className="btn btn-warning" disabled={busy === instrument.id} onClick={() => remove(instrument)}>Delete</button>
+                <button className="btn btn-muted" disabled={busy === instrument.id} onClick={() => toggle(instrument)}>{instrument.isAvailable ? t("markUnavailable") : t("markAvailable")}</button>
+                <button className="btn btn-warning" disabled={busy === instrument.id} onClick={() => remove(instrument)}>{t("delete")}</button>
               </div>
             </div>
           </article>)}
-          {!instruments.length ? <p className="muted">No instruments have been added yet.</p> : null}
+          {!instruments.length ? <p className="muted">{t("empty")}</p> : null}
         </div>
       </section>
 
       <section id="access-requests" style={{ scrollMarginTop: 90 }}>
-        <h2>Instrument access requests</h2>
+        <h2>{t("requests")}</h2>
         <div style={{ display: "grid", gap: "1rem" }}>
           {requests.map((request) => <article className="card" key={request.id}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
               <h3 style={{ margin: 0 }}>{request.name}</h3>
               <time className="muted">{new Date(request.createdAt).toLocaleString()}</time>
             </div>
-            <p><strong>Email:</strong> <a href={`mailto:${request.email}`}>{request.email}</a><br />
-              <strong>Department:</strong> {request.department}<br />
-              <strong>Supervisor:</strong> {request.supervisor || "Not provided"}<br />
-              <strong>Instrument(s):</strong> {request.instruments.join(", ")}<br />
-              <strong>Training:</strong> {request.trainingRequired ? "Required" : "Not required"}</p>
-            <p style={{ whiteSpace: "pre-wrap" }}><strong>Experiment and samples:</strong><br />{request.experimentDescription}</p>
+            <p><strong>{t("email")}</strong> <a href={`mailto:${request.email}`}>{request.email}</a><br />
+              <strong>{t("department")}</strong> {request.department}<br />
+              <strong>{t("supervisor")}</strong> {request.supervisor || t("notProvided")}<br />
+              <strong>{t("requested")}</strong> {request.instruments.join(", ")}<br />
+              <strong>{t("training")}</strong> {request.trainingRequired ? t("required") : t("notRequired")}</p>
+            <p style={{ whiteSpace: "pre-wrap" }}><strong>{t("experiment")}</strong><br />{request.experimentDescription}</p>
           </article>)}
-          {!requests.length ? <p className="muted">No access requests have been submitted.</p> : null}
+          {!requests.length ? <p className="muted">{t("noRequests")}</p> : null}
         </div>
       </section>
     </div>

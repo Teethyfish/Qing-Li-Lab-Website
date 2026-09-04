@@ -3,11 +3,13 @@ import { getCurrentUser } from "@/lib/document-access";
 import { publicProfileFromUnknown } from "@/lib/public-profile";
 import { prisma } from "@/lib/prisma";
 import ProfileBuilder from "../ProfileBuilder";
+import { getTranslations } from "next-intl/server";
 
 type Props = { params: Promise<{ userId: string }> };
 
 export default async function ProfileSettingsPage({ params }: Props) {
   const editor = await getCurrentUser();
+  const t = await getTranslations("sitePages.profile");
   if (!editor?.isActive) redirect("/login");
   const { userId } = await params;
   if (editor.id !== userId && editor.role !== "ADMIN") redirect("/members/profile");
@@ -19,8 +21,8 @@ export default async function ProfileSettingsPage({ params }: Props) {
 
   return <main style={{ display: "grid", gap: "1.5rem" }}>
     <header>
-      <h1>{editor.id === user.id ? "Edit Your Public Profile" : `Edit ${user.name || user.email}’s Public Profile`}</h1>
-      <p className="muted">Build the public profile using contact details, publications, text tiles, and draggable photo tiles.</p>
+      <h1>{editor.id === user.id ? t("editYours") : t("editMember", { name: user.name || user.email })}</h1>
+      <p className="muted">{t("editorSubtitle")}</p>
     </header>
     <ProfileBuilder
       user={{ ...user, profileContent: publicProfileFromUnknown(user.profileContent, user.email) }}

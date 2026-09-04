@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import sanitizeHtml from "sanitize-html";
 import { getCurrentUser } from "@/lib/document-access";
-import type { DrawingStroke, NotePageData, NoteWorkspaceData, StickyNoteData } from "@/lib/note-types";
+import type { CanvasTextBoxData, DrawingStroke, NotePageData, NoteWorkspaceData, StickyNoteData } from "@/lib/note-types";
 import { prisma } from "@/lib/prisma";
 
 const NOTE_COLORS = new Set(["#fff3a6", "#ffd6e0", "#cdeffd", "#d9f7be", "#e8ddff", "#ffffff"]);
@@ -32,6 +32,7 @@ function cleanRichText(value: unknown, maxLength: number) {
   return sanitizeHtml(rawHtml, {
     allowedTags: ["b", "strong", "i", "em", "u", "s", "span", "font", "br", "div", "p", "ul", "ol", "li", "table", "thead", "tbody", "tfoot", "tr", "td", "th"],
     allowedAttributes: {
+      "*": ["style"],
       span: ["style"], font: ["color", "face", "size"], td: ["colspan", "rowspan"], th: ["colspan", "rowspan", "scope"],
     },
     allowedStyles: {
@@ -40,6 +41,8 @@ function cleanRichText(value: unknown, maxLength: number) {
         "background-color": [/^#[0-9a-f]{3,8}$/i, /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i],
         "font-family": [/^[a-z0-9 ,.'"-]+$/i],
         "font-size": [/^\d+(?:\.\d+)?(?:px|pt|em|rem|%)$/i],
+        "line-height": [/^(?:1|1\.15|1\.5|2)$/],
+        "margin-bottom": [/^(?:0|0\.5rem|1rem|1\.5rem)$/],
         "text-align": [/^(left|right|center|justify)$/],
       },
     },
@@ -53,6 +56,7 @@ function cleanNote(value: unknown): StickyNoteData | null {
   if (!id) return null;
   return {
     id,
+    subject: typeof note.subject === "string" ? note.subject.trim().slice(0, 120) : "",
     html: cleanRichText(note.html, 50_000),
     x: clamp(note.x, 0, 1_900, 24),
     y: clamp(note.y, 0, 1_300, 24),
@@ -62,6 +66,22 @@ function cleanNote(value: unknown): StickyNoteData | null {
     archived: note.archived === true,
     zIndex: Math.round(clamp(note.zIndex, 1, 10_000, 1)),
     strokes: cleanStrokes(note.strokes),
+  };
+}
+
+function cleanTextBox(value: unknown): CanvasTextBoxData | null {
+  if (!value || typeof value !== "object") return null;
+  const box = value as Record<string, unknown>;
+  const id = typeof box.id === "string" ? box.id.slice(0, 100) : "";
+  if (!id) return null;
+  return {
+    id,
+    html: cleanRichText(box.html, 100_000),
+    x: clamp(box.x, 0, 1_900, 36),
+    y: clamp(box.y, 0, 1_300, 36),
+    width: clamp(box.width, 180, 900, 360),
+    height: clamp(box.height, 100, 900, 180),
+    zIndex: Math.round(clamp(box.zIndex, 1, 10_000, 1)),
   };
 }
 
@@ -82,12 +102,19 @@ function cleanWorkspace(value: unknown): NoteWorkspaceData | null {
       noteCount += 1;
       return [cleaned];
     });
+    const textBoxes = Array.isArray(page.textBoxes)
+      ? page.textBoxes.slice(0, 200).flatMap((box) => {
+          const cleaned = cleanTextBox(box);
+          return cleaned ? [cleaned] : [];
+        })
+      : [];
     return [{
       id,
       title: typeof page.title === "string" ? page.title.trim().slice(0, 120) || "Untitled page" : "Untitled page",
       html: cleanRichText(page.html, 200_000),
       strokes: cleanStrokes(page.strokes),
       notes,
+      textBoxes,
     }];
   });
   if (!pages.length) return null;

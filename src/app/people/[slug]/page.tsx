@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { publicProfileFromUnknown } from "@/lib/public-profile";
+import { getTranslations } from "next-intl/server";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -12,6 +13,7 @@ function initials(name?: string | null) {
 
 export default async function PersonPage({ params }: Props) {
   const { slug } = await params;
+  const t = await getTranslations("sitePages.profile");
   if (!slug) notFound();
   const user = await prisma.user.findUnique({
     where: { slug },
@@ -36,22 +38,22 @@ export default async function PersonPage({ params }: Props) {
 
     <div className="public-profile-grid">
       <section className="card profile-grid-wide">
-        <h2>About</h2>
-        {user.about ? <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}>{user.about}</p> : <p className="muted">No biography has been added yet.</p>}
+        <h2>{t("about")}</h2>
+        {user.about ? <p style={{ whiteSpace: "pre-wrap", lineHeight: 1.7 }}>{user.about}</p> : <p className="muted">{t("noBio")}</p>}
       </section>
 
       {hasContact ? <section className="card profile-grid-standard">
-        <h2>Contact</h2>
+        <h2>{t("contact")}</h2>
         <dl className="profile-contact-list">
-          {contact.publicEmail ? <><dt>Email</dt><dd><a href={`mailto:${contact.publicEmail}`}>{contact.publicEmail}</a></dd></> : null}
-          {contact.phone ? <><dt>Phone</dt><dd>{contact.phone}</dd></> : null}
-          {contact.office ? <><dt>Office</dt><dd>{contact.office}</dd></> : null}
-          {contact.website ? <><dt>Website</dt><dd><a href={contact.website} target="_blank" rel="noreferrer">Visit website</a></dd></> : null}
+          {contact.publicEmail ? <><dt>{t("email")}</dt><dd><a href={`mailto:${contact.publicEmail}`}>{contact.publicEmail}</a></dd></> : null}
+          {contact.phone ? <><dt>{t("phone")}</dt><dd>{contact.phone}</dd></> : null}
+          {contact.office ? <><dt>{t("office")}</dt><dd>{contact.office}</dd></> : null}
+          {contact.website ? <><dt>{t("website")}</dt><dd><a href={contact.website} target="_blank" rel="noreferrer">{t("visitWebsite")}</a></dd></> : null}
         </dl>
       </section> : null}
 
       {profile.publications.length ? <section className="card profile-grid-wide">
-        <h2>Publications</h2>
+        <h2>{t("publications")}</h2>
         <ol className="profile-publications">{profile.publications.map((publication) => <li key={publication.id}>
           <strong>{publication.url ? <a href={publication.url} target="_blank" rel="noreferrer">{publication.title}</a> : publication.title}</strong>
           {publication.citation ? <p>{publication.citation}</p> : null}

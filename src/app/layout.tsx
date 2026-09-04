@@ -7,10 +7,11 @@ import { EditModeProvider } from "@/contexts/EditModeContext";
 import EditModeSaveBar from "../components/EditModeSaveBar";
 import GlobalContentEditor from "../components/GlobalContentEditor";
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
 import { prisma } from "@/lib/prisma";
-import { defaultLocale } from "@/i18n/config";
+import { defaultLocale, locales } from "@/i18n/config";
 
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -42,11 +43,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let userName: string | null = null;
   let userCreatedAt: Date | null = null;
   let userLocale: string = defaultLocale;
+  let userThemePreference = "light";
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get("site-locale")?.value;
+  const cookieTheme = cookieStore.get("site-theme")?.value;
+  if (cookieLocale && locales.includes(cookieLocale as (typeof locales)[number])) userLocale = cookieLocale;
+  if (cookieTheme) userThemePreference = cookieTheme;
 
   if (email) {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { id: true, slug: true, imageUrl: true, name: true, locale: true, createdAt: true },
+      select: { id: true, slug: true, imageUrl: true, name: true, locale: true, themePreference: true, createdAt: true },
     });
     userId = user?.id ?? null;
     userSlug = user?.slug ?? null;
@@ -54,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     userName = user?.name ?? null;
     userCreatedAt = user?.createdAt ?? null;
     userLocale = user?.locale ?? defaultLocale;
+    userThemePreference = user?.themePreference ?? "light";
   }
 
   const unreadNotificationCount = userId
@@ -112,7 +120,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = (await import(`@/i18n/messages/${userLocale}.json`)).default;
 
   // Load theme from DB and inject as CSS variables
-  const theme = await getTheme();
+  const theme = await getTheme(userThemePreference);
   const cssVars = themeToCss(theme);
 
   const editableRows = await prisma.appConfig.findMany({
@@ -167,6 +175,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               unreadNotificationCount={unreadNotificationCount}
               hasUnreadAnnouncements={unreadAnnouncementCount > 0}
               recentNotices={recentNotices}
+              currentLocale={userLocale}
+              currentThemeId={userThemePreference}
             />
 
             {/* Page content */}

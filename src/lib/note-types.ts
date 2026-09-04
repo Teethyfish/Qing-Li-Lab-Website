@@ -7,6 +7,7 @@ export type DrawingStroke = {
 
 export type StickyNoteData = {
   id: string;
+  subject: string;
   html: string;
   x: number;
   y: number;
@@ -18,12 +19,23 @@ export type StickyNoteData = {
   strokes: DrawingStroke[];
 };
 
+export type CanvasTextBoxData = {
+  id: string;
+  html: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  zIndex: number;
+};
+
 export type NotePageData = {
   id: string;
   title: string;
   html: string;
   strokes: DrawingStroke[];
   notes: StickyNoteData[];
+  textBoxes: CanvasTextBoxData[];
 };
 
 export type NoteWorkspaceData = {

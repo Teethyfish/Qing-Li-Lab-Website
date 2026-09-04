@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import type { ProfilePublication, ProfileTile, PublicProfileContent } from "@/lib/public-profile";
+import { useTranslations } from "next-intl";
 
 type UserProfile = {
   id: string;
@@ -61,6 +62,7 @@ function compressProfilePhoto(source: string) {
 }
 
 export default function ProfileBuilder({ user, isAdminEditing }: { user: UserProfile; isAdminEditing: boolean }) {
+  const t = useTranslations("sitePages.profile");
   const [name, setName] = useState(user.name || "");
   const [about, setAbout] = useState(user.about || "");
   const [profileImage, setProfileImage] = useState<string | null>(user.imageUrl);
@@ -80,7 +82,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
 
   const addTile = (type: ProfileTile["type"]) => setProfile((current) => ({
     ...current,
-    tiles: [...current.tiles, { id: newId(), type, title: type === "photo" ? "Photo" : "New Section", content: "", imageUrl: "", size: "standard" }],
+    tiles: [...current.tiles, { id: newId(), type, title: type === "photo" ? t("photo") : t("newSection"), content: "", imageUrl: "", size: "standard" }],
   }));
 
   const dropTile = (targetId: string) => {
@@ -108,70 +110,70 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Could not save profile.");
-      setStatus("Profile saved.");
+      setStatus(t("saved"));
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not save profile.");
     } finally { setSaving(false); }
   };
 
   return <div data-edit-ignore="true" className="profile-builder">
-    {isAdminEditing ? <div className="profile-admin-notice"><strong>Administrator editing:</strong> Changes will modify this member’s public profile.</div> : null}
+    {isAdminEditing ? <div className="profile-admin-notice"><strong>{t("adminEditing")}</strong> {t("adminEditingText")}</div> : null}
     <section className="card profile-builder-section">
-      <h2>Profile Header</h2>
+      <h2>{t("profileHeader")}</h2>
       <ProfilePictureUpload key={profileImage ? "with-image" : "without-image"} currentImageUrl={profileImage} userName={name} onImageCropped={(image) => {
         void compressProfilePhoto(image).then(setProfileImage).catch((error) => setStatus(error instanceof Error ? error.message : "Could not process profile photo."));
       }} />
-      {profileImage ? <button className="btn btn-muted" onClick={() => setProfileImage(null)}>Remove Profile Photo</button> : null}
-      <label className="form-field"><strong>Display name</strong><input value={name} maxLength={160} onChange={(event) => setName(event.target.value)} /></label>
-      <label className="form-field"><strong>About</strong><textarea value={about} rows={7} maxLength={12000} onChange={(event) => setAbout(event.target.value)} /></label>
+      {profileImage ? <button className="btn btn-muted" onClick={() => setProfileImage(null)}>{t("removePhoto")}</button> : null}
+      <label className="form-field"><strong>{t("displayName")}</strong><input value={name} maxLength={160} onChange={(event) => setName(event.target.value)} /></label>
+      <label className="form-field"><strong>{t("about")}</strong><textarea value={about} rows={7} maxLength={12000} onChange={(event) => setAbout(event.target.value)} /></label>
     </section>
 
     <section className="card profile-builder-section">
-      <h2>Contact Information</h2>
+      <h2>{t("contactInformation")}</h2>
       <div className="profile-form-grid">
-        <label className="form-field"><strong>Public email</strong><input type="email" value={profile.contact.publicEmail} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, publicEmail: event.target.value } }))} /></label>
-        <label className="form-field"><strong>Professional title</strong><input value={profile.contact.title} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, title: event.target.value } }))} /></label>
-        <label className="form-field"><strong>Department</strong><input value={profile.contact.department} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, department: event.target.value } }))} /></label>
-        <label className="form-field"><strong>Phone</strong><input value={profile.contact.phone} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, phone: event.target.value } }))} /></label>
-        <label className="form-field"><strong>Office / location</strong><input value={profile.contact.office} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, office: event.target.value } }))} /></label>
-        <label className="form-field"><strong>Website</strong><input type="url" placeholder="https://" value={profile.contact.website} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, website: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("publicEmail")}</strong><input type="email" value={profile.contact.publicEmail} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, publicEmail: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("professionalTitle")}</strong><input value={profile.contact.title} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, title: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("department")}</strong><input value={profile.contact.department} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, department: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("phone")}</strong><input value={profile.contact.phone} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, phone: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("officeLocation")}</strong><input value={profile.contact.office} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, office: event.target.value } }))} /></label>
+        <label className="form-field"><strong>{t("website")}</strong><input type="url" placeholder="https://" value={profile.contact.website} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, website: event.target.value } }))} /></label>
       </div>
     </section>
 
     <section className="card profile-builder-section">
-      <div className="profile-section-heading"><h2>Publications</h2><button className="btn btn-basic" onClick={() => setProfile((current) => ({ ...current, publications: [...current.publications, { id: newId(), title: "", citation: "", url: "" }] }))}>Add Publication</button></div>
+      <div className="profile-section-heading"><h2>{t("publications")}</h2><button className="btn btn-basic" onClick={() => setProfile((current) => ({ ...current, publications: [...current.publications, { id: newId(), title: "", citation: "", url: "" }] }))}>{t("addPublication")}</button></div>
       <div className="profile-editor-list">
         {profile.publications.map((publication, index) => <article className="profile-editor-item" key={publication.id}>
-          <strong>Publication {index + 1}</strong>
-          <label className="form-field">Title<input value={publication.title} onChange={(event) => updatePublication(publication.id, { title: event.target.value })} /></label>
-          <label className="form-field">Citation<textarea rows={3} value={publication.citation} onChange={(event) => updatePublication(publication.id, { citation: event.target.value })} /></label>
-          <label className="form-field">Link<input type="url" placeholder="https://" value={publication.url} onChange={(event) => updatePublication(publication.id, { url: event.target.value })} /></label>
-          <button className="btn btn-warning" onClick={() => setProfile((current) => ({ ...current, publications: current.publications.filter((item) => item.id !== publication.id) }))}>Remove</button>
+          <strong>{t("publicationNumber", { number: index + 1 })}</strong>
+          <label className="form-field">{t("title")}<input value={publication.title} onChange={(event) => updatePublication(publication.id, { title: event.target.value })} /></label>
+          <label className="form-field">{t("citation")}<textarea rows={3} value={publication.citation} onChange={(event) => updatePublication(publication.id, { citation: event.target.value })} /></label>
+          <label className="form-field">{t("link")}<input type="url" placeholder="https://" value={publication.url} onChange={(event) => updatePublication(publication.id, { url: event.target.value })} /></label>
+          <button className="btn btn-warning" onClick={() => setProfile((current) => ({ ...current, publications: current.publications.filter((item) => item.id !== publication.id) }))}>{t("remove")}</button>
         </article>)}
-        {!profile.publications.length ? <p className="muted">No publications added.</p> : null}
+        {!profile.publications.length ? <p className="muted">{t("noPublications")}</p> : null}
       </div>
     </section>
 
     <section className="card profile-builder-section">
-      <div className="profile-section-heading"><div><h2>Profile Tiles</h2><p className="muted">Drag tiles by their handle to arrange their order on the public profile.</p></div><div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}><button className="btn btn-basic" onClick={() => addTile("text")}>Add Text Tile</button><button className="btn btn-basic" onClick={() => addTile("photo")}>Add Photo Tile</button></div></div>
+      <div className="profile-section-heading"><div><h2>{t("profileTiles")}</h2><p className="muted">{t("tilesHelp")}</p></div><div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}><button className="btn btn-basic" onClick={() => addTile("text")}>{t("addTextTile")}</button><button className="btn btn-basic" onClick={() => addTile("photo")}>{t("addPhotoTile")}</button></div></div>
       <div className="profile-tile-editor-grid">
         {profile.tiles.map((tile) => <article key={tile.id} className="profile-editor-item" onDragOver={(event) => event.preventDefault()} onDrop={() => dropTile(tile.id)}>
-          <div className="profile-tile-drag"><span draggable onDragStart={() => setDraggedTileId(tile.id)}>⋮⋮ Drag to arrange</span><select value={tile.size} onChange={(event) => updateTile(tile.id, { size: event.target.value as ProfileTile["size"] })}><option value="standard">Standard</option><option value="wide">Wide</option><option value="large">Large</option></select></div>
-          <label className="form-field">Tile title<input value={tile.title} onChange={(event) => updateTile(tile.id, { title: event.target.value })} /></label>
-          {tile.type === "text" ? <label className="form-field">Text<textarea rows={5} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label> : <>
-            <label className="form-field">Photo<input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { updateTile(tile.id, { imageUrl: await resizePhoto(file) }); setStatus(null); } catch (error) { setStatus(error instanceof Error ? error.message : "Could not process photo."); } }} /></label>
-            {tile.imageUrl ? <img src={tile.imageUrl} alt="Tile preview" className="profile-tile-preview" /> : <div className="profile-photo-placeholder">Choose a photo</div>}
-            <label className="form-field">Caption<textarea rows={3} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label>
+          <div className="profile-tile-drag"><span draggable onDragStart={() => setDraggedTileId(tile.id)}>{t("dragArrange")}</span><select value={tile.size} onChange={(event) => updateTile(tile.id, { size: event.target.value as ProfileTile["size"] })}><option value="standard">{t("standard")}</option><option value="wide">{t("wide")}</option><option value="large">{t("large")}</option></select></div>
+          <label className="form-field">{t("tileTitle")}<input value={tile.title} onChange={(event) => updateTile(tile.id, { title: event.target.value })} /></label>
+          {tile.type === "text" ? <label className="form-field">{t("text")}<textarea rows={5} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label> : <>
+            <label className="form-field">{t("photo")}<input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { updateTile(tile.id, { imageUrl: await resizePhoto(file) }); setStatus(null); } catch (error) { setStatus(error instanceof Error ? error.message : "Could not process photo."); } }} /></label>
+            {tile.imageUrl ? <img src={tile.imageUrl} alt={t("photo")} className="profile-tile-preview" /> : <div className="profile-photo-placeholder">{t("choosePhoto")}</div>}
+            <label className="form-field">{t("caption")}<textarea rows={3} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label>
           </>}
-          <button className="btn btn-warning" onClick={() => setProfile((current) => ({ ...current, tiles: current.tiles.filter((item) => item.id !== tile.id) }))}>Remove Tile</button>
+          <button className="btn btn-warning" onClick={() => setProfile((current) => ({ ...current, tiles: current.tiles.filter((item) => item.id !== tile.id) }))}>{t("removeTile")}</button>
         </article>)}
-        {!profile.tiles.length ? <p className="muted">No custom tiles added.</p> : null}
+        {!profile.tiles.length ? <p className="muted">{t("noTiles")}</p> : null}
       </div>
     </section>
 
     <div className="profile-save-bar">
-      <button className="btn btn-basic" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save Public Profile"}</button>
-      {user.slug ? <Link className="btn btn-muted" href={`/people/${user.slug}`} target="_blank">Preview Public Profile</Link> : null}
+      <button className="btn btn-basic" disabled={saving} onClick={save}>{saving ? t("saving") : t("saveProfile")}</button>
+      {user.slug ? <Link className="btn btn-muted" href={`/people/${user.slug}`} target="_blank">{t("previewProfile")}</Link> : null}
       {status ? <span role="status">{status}</span> : null}
     </div>
   </div>;

@@ -1,421 +1,182 @@
-// src/app/members/theme/page.tsx
 export const runtime = "nodejs";
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { normalizeLegacyTheme } from "@/lib/theme";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { DEFAULT_THEME, getThemeCatalog, type Theme, type ThemeCategory, type ThemePreset } from "@/lib/theme";
 
-/** Theme is a flat map of CSS var -> value, stored in AppConfig under key "theme". */
-type KV = Record<string, string>;
-type Row = { value: string };
+type Props = { searchParams: Promise<{ preset?: string; saved?: string }> };
+type Field = { variable: string; label: string; type: "color" | "text" | "range"; min?: number; max?: number; step?: number; unit?: string };
 
-async function readTheme(): Promise<KV> {
-  try {
-    const rows = await prisma.$queryRawUnsafe<Row[]>(
-      `SELECT value FROM "AppConfig" WHERE key = 'theme' LIMIT 1`
-    );
-    if (!rows?.[0]?.value) return {};
-    const parsed = JSON.parse(rows[0].value) as KV;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
+const GROUPS: Array<{ title: string; fields: Field[] }> = [
+  { title: "Site colors", fields: [
+    { variable: "--color-bg", label: "Outer background", type: "color" },
+    { variable: "--color-content-bg", label: "Center content background", type: "color" },
+    { variable: "--color-text", label: "Text", type: "color" },
+    { variable: "--color-muted", label: "Muted text", type: "color" },
+    { variable: "--color-accent", label: "Accent", type: "color" },
+    { variable: "--color-card", label: "Card background", type: "color" },
+  ] },
+  { title: "Typography", fields: [
+    { variable: "--font-family", label: "Font family", type: "text" },
+  ] },
+  { title: "Cards and tiles", fields: [
+    { variable: "--tile-radius", label: "Corner radius", type: "range", min: 0, max: 24, step: 1, unit: "px" },
+    { variable: "--tile-padding", label: "Padding", type: "range", min: .25, max: 3, step: .25, unit: "rem" },
+    { variable: "--tile-border-opacity", label: "Border opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
+    { variable: "--tile-shadow-opacity", label: "Shadow opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
+  ] },
+  { title: "Navigation", fields: [
+    { variable: "--nav-bg", label: "Background", type: "color" },
+    { variable: "--nav-text", label: "Text", type: "color" },
+    { variable: "--nav-border", label: "Border", type: "color" },
+    { variable: "--nav-opacity", label: "Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
+    { variable: "--nav-height", label: "Height", type: "range", min: 40, max: 80, step: 2, unit: "px" },
+    { variable: "--nav-blur", label: "Backdrop blur", type: "range", min: 0, max: 20, step: 1, unit: "px" },
+  ] },
+  { title: "Buttons", fields: [
+    { variable: "--btn-radius", label: "Corner radius", type: "range", min: 0, max: 20, step: 1, unit: "px" },
+    { variable: "--btn-py", label: "Vertical padding", type: "range", min: .25, max: 1.5, step: .05, unit: "rem" },
+    { variable: "--btn-px", label: "Horizontal padding", type: "range", min: .25, max: 2, step: .05, unit: "rem" },
+    { variable: "--btn-weight", label: "Font weight", type: "range", min: 300, max: 900, step: 100 },
+    { variable: "--btn-basic-bg", label: "Primary background", type: "color" },
+    { variable: "--btn-basic-fg", label: "Primary text", type: "color" },
+    { variable: "--btn-basic-hover-bg", label: "Primary hover", type: "color" },
+    { variable: "--btn-basic-border-color", label: "Primary border", type: "color" },
+    { variable: "--btn-muted-bg", label: "Muted background", type: "color" },
+    { variable: "--btn-muted-fg", label: "Muted text", type: "color" },
+    { variable: "--btn-muted-hover-bg", label: "Muted hover", type: "color" },
+    { variable: "--btn-muted-border-color", label: "Muted border", type: "color" },
+    { variable: "--btn-warning-bg", label: "Warning background", type: "color" },
+    { variable: "--btn-warning-fg", label: "Warning text", type: "color" },
+    { variable: "--btn-warning-hover-bg", label: "Warning hover", type: "color" },
+    { variable: "--btn-warning-border-color", label: "Warning border", type: "color" },
+  ] },
+];
+
+const CATEGORIES: ThemeCategory[] = ["light", "dark", "muted", "custom"];
+const allVariables = GROUPS.flatMap((group) => group.fields.map((field) => field.variable));
+
+async function requireAdmin() {
+  const session = await getServerSession(authOptions);
+  if (String((session?.user as { role?: string } | undefined)?.role || "").toUpperCase() !== "ADMIN") redirect("/");
 }
 
-const DEFAULTS: KV = {
-  // site colors
-  "--color-bg": "#ffffff",
-  "--color-content-bg": "#f8fafc",
-  "--color-text": "#111827",
-  "--color-muted": "#6b7280",
-  "--color-accent": "#2563eb",
-  "--color-card": "#ffffff",
-  "--font-family": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+async function writePresets(presets: ThemePreset[]) {
+  const serializable = presets.map(({ id, name, category, values }) => ({ id, name, category, values }));
+  await prisma.appConfig.upsert({ where: { key: "themePresets" }, create: { key: "themePresets", value: JSON.stringify(serializable) }, update: { value: JSON.stringify(serializable) } });
+}
 
-  // === Cards/Tiles ===
-  "--tile-radius": "2",
-  "--tile-padding": "1",
-  "--tile-border-opacity": "12",
-  "--tile-shadow-opacity": "14",
+function slugifyThemeName(value: string) {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "theme";
+}
 
-  // === Buttons ===
-  "--btn-radius": "2",
-  "--btn-py": "0.55",
-  "--btn-px": "0.9",
-  "--btn-weight": "600",
+export default async function ThemeEditorPage({ searchParams }: Props) {
+  await requireAdmin();
+  const query = await searchParams;
+  const catalog = await getThemeCatalog();
+  const selected = catalog.find((preset) => preset.id === query.preset) || catalog[0];
+  const theme = { ...DEFAULT_THEME, ...selected.values };
 
-  // Basic (using primary settings)
-  "--btn-basic-bg": "#111827",
-  "--btn-basic-fg": "#ffffff",
-  "--btn-basic-hover-bg": "#0a0f1a",
-  "--btn-basic-border-color": "#111827",
-
-  // Muted
-  "--btn-muted-bg": "#f5f5f5",
-  "--btn-muted-fg": "#111827",
-  "--btn-muted-hover-bg": "#ededed",
-  "--btn-muted-border-color": "#e5e7eb",
-
-  // Warning
-  "--btn-warning-bg": "#f59e0b",
-  "--btn-warning-fg": "#ffffff",
-  "--btn-warning-hover-bg": "#d97706",
-  "--btn-warning-border-color": "#f59e0b",
-
-  // === Navbar ===
-  "--nav-bg": "#ffffff",
-  "--nav-opacity": "90",
-  "--nav-text": "#111827",
-  "--nav-border": "#e5e7eb",
-  "--nav-height": "56",
-  "--nav-blur": "6",
-};
-
-type Field =
-  | { var: string; label: string; type: "color"; help?: string }
-  | { var: string; label: string; type: "text"; help?: string; placeholder?: string }
-  | { var: string; label: string; type: "number"; help?: string; step?: string; min?: string }
-  | { var: string; label: string; type: "range"; min: number; max: number; step: number; unit: string; help?: string };
-
-const COLOR_FIELDS: Field[] = [
-  { var: "--color-bg", label: "Outer Background", type: "color" },
-  {
-    var: "--color-content-bg",
-    label: "Center Content Background",
-    type: "color",
-    help: "Background for the centered page surface.",
-  },
-  { var: "--color-text", label: "Text", type: "color" },
-  { var: "--color-muted", label: "Muted Text", type: "color" },
-  { var: "--color-accent", label: "Accent", type: "color" },
-  { var: "--color-card", label: "Card Background", type: "color" },
-];
-
-const TILE_FIELDS: Field[] = [
-  { var: "--tile-radius", label: "Tile Border Radius", type: "range", min: 0, max: 24, step: 1, unit: "px" },
-  { var: "--tile-padding", label: "Tile Padding", type: "range", min: 0.25, max: 3, step: 0.25, unit: "rem" },
-  { var: "--tile-border-opacity", label: "Tile Border Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-  { var: "--tile-shadow-opacity", label: "Tile Shadow Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-];
-
-const TYPOGRAPHY_FIELDS: Field[] = [
-  {
-    var: "--font-family",
-    label: "Font family",
-    type: "text",
-    help: "CSS font stack used across the site.",
-  },
-];
-
-const SHAPE_FIELDS: Field[] = [
-  { var: "--btn-radius", label: "Button Radius", type: "range", min: 0, max: 20, step: 1, unit: "px" },
-  { var: "--btn-py", label: "Button Padding Y", type: "range", min: 0.25, max: 1.5, step: 0.05, unit: "rem" },
-  { var: "--btn-px", label: "Button Padding X", type: "range", min: 0.25, max: 2, step: 0.05, unit: "rem" },
-  { var: "--btn-weight", label: "Button Font Weight", type: "range", min: 300, max: 900, step: 100, unit: "" },
-];
-
-const BASIC_FIELDS: Field[] = [
-  { var: "--btn-basic-bg", label: "Basic BG", type: "color" },
-  { var: "--btn-basic-fg", label: "Basic FG", type: "color" },
-  { var: "--btn-basic-hover-bg", label: "Basic Hover BG", type: "color" },
-  { var: "--btn-basic-border-color", label: "Basic Border Color", type: "color" },
-];
-
-const MUTED_FIELDS: Field[] = [
-  { var: "--btn-muted-bg", label: "Muted BG", type: "color" },
-  { var: "--btn-muted-fg", label: "Muted FG", type: "color" },
-  { var: "--btn-muted-hover-bg", label: "Muted Hover BG", type: "color" },
-  { var: "--btn-muted-border-color", label: "Muted Border Color", type: "color" },
-];
-
-const WARNING_FIELDS: Field[] = [
-  { var: "--btn-warning-bg", label: "Warning BG", type: "color" },
-  { var: "--btn-warning-fg", label: "Warning FG", type: "color" },
-  { var: "--btn-warning-hover-bg", label: "Warning Hover BG", type: "color" },
-  { var: "--btn-warning-border-color", label: "Warning Border Color", type: "color" },
-];
-
-const NAVBAR_COLOR_FIELDS: Field[] = [
-  { var: "--nav-bg", label: "Navbar Background", type: "color" },
-  { var: "--nav-text", label: "Navbar Text", type: "color" },
-  { var: "--nav-border", label: "Navbar Border", type: "color" },
-];
-
-const NAVBAR_SIZE_FIELDS: Field[] = [
-  { var: "--nav-opacity", label: "Navbar Opacity", type: "range", min: 0, max: 100, step: 1, unit: "%" },
-  { var: "--nav-height", label: "Navbar Height", type: "range", min: 40, max: 80, step: 2, unit: "px" },
-  { var: "--nav-blur", label: "Backdrop Blur", type: "range", min: 0, max: 20, step: 1, unit: "px" },
-];
-
-export default async function ThemeEditorPage() {
-  // Admin-only
-  const session = await getServerSession(authOptions);
-  const role = (session?.user as any)?.role as string | undefined;
-  const isAdmin = role && role.toUpperCase() === "ADMIN";
-  if (!isAdmin) redirect("/");
-
-  // Merge defaults with saved values
-  const current = await readTheme();
-  const theme: KV = { ...DEFAULTS, ...normalizeLegacyTheme(current) };
-
-  // --- Server action to save ---
-  async function saveTheme(formData: FormData) {
+  async function savePreset(formData: FormData) {
     "use server";
-    const incoming: KV = {};
-    const all = [
-      ...COLOR_FIELDS,
-      ...TYPOGRAPHY_FIELDS,
-      ...TILE_FIELDS,
-      ...NAVBAR_COLOR_FIELDS,
-      ...NAVBAR_SIZE_FIELDS,
-      ...SHAPE_FIELDS,
-      ...BASIC_FIELDS,
-      ...MUTED_FIELDS,
-      ...WARNING_FIELDS,
-    ];
-    for (const f of all) {
-      const raw = (formData.get(f.var) ?? "").toString().trim();
-      if (raw) incoming[f.var] = raw;
+    await requireAdmin();
+    const catalog = await getThemeCatalog();
+    const currentId = String(formData.get("presetId") || "light");
+    const mode = String(formData.get("saveMode") || "update");
+    const name = String(formData.get("themeName") || "Untitled theme").trim().slice(0, 80) || "Untitled theme";
+    const rawCategory = String(formData.get("category") || "custom");
+    const category: ThemeCategory = CATEGORIES.includes(rawCategory as ThemeCategory) ? rawCategory as ThemeCategory : "custom";
+    const values: Theme = {};
+    for (const variable of allVariables) {
+      const value = String(formData.get(variable) || "").trim();
+      if (value) values[variable] = value;
     }
 
-    const existing = await readTheme();
-    const merged: KV = { ...existing, ...incoming };
-
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "AppConfig" (key, value)
-       VALUES ($1, $2)
-       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-      "theme",
-      JSON.stringify(merged)
-    );
-
+    const id = mode === "new"
+      ? `${slugifyThemeName(name)}-${crypto.randomUUID().slice(0, 8)}`
+      : currentId;
+    const stored = catalog.map(({ id, name, category, values }) => ({ id, name, category, values }));
+    const index = stored.findIndex((preset) => preset.id === id);
+    const next = { id, name, category, values };
+    if (index >= 0) stored[index] = next;
+    else stored.push(next);
+    await writePresets(stored);
     revalidatePath("/", "layout");
-    revalidatePath("/members/theme");
+    redirect(`/members/theme?preset=${encodeURIComponent(id)}&saved=1`);
   }
 
-  // --- Server action to reset ---
-  async function resetTheme() {
+  async function deletePreset(formData: FormData) {
     "use server";
-    await prisma.$executeRawUnsafe(
-      `DELETE FROM "AppConfig" WHERE key = $1`,
-      "theme"
-    );
-
+    await requireAdmin();
+    const id = String(formData.get("presetId") || "");
+    if (["light", "dark", "muted"].includes(id)) return;
+    await writePresets((await getThemeCatalog()).filter((preset) => preset.id !== id));
     revalidatePath("/", "layout");
-    revalidatePath("/members/theme");
+    redirect("/members/theme");
   }
 
-  // Compact color picker for button colors (no tile wrapper)
-  const CompactColorField = ({ field }: { field: Field }) => {
-    return (
-      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "140px" }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{field.label}</div>
-        <input
-          type="color"
-          name={field.var}
-          defaultValue={theme[field.var] ?? "#000000"}
-          style={{ width: "100%", height: "40px", cursor: "pointer" }}
-        />
-      </label>
-    );
-  };
+  return <main className="mx-auto max-w-5xl p-6 space-y-6" data-edit-ignore="true">
+    <header>
+      <h1>Theme Editor</h1>
+      <p className="muted">Organize themes by style, edit the built-in choices, or save additional themes for members.</p>
+    </header>
 
-  // Compact text input for other settings (no tile wrapper)
-  const CompactTextField = ({ field }: { field: Field }) => {
-    const inputStyle: React.CSSProperties = {
-      width: "100%",
-      padding: "0.55rem 0.7rem",
-      borderRadius: 8,
-      border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
-      background: "var(--color-card)",
-      fontSize: "0.9rem",
-      boxSizing: "border-box",
-    };
-    return (
-      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 500 }}>{field.label}</div>
-        {"help" in field && field.help ? (
-          <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 2 }}>
-            {field.help}
-          </div>
-        ) : null}
-        <input
-          type="text"
-          name={field.var}
-          defaultValue={theme[field.var] ?? ""}
-          placeholder={("placeholder" in field && field.placeholder) || ""}
-          style={inputStyle}
-        />
-      </label>
-    );
-  };
+    {query.saved ? <p role="status" className="tile" style={{ borderLeft: "4px solid #15803d" }}>Theme saved and available in member settings.</p> : null}
 
-  // Compact slider for numeric settings with units
-  const CompactSliderField = ({ field }: { field: Field & { type: "range" } }) => {
-    const currentValue = parseFloat(theme[field.var] ?? String(field.min));
-    return (
-      <label style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flex: "1 1 auto", minWidth: "200px", maxWidth: "280px" }}>
-        <div style={{ fontSize: "0.9rem", fontWeight: 500, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span>{field.label}</span>
-          <span style={{ fontSize: "0.85rem", color: "var(--color-muted)", fontWeight: 400 }}>
-            {currentValue}{field.unit}
-          </span>
+    <section className="theme-catalog">
+      {CATEGORIES.map((category) => {
+        const presets = catalog.filter((preset) => preset.category === category);
+        if (!presets.length) return null;
+        return <div key={category} className="theme-catalog-group">
+          <h2>{category[0].toUpperCase() + category.slice(1)}</h2>
+          <div className="theme-preset-row">{presets.map((preset) => <Link
+            key={preset.id}
+            href={`/members/theme?preset=${encodeURIComponent(preset.id)}`}
+            className={`theme-preset-card${preset.id === selected.id ? " selected" : ""}`}
+          >
+            <span className="theme-swatches" aria-hidden="true">
+              {["--color-bg", "--color-content-bg", "--color-card", "--color-accent"].map((variable) => <i key={variable} style={{ background: preset.values[variable] }} />)}
+            </span>
+            <strong>{preset.name}</strong>
+          </Link>)}</div>
+        </div>;
+      })}
+    </section>
+
+    <form action={savePreset} className="space-y-6">
+      <input type="hidden" name="presetId" value={selected.id} />
+      <section className="tile theme-identity-fields">
+        <label><strong>Theme name</strong><input name="themeName" defaultValue={selected.name} maxLength={80} required /></label>
+        <label><strong>Category</strong><select name="category" defaultValue={selected.category}>{CATEGORIES.map((category) => <option key={category} value={category}>{category[0].toUpperCase() + category.slice(1)}</option>)}</select></label>
+      </section>
+
+      {GROUPS.map((group) => <section key={group.title} className="space-y-3">
+        <h2>{group.title}</h2>
+        <div className="tile theme-field-grid">
+          {group.fields.map((field) => <label key={field.variable} className="theme-field">
+            <span><strong>{field.label}</strong>{field.unit ? <small>{theme[field.variable]}{field.unit}</small> : null}</span>
+            <input
+              type={field.type}
+              name={field.variable}
+              defaultValue={theme[field.variable] || (field.type === "color" ? "#000000" : "")}
+              min={field.min}
+              max={field.max}
+              step={field.step}
+            />
+          </label>)}
         </div>
-        <input
-          type="range"
-          name={field.var}
-          min={field.min}
-          max={field.max}
-          step={field.step}
-          defaultValue={currentValue}
-          style={{ width: "100%", cursor: "pointer" }}
-        />
-      </label>
-    );
-  };
+      </section>)}
 
-  return (
-    <main className="mx-auto max-w-5xl p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold" style={{ marginBottom: 4 }}>
-          Theme Editor
-        </h1>
-        <p className="muted">Tweak global colors and button styles. Changes apply site-wide.</p>
-      </header>
+      <div className="theme-editor-actions">
+        <button className="btn btn-basic" name="saveMode" value="update">Save changes</button>
+        <button className="btn btn-muted" name="saveMode" value="new">Save as extra theme</button>
+      </div>
+    </form>
 
-      <form action={saveTheme} className="space-y-6">
-        {/* Colors */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Site colors</h2>
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {COLOR_FIELDS.map((f) => (
-                <CompactColorField key={f.var} field={f} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Typography */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Typography</h2>
-          <div className="tile" style={{ padding: "1rem" }}>
-            {TYPOGRAPHY_FIELDS.map((f) => (
-              <CompactTextField key={f.var} field={f} />
-            ))}
-          </div>
-        </section>
-
-        {/* Tiles/Cards */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Cards & Tiles</h2>
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {TILE_FIELDS.map((f) => (
-                f.type === "range" ? (
-                  <CompactSliderField key={f.var} field={f} />
-                ) : (
-                  <CompactTextField key={f.var} field={f} />
-                )
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Navbar */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Navbar</h2>
-          <div className="tile" style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {/* Row 1: Colors */}
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {NAVBAR_COLOR_FIELDS.map((f) => (
-                <CompactColorField key={f.var} field={f} />
-              ))}
-            </div>
-            {/* Row 2: Sizes */}
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {NAVBAR_SIZE_FIELDS.map((f) => (
-                <CompactSliderField key={f.var} field={f as Field & { type: "range" }} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Buttons: shape */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Buttons — shape</h2>
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {SHAPE_FIELDS.map((f) => (
-                f.type === "range" ? (
-                  <CompactSliderField key={f.var} field={f} />
-                ) : (
-                  <CompactTextField key={f.var} field={f} />
-                )
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Buttons: colors */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Buttons — colors</h2>
-
-          {/* Preview — use buttons (no onClick) so it's legal in a Server Component */}
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div className="muted" style={{ marginBottom: 8, fontSize: "0.9rem" }}>
-              Preview
-            </div>
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button className="btn btn-basic" type="button">Basic</button>
-              <button className="btn btn-muted" type="button">Muted</button>
-              <button className="btn btn-warning" type="button">Warning</button>
-            </div>
-          </div>
-
-          {/* Basic buttons */}
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Basic</div>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {BASIC_FIELDS.map((f) => (
-                <CompactColorField key={f.var} field={f} />
-              ))}
-            </div>
-          </div>
-
-          {/* Muted buttons */}
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Muted</div>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {MUTED_FIELDS.map((f) => (
-                <CompactColorField key={f.var} field={f} />
-              ))}
-            </div>
-          </div>
-
-          {/* Warning buttons */}
-          <div className="tile" style={{ padding: "1rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>Warning</div>
-            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-              {WARNING_FIELDS.map((f) => (
-                <CompactColorField key={f.var} field={f} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-          <button className="btn btn-basic" type="submit">Save theme</button>
-        </div>
-      </form>
-
-      {/* Reset form outside the main form */}
-      <form action={resetTheme} style={{ marginTop: "1rem" }}>
-        <button className="btn btn-warning" type="submit">Reset to Defaults</button>
-      </form>
-    </main>
-  );
+    {!selected.builtIn ? <form action={deletePreset}><input type="hidden" name="presetId" value={selected.id} /><button className="btn btn-warning">Delete this theme</button></form> : null}
+  </main>;
 }

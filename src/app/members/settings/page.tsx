@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { localeNames, locales } from "@/i18n/config";
 import bcrypt from "bcryptjs";
+import { getThemeCatalog } from "@/lib/theme";
 
 type SettingsPageProps = {
   searchParams: Promise<{ password?: string }>;
@@ -22,12 +23,14 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { email: true, name: true, locale: true },
+    select: { email: true, name: true, locale: true, themePreference: true },
   });
 
   if (!user) redirect("/login");
 
   const t = await getTranslations('settings');
+  const themeCatalog = await getThemeCatalog();
+  const selectedTheme = themeCatalog.some((theme) => theme.id === user.themePreference) ? user.themePreference : "light";
 
   // Server action to update language
   async function updateLanguage(formData: FormData) {
@@ -46,6 +49,19 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     });
 
     revalidatePath("/members/settings");
+    redirect("/members/settings");
+  }
+
+  async function updateTheme(formData: FormData) {
+    "use server";
+    const themePreference = String(formData.get("themePreference") || "light");
+    const actionSession = await getServerSession(authOptions);
+    const actionEmail = actionSession?.user?.email?.toLowerCase();
+    if (!actionEmail) redirect("/login");
+    const available = new Set((await getThemeCatalog()).map((theme) => theme.id));
+    if (!available.has(themePreference)) return;
+    await prisma.user.update({ where: { email: actionEmail }, data: { themePreference } });
+    revalidatePath("/", "layout");
     redirect("/members/settings");
   }
 
@@ -198,17 +214,15 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
               {t('themeNote')}
             </p>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button disabled className="btn btn-muted">
-                {t('light')}
-              </button>
-              <button disabled className="btn btn-muted">
-                {t('dark')}
-              </button>
-              <button disabled className="btn btn-muted">
-                {t('auto')}
-              </button>
-            </div>
+            <form action={updateTheme} style={{ display: "flex", gap: ".75rem", alignItems: "end", flexWrap: "wrap" }}>
+              <label style={{ display: "grid", gap: ".4rem", flex: "1 1 260px" }}>
+                <span className="muted" style={{ fontSize: ".82rem" }}>{t('chooseTheme')}</span>
+                <select name="themePreference" defaultValue={selectedTheme} style={inputStyle}>
+                  {themeCatalog.map((theme) => <option key={theme.id} value={theme.id}>{theme.name} — {t(`themeCategories.${theme.category}`)}</option>)}
+                </select>
+              </label>
+              <button className="btn btn-basic">{t('saveTheme')}</button>
+            </form>
           </div>
         </div>
 

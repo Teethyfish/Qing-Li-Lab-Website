@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditMode } from "@/contexts/EditModeContext";
-import { Bell } from "lucide-react";
+import { Bell, Moon, Sun } from "lucide-react";
 
 type NoticeSummary = {
   id: string;
@@ -34,6 +34,8 @@ type Props = {
   unreadNotificationCount: number;
   hasUnreadAnnouncements: boolean;
   recentNotices: NoticeSummary[];
+  currentLocale: string;
+  currentThemeId: string;
 };
 
 function NavItem({
@@ -65,15 +67,25 @@ function NavItem({
   );
 }
 
-export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount, hasUnreadAnnouncements, recentNotices }: Props) {
+export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount, hasUnreadAnnouncements, recentNotices, currentLocale, currentThemeId }: Props) {
   const t = useTranslations('navigation');
   const pathname = usePathname();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const [noticeDropdownOpen, setNoticeDropdownOpen] = useState(false);
   const [announcementUnread, setAnnouncementUnread] = useState(hasUnreadAnnouncements);
   const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
+
+  const updatePreference = async (preference: { locale?: string; themePreference?: string }) => {
+    const response = await fetch("/api/preferences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(preference),
+    });
+    if (response.ok) router.refresh();
+  };
 
   const toggleEditMode = () => {
     if (isEditMode) {
@@ -86,7 +98,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
-    { href: "/instruments", label: "Instruments", show: true },
+    { href: "/instruments", label: t('instruments'), show: true },
     { href: "/database", label: t('database'), show: true },
     { href: "/members", label: t('members'), show: isAuthed },
     { href: "/register", label: t('register'), show: !isAuthed },
@@ -98,7 +110,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
     { href: "/members/users", label: t('users') },
     { href: "/members/announcements", label: t('announcements') },
     { href: "/members/documents", label: t('documents') },
-    { href: "/members/instruments", label: "Instruments & Requests" },
+    { href: "/members/instruments", label: t('instrumentsRequests') },
     { href: "/members/theme", label: t('theme') },
   ];
 
@@ -233,11 +245,20 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
 
           {/* Right: edit mode + user + logout/login */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="nav-preferences" data-edit-ignore="true">
+              <div className="nav-segmented" aria-label={t('themeSwitch')}>
+                <button type="button" className={`nav-pref-button${currentThemeId === "light" ? " active" : ""}`} aria-label={t('lightTheme')} title={t('lightTheme')} onClick={() => updatePreference({ themePreference: "light" })}><Sun size={14} aria-hidden="true" /></button>
+                <button type="button" className={`nav-pref-button${currentThemeId === "dark" ? " active" : ""}`} aria-label={t('darkTheme')} title={t('darkTheme')} onClick={() => updatePreference({ themePreference: "dark" })}><Moon size={14} aria-hidden="true" /></button>
+              </div>
+              <div className="nav-segmented" aria-label={t('languageSwitch')}>
+                {[{ code: "en", label: "EN" }, { code: "zh", label: "CN" }, { code: "ko", label: "KR" }].map(({ code, label }) => <button key={code} type="button" className={`nav-pref-button${currentLocale === code ? " active" : ""}`} aria-pressed={currentLocale === code} onClick={() => updatePreference({ locale: code })}>{label}</button>)}
+              </div>
+            </div>
             {isAuthed ? <div className="notice-menu">
               <button
                 type="button"
                 className="notification-bell-button"
-                aria-label={(unreadNotificationCount > 0 || announcementUnread) ? "Notifications, new notices" : "Notifications"}
+                aria-label={(unreadNotificationCount > 0 || announcementUnread) ? t('newNotices') : t('notifications')}
                 aria-expanded={noticeDropdownOpen}
                 onClick={openNotices}
               >
@@ -247,19 +268,19 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
               {noticeDropdownOpen ? <>
                 <div className="nav-dropdown-backdrop" onClick={() => setNoticeDropdownOpen(false)} />
                 <div className="notice-dropdown">
-                  <div className="notice-dropdown-heading"><strong>Recent notices</strong><span>Latest 3</span></div>
+                  <div className="notice-dropdown-heading"><strong>{t('recentNotices')}</strong><span>{t('latestThree')}</span></div>
                   {recentNotices.map((notice) => <Link
                     key={`${notice.kind}-${notice.id}`}
                     href={`/api/notices/open?kind=${notice.kind}&id=${encodeURIComponent(notice.id)}`}
                     className={`notice-dropdown-item${notice.unread ? " unread" : ""}`}
                     onClick={() => setNoticeDropdownOpen(false)}
                   >
-                    <span className="notice-kind">{notice.kind === "announcement" ? "Announcement" : "Notification"}</span>
+                    <span className="notice-kind">{notice.kind === "announcement" ? t('announcement') : t('notification')}</span>
                     <strong>{notice.title}</strong>
                     <span>{notice.message}</span>
                   </Link>)}
-                  {!recentNotices.length ? <p className="notice-empty">No notices yet.</p> : null}
-                  <Link className="notice-view-all" href="/members/notifications" onClick={() => setNoticeDropdownOpen(false)}>View all notifications</Link>
+                  {!recentNotices.length ? <p className="notice-empty">{t('noNotices')}</p> : null}
+                  <Link className="notice-view-all" href="/members/notifications" onClick={() => setNoticeDropdownOpen(false)}>{t('viewAllNotifications')}</Link>
                 </div>
               </> : null}
             </div> : null}
@@ -274,7 +295,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                   borderColor: isEditMode ? "var(--btn-warning-bg, #f59e0b)" : undefined,
                 }}
               >
-                {isEditMode ? "Exit Edit Mode" : "Edit Page"}
+                {isEditMode ? t('exitEditMode') : t('editPage')}
               </button>
             )}
 
