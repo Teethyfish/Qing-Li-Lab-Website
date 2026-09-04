@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   description: "Lab website",
 };
 
+function localizedNoticeText(value: string, locale: string) {
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    const localized = parsed[locale] ?? parsed.en ?? Object.values(parsed)[0];
+    return typeof localized === "string" ? localized : value;
+  } catch { return value; }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Get session to derive navbar props
   const session = await getServerSession(authOptions);
@@ -32,23 +40,73 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let userId: string | null = null;
   let userImageUrl: string | null = null;
   let userName: string | null = null;
+  let userCreatedAt: Date | null = null;
   let userLocale: string = defaultLocale;
 
   if (email) {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { id: true, slug: true, imageUrl: true, name: true, locale: true },
+      select: { id: true, slug: true, imageUrl: true, name: true, locale: true, createdAt: true },
     });
     userId = user?.id ?? null;
     userSlug = user?.slug ?? null;
     userImageUrl = user?.imageUrl ?? null;
     userName = user?.name ?? null;
+    userCreatedAt = user?.createdAt ?? null;
     userLocale = user?.locale ?? defaultLocale;
   }
 
   const unreadNotificationCount = userId
     ? await prisma.notification.count({ where: { userId, readAt: null } })
     : 0;
+
+  const [personalNotices, announcementNotices, unreadAnnouncementCount] = userId
+    ? await Promise.all([
+        prisma.notification.findMany({
+          where: { userId },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          select: { id: true, title: true, message: true, readAt: true, createdAt: true },
+        }),
+        prisma.announcement.findMany({
+          where: { status: "ACTIVE" },
+          orderBy: { createdAt: "desc" },
+          take: 3,
+          select: {
+            id: true,
+            title: true,
+            text: true,
+            createdAt: true,
+            reads: { where: { userId }, select: { readAt: true }, take: 1 },
+          },
+        }),
+        prisma.announcement.count({
+          where: {
+            status: "ACTIVE",
+            ...(userCreatedAt ? { createdAt: { gte: userCreatedAt } } : {}),
+            reads: { none: { userId } },
+          },
+        }),
+      ])
+    : [[], [], 0] as const;
+  const recentNotices = [
+    ...personalNotices.map((notice) => ({
+      id: notice.id,
+      kind: "notification" as const,
+      title: notice.title,
+      message: notice.message,
+      unread: !notice.readAt,
+      createdAt: notice.createdAt.toISOString(),
+    })),
+    ...announcementNotices.map((notice) => ({
+      id: notice.id,
+      kind: "announcement" as const,
+      title: localizedNoticeText(notice.title, userLocale),
+      message: localizedNoticeText(notice.text, userLocale),
+      unread: notice.reads.length === 0 && (!userCreatedAt || notice.createdAt >= userCreatedAt),
+      createdAt: notice.createdAt.toISOString(),
+    })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
 
   // Load translation messages for the user's locale
   const messages = (await import(`@/i18n/messages/${userLocale}.json`)).default;
@@ -107,6 +165,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               userImageUrl={userImageUrl}
               userName={userName}
               unreadNotificationCount={unreadNotificationCount}
+              hasUnreadAnnouncements={unreadAnnouncementCount > 0}
+              recentNotices={recentNotices}
             />
 
             {/* Page content */}

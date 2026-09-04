@@ -44,15 +44,15 @@ export default async function DocumentDatabasePage() {
           const recipients = document.recipients;
           return (
             <article id={`document-${document.id}`} key={document.id} className="tile" style={{ scrollMarginTop: 90 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-                <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 420px", minWidth: 0 }}>
                   <h2 style={{ margin: 0 }}>{document.title}</h2>
                   <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
                   <p className="muted" style={{ marginBottom: 0 }}>
                     {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? "Public" : "Private"} · {document.createdAt.toLocaleDateString()}
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", flex: "0 0 auto", alignSelf: "flex-start" }}>
                   <Link className="btn btn-basic" href={`/documents/${document.id}`}>View</Link>
                   <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>Download</a>
                 </div>

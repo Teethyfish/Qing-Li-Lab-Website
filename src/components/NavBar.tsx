@@ -7,6 +7,16 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditMode } from "@/contexts/EditModeContext";
+import { Bell } from "lucide-react";
+
+type NoticeSummary = {
+  id: string;
+  kind: "notification" | "announcement";
+  title: string;
+  message: string;
+  unread: boolean;
+  createdAt: string;
+};
 
 function initials(name?: string | null) {
   if (!name) return "??";
@@ -22,6 +32,8 @@ type Props = {
   userImageUrl?: string | null;
   userName?: string | null;
   unreadNotificationCount: number;
+  hasUnreadAnnouncements: boolean;
+  recentNotices: NoticeSummary[];
 };
 
 function NavItem({
@@ -53,12 +65,14 @@ function NavItem({
   );
 }
 
-export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount }: Props) {
+export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount, hasUnreadAnnouncements, recentNotices }: Props) {
   const t = useTranslations('navigation');
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+  const [noticeDropdownOpen, setNoticeDropdownOpen] = useState(false);
+  const [announcementUnread, setAnnouncementUnread] = useState(hasUnreadAnnouncements);
   const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
 
   const toggleEditMode = () => {
@@ -89,6 +103,15 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
   ];
 
   const isCurrent = (href: string) => pathname === href;
+  const openNotices = async () => {
+    const opening = !noticeDropdownOpen;
+    setNoticeDropdownOpen(opening);
+    setProfileDropdownOpen(false);
+    if (opening && announcementUnread) {
+      const response = await fetch("/api/notices/announcements/read", { method: "POST" });
+      if (response.ok) setAnnouncementUnread(false);
+    }
+  };
 
   return (
     <nav
@@ -210,6 +233,36 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
 
           {/* Right: edit mode + user + logout/login */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {isAuthed ? <div className="notice-menu">
+              <button
+                type="button"
+                className="notification-bell-button"
+                aria-label={(unreadNotificationCount > 0 || announcementUnread) ? "Notifications, new notices" : "Notifications"}
+                aria-expanded={noticeDropdownOpen}
+                onClick={openNotices}
+              >
+                <Bell size={20} aria-hidden="true" />
+                {(unreadNotificationCount > 0 || announcementUnread) ? <span className="notification-green-dot" aria-hidden="true" /> : null}
+              </button>
+              {noticeDropdownOpen ? <>
+                <div className="nav-dropdown-backdrop" onClick={() => setNoticeDropdownOpen(false)} />
+                <div className="notice-dropdown">
+                  <div className="notice-dropdown-heading"><strong>Recent notices</strong><span>Latest 3</span></div>
+                  {recentNotices.map((notice) => <Link
+                    key={`${notice.kind}-${notice.id}`}
+                    href={`/api/notices/open?kind=${notice.kind}&id=${encodeURIComponent(notice.id)}`}
+                    className={`notice-dropdown-item${notice.unread ? " unread" : ""}`}
+                    onClick={() => setNoticeDropdownOpen(false)}
+                  >
+                    <span className="notice-kind">{notice.kind === "announcement" ? "Announcement" : "Notification"}</span>
+                    <strong>{notice.title}</strong>
+                    <span>{notice.message}</span>
+                  </Link>)}
+                  {!recentNotices.length ? <p className="notice-empty">No notices yet.</p> : null}
+                  <Link className="notice-view-all" href="/members/notifications" onClick={() => setNoticeDropdownOpen(false)}>View all notifications</Link>
+                </div>
+              </> : null}
+            </div> : null}
             {/* Edit Mode Toggle (admin only) */}
             {canEdit && (
               <button

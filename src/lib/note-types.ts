@@ -1,3 +1,10 @@
+export type DrawingStroke = {
+  id: string;
+  color: string;
+  width: number;
+  points: Array<{ x: number; y: number }>;
+};
+
 export type StickyNoteData = {
   id: string;
   html: string;
@@ -8,11 +15,14 @@ export type StickyNoteData = {
   color: string;
   archived: boolean;
   zIndex: number;
+  strokes: DrawingStroke[];
 };
 
 export type NotePageData = {
   id: string;
   title: string;
+  html: string;
+  strokes: DrawingStroke[];
   notes: StickyNoteData[];
 };
 

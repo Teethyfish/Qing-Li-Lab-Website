@@ -1,17 +1,15 @@
 // src/app/api/members/profile/route.ts
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { getCurrentUser } from "@/lib/document-access";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
-
-/**
- * Quick sanity check endpoint:
- * - GET returns ok:true so we can verify the route exists
- * - POST saves name/about for the current user (auth check comes next)
- */
+// Legacy self-profile endpoint retained for compatibility. It always derives
+// the target user from the authenticated session and cannot edit other users.
 
 export async function GET() {
-  return NextResponse.json({ ok: true, route: "/api/members/profile" });
+  const user = await getCurrentUser();
+  if (!user?.isActive) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({ ok: true, user });
 }
 
 export async function POST(req: Request) {
@@ -20,15 +18,12 @@ export async function POST(req: Request) {
       | { email?: string; name?: string; about?: string }
       | null;
 
-    if (!body || !body.email) {
-      return NextResponse.json(
-        { error: "Missing email in body (temporary check)" },
-        { status: 400 }
-      );
-    }
+    const currentUser = await getCurrentUser();
+    if (!currentUser?.isActive) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!body) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
 
     const updated = await prisma.user.update({
-      where: { email: body.email.toLowerCase() },
+      where: { id: currentUser.id },
       data: {
         ...(typeof body.name === "string" ? { name: body.name } : {}),
         ...(typeof body.about === "string" ? { about: body.about } : {}),

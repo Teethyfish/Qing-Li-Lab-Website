@@ -13,7 +13,7 @@ export default async function NotesPage() {
     prisma.reminder.findMany({ where: { userId: user.id }, orderBy: { remindAt: "asc" } }),
   ]);
   const pageId = crypto.randomUUID();
-  const fallback: NoteWorkspaceData = { version: 1, activePageId: pageId, pages: [{ id: pageId, title: "Page 1", notes: [] }] };
+  const fallback: NoteWorkspaceData = { version: 1, activePageId: pageId, pages: [{ id: pageId, title: "Page 1", html: "", strokes: [], notes: [] }] };
   const initialWorkspace = stored?.content && typeof stored.content === "object"
     ? stored.content as unknown as NoteWorkspaceData
     : fallback;

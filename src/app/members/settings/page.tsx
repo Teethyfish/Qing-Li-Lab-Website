@@ -242,48 +242,6 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         </div>
       </section>
 
-      {/* Notification Settings */}
-      <section>
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-          {t('notificationSettings')}
-        </h2>
-
-        <div className="tile" style={{ padding: "1.5rem" }}>
-          <div style={{ display: "grid", gap: "1.5rem" }}>
-            <div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.5rem" }}>
-                {t('emailNotifications')}
-              </h3>
-              <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "1rem" }}>
-                {t('emailNotificationsNote')}
-              </p>
-
-              <div style={{ display: "grid", gap: "0.75rem" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
-                  <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>{t('newMemberRegistrations')}</span>
-                </label>
-
-                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
-                  <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>{t('accountUpdates')}</span>
-                </label>
-
-                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
-                  <input type="checkbox" disabled style={{ cursor: "pointer" }} />
-                  <span style={{ fontSize: "0.9rem" }}>{t('weeklyActivity')}</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <p className="muted" style={{ fontSize: "0.85rem" }}>
-                {t('notificationsNote')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

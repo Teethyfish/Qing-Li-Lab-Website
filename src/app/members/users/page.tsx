@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { requireAdminUser } from "@/lib/document-access";
+import Link from "next/link";
 
 /* ---------- page-builder config helper ---------- */
 type AppRow = { value: string };
@@ -201,6 +202,9 @@ export default async function UsersAdminPage() {
                     )}
                     <td style={{ padding: "8px" }}>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                        <Link className="btn btn-muted" href={`/members/profile/${u.id}`}>
+                          Edit public profile
+                        </Link>
                         {/* Promote / Demote */}
                         <form action={setRole}>
                           <input type="hidden" name="id" value={u.id} />

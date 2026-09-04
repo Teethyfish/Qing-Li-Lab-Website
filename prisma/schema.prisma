@@ -38,11 +38,13 @@ model User {
   mustResetPassword  Boolean             @default(false)
   isActive           Boolean             @default(true)
   membershipStatus   MembershipStatus    @default(ACTIVE)
+  profileContent     Json?
   documentsCreated   LabDocument[]       @relation("DocumentCreator")
   documentRecipients DocumentRecipient[]
   notifications      Notification[]
   noteWorkspace      NoteWorkspace?
   reminders          Reminder[]
+  announcementReads  AnnouncementRead[]
 }
 
 model AppConfig {
@@ -86,6 +88,18 @@ model Announcement {
   detailsContent String? // JSON object storing detailed content translations
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
+  reads          AnnouncementRead[]
+}
+
+model AnnouncementRead {
+  userId         String
+  announcementId String
+  readAt         DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@id([userId, announcementId])
+  @@index([announcementId])
 }
 
 model LabDocument {

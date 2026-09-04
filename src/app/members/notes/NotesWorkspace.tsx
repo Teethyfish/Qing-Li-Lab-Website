@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { NoteWorkspaceData, ReminderData, StickyNoteData } from "@/lib/note-types";
+import type { DrawingStroke, NoteWorkspaceData, ReminderData, StickyNoteData } from "@/lib/note-types";
 
 const COLORS = ["#fff3a6", "#ffd6e0", "#cdeffd", "#d9f7be", "#e8ddff", "#ffffff"];
 const id = () => crypto.randomUUID();
@@ -9,16 +9,33 @@ const plainText = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/&nbsp
 
 export default function NotesWorkspace({ initialWorkspace, initialReminders }: { initialWorkspace: NoteWorkspaceData; initialReminders: ReminderData[] }) {
   const [workspace, setWorkspace] = useState(initialWorkspace);
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedEditorId, setSelectedEditorId] = useState<string | null>(null);
+  const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(() => new Set());
   const [query, setQuery] = useState("");
   const [saveState, setSaveState] = useState<"saved" | "saving" | "error">("saved");
   const [reminders, setReminders] = useState(initialReminders);
   const [reminderBusy, setReminderBusy] = useState(false);
   const [reminderError, setReminderError] = useState<string | null>(null);
+  const [penEnabled, setPenEnabled] = useState(false);
+  const [penColor, setPenColor] = useState("#111827");
+  const [penWidth, setPenWidth] = useState(3);
+  const [draftStroke, setDraftStroke] = useState<{ targetId: string; stroke: DrawingStroke } | null>(null);
   const selectionRef = useRef<Range | null>(null);
   const skipFirstSave = useRef(true);
+  const draftStrokeRef = useRef<{ targetId: string; stroke: DrawingStroke } | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    noteId: string;
+    startClientX: number;
+    startClientY: number;
+    startX: number;
+    startY: number;
+    element: HTMLElement;
+  } | null>(null);
 
   const activePage = workspace.pages.find((page) => page.id === workspace.activePageId) || workspace.pages[0];
+  const pageEditorId = `page:${activePage.id}`;
+  const selectedNoteId = selectedEditorId?.startsWith("page:") ? null : selectedEditorId;
   const activeIndex = workspace.pages.findIndex((page) => page.id === activePage.id);
   const archived = activePage.notes.filter((note) => note.archived);
   const topZ = Math.max(0, ...activePage.notes.map((note) => note.zIndex));
@@ -43,16 +60,16 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   useEffect(() => {
     const rememberSelection = () => {
       const selection = window.getSelection();
-      if (!selection?.rangeCount || !selectedNoteId) return;
+      if (!selection?.rangeCount || !selectedEditorId) return;
       const range = selection.getRangeAt(0);
       const container = range.commonAncestorContainer instanceof HTMLElement
         ? range.commonAncestorContainer
         : range.commonAncestorContainer.parentElement;
-      if (container?.closest(`[data-note-editor="${CSS.escape(selectedNoteId)}"]`)) selectionRef.current = range.cloneRange();
+      if (container?.closest(`[data-note-editor="${CSS.escape(selectedEditorId)}"]`)) selectionRef.current = range.cloneRange();
     };
     document.addEventListener("selectionchange", rememberSelection);
     return () => document.removeEventListener("selectionchange", rememberSelection);
-  }, [selectedNoteId]);
+  }, [selectedEditorId]);
 
   const updatePage = (pageId: string, updater: (page: NoteWorkspaceData["pages"][number]) => NoteWorkspaceData["pages"][number]) => {
     setWorkspace((current) => ({ ...current, pages: current.pages.map((page) => page.id === pageId ? updater(page) : page) }));
@@ -63,15 +80,15 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   };
 
   const addNote = () => {
-    const note: StickyNoteData = { id: id(), html: "Start typing…", x: 30 + (activePage.notes.length % 6) * 28, y: 30 + (activePage.notes.length % 5) * 28, width: 280, height: 220, color: COLORS[activePage.notes.length % COLORS.length], archived: false, zIndex: topZ + 1 };
+    const note: StickyNoteData = { id: id(), html: "", x: 30 + (activePage.notes.length % 6) * 28, y: 30 + (activePage.notes.length % 5) * 28, width: 280, height: 220, color: COLORS[activePage.notes.length % COLORS.length], archived: false, zIndex: topZ + 1, strokes: [] };
     updatePage(activePage.id, (page) => ({ ...page, notes: [...page.notes, note] }));
-    setSelectedNoteId(note.id);
+    setSelectedEditorId(note.id);
   };
 
   const addPage = () => {
     const pageId = id();
-    setWorkspace((current) => ({ ...current, activePageId: pageId, pages: [...current.pages, { id: pageId, title: `Page ${current.pages.length + 1}`, notes: [] }] }));
-    setSelectedNoteId(null);
+    setWorkspace((current) => ({ ...current, activePageId: pageId, pages: [...current.pages, { id: pageId, title: `Page ${current.pages.length + 1}`, html: "", strokes: [], notes: [] }] }));
+    setSelectedEditorId(`page:${pageId}`);
   };
 
   const removePage = () => {
@@ -79,22 +96,30 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     if (!confirm(`Delete “${activePage.title}” and all notes on it?`)) return;
     const pages = workspace.pages.filter((page) => page.id !== activePage.id);
     setWorkspace({ ...workspace, pages, activePageId: pages[Math.max(0, activeIndex - 1)].id });
-    setSelectedNoteId(null);
+    setSelectedEditorId(null);
   };
 
   const switchPage = (pageId: string) => {
     setWorkspace((current) => ({ ...current, activePageId: pageId }));
-    setSelectedNoteId(null);
+    setSelectedEditorId(null);
   };
 
-  const commitEditor = (noteId: string) => {
-    const editor = document.querySelector<HTMLElement>(`[data-note-editor="${CSS.escape(noteId)}"]`);
-    if (editor) updateNote(noteId, { html: editor.innerHTML });
+  const commitEditor = (editorId: string) => {
+    const editor = document.querySelector<HTMLElement>(`[data-note-editor="${CSS.escape(editorId)}"]`);
+    if (!editor) return;
+    const hasStructuredContent = Boolean(editor.querySelector("table, ul, ol"));
+    const html = editor.innerText.trim() || hasStructuredContent ? editor.innerHTML : "";
+    if (editorId.startsWith("page:")) {
+      const pageId = editorId.slice(5);
+      updatePage(pageId, (page) => ({ ...page, html }));
+    } else {
+      updateNote(editorId, { html });
+    }
   };
 
   const runCommand = (command: string, value?: string) => {
-    if (!selectedNoteId) return;
-    const editor = document.querySelector<HTMLElement>(`[data-note-editor="${CSS.escape(selectedNoteId)}"]`);
+    if (!selectedEditorId) return;
+    const editor = document.querySelector<HTMLElement>(`[data-note-editor="${CSS.escape(selectedEditorId)}"]`);
     if (!editor) return;
     editor.focus();
     const selection = window.getSelection();
@@ -103,7 +128,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       selection.addRange(selectionRef.current);
     }
     document.execCommand(command, false, value);
-    commitEditor(selectedNoteId);
+    commitEditor(selectedEditorId);
   };
 
   const insertTable = () => {
@@ -128,13 +153,143 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     });
   };
 
+  const startNoteDrag = (event: React.PointerEvent<HTMLElement>, note: StickyNoteData) => {
+    if (event.button !== 0) return;
+    const element = event.currentTarget.closest<HTMLElement>(".sticky-note");
+    if (!element) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerId: event.pointerId,
+      noteId: note.id,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: note.x,
+      startY: note.y,
+      element,
+    };
+    setSelectedEditorId(note.id);
+    element.style.zIndex = String(topZ + 1);
+  };
+
+  const moveNoteDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const x = Math.max(0, Math.min(1_900, drag.startX + event.clientX - drag.startClientX));
+    const y = Math.max(0, Math.min(1_300, drag.startY + event.clientY - drag.startClientY));
+    drag.element.style.left = `${x}px`;
+    drag.element.style.top = `${y}px`;
+  };
+
+  const finishNoteDrag = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    const overBin = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-notes-bin='true']");
+    if (overBin) {
+      updateNote(drag.noteId, { archived: true, zIndex: topZ + 1 });
+      return;
+    }
+    updateNote(drag.noteId, {
+      x: Number.parseFloat(drag.element.style.left) || 0,
+      y: Number.parseFloat(drag.element.style.top) || 0,
+      zIndex: topZ + 1,
+    });
+  };
+
+  const pointIn = (event: React.PointerEvent<SVGSVGElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+  };
+
+  const startDrawing = (event: React.PointerEvent<SVGSVGElement>, targetId: string) => {
+    if (!penEnabled || event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const draft = { targetId, stroke: { id: id(), color: penColor, width: penWidth, points: [pointIn(event)] } };
+    draftStrokeRef.current = draft;
+    setDraftStroke(draft);
+    setSelectedEditorId(targetId);
+  };
+
+  const continueDrawing = (event: React.PointerEvent<SVGSVGElement>) => {
+    const draft = draftStrokeRef.current;
+    if (!draft || !event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    event.preventDefault();
+    const point = pointIn(event);
+    const previous = draft.stroke.points[draft.stroke.points.length - 1];
+    if (Math.hypot(point.x - previous.x, point.y - previous.y) < 1.5) return;
+    const next = { ...draft, stroke: { ...draft.stroke, points: [...draft.stroke.points, point] } };
+    draftStrokeRef.current = next;
+    setDraftStroke(next);
+  };
+
+  const updateStrokes = (targetId: string, updater: (strokes: DrawingStroke[]) => DrawingStroke[]) => {
+    if (targetId.startsWith("page:")) {
+      updatePage(targetId.slice(5), (page) => ({ ...page, strokes: updater(page.strokes || []) }));
+    } else {
+      updatePage(activePage.id, (page) => ({
+        ...page,
+        notes: page.notes.map((note) => note.id === targetId ? { ...note, strokes: updater(note.strokes || []) } : note),
+      }));
+    }
+  };
+
+  const finishDrawing = (event: React.PointerEvent<SVGSVGElement>) => {
+    const draft = draftStrokeRef.current;
+    if (!draft) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    draftStrokeRef.current = null;
+    setDraftStroke(null);
+    updateStrokes(draft.targetId, (strokes) => [...strokes, draft.stroke]);
+  };
+
+  const strokePath = (stroke: DrawingStroke) => stroke.points
+    .map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
+    .join(" ");
+
+  const drawingLayer = (targetId: string, strokes: DrawingStroke[]) => {
+    const rendered = draftStroke?.targetId === targetId ? [...strokes, draftStroke.stroke] : strokes;
+    return <svg
+      className={`notes-drawing-layer${penEnabled ? " pen-active" : ""}`}
+      aria-label={penEnabled ? "Drawing surface" : undefined}
+      onPointerDown={(event) => startDrawing(event, targetId)}
+      onPointerMove={continueDrawing}
+      onPointerUp={finishDrawing}
+      onPointerCancel={finishDrawing}
+    >
+      {rendered.map((stroke) => <path key={stroke.id} d={strokePath(stroke)} fill="none" stroke={stroke.color} strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" />)}
+    </svg>;
+  };
+
+  const undoDrawing = () => {
+    if (selectedEditorId) updateStrokes(selectedEditorId, (strokes) => strokes.slice(0, -1));
+  };
+
+  const clearDrawing = () => {
+    if (selectedEditorId && confirm("Clear all pen marks from the selected page or sticky note?")) {
+      updateStrokes(selectedEditorId, () => []);
+    }
+  };
+
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return [];
-    return workspace.pages.flatMap((page) => page.notes.flatMap((note) => {
-      const content = plainText(note.html);
-      return `${page.title} ${content}`.toLowerCase().includes(needle) ? [{ pageId: page.id, pageTitle: page.title, noteId: note.id, excerpt: content.slice(0, 100) || "Empty note" }] : [];
-    }));
+    return workspace.pages.flatMap((page) => {
+      const pageContent = plainText(page.html || "");
+      const pageMatches = `${page.title} ${pageContent}`.toLowerCase().includes(needle)
+        ? [{ pageId: page.id, pageTitle: page.title, editorId: `page:${page.id}`, excerpt: pageContent.slice(0, 100) || "Page title" }]
+        : [];
+      const noteMatches = page.notes.flatMap((note) => {
+        const content = plainText(note.html);
+        return content.toLowerCase().includes(needle)
+          ? [{ pageId: page.id, pageTitle: page.title, editorId: note.id, excerpt: content.slice(0, 100) || "Empty note" }]
+          : [];
+      });
+      return [...pageMatches, ...noteMatches];
+    });
   }, [query, workspace.pages]);
 
   const createReminder = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -177,6 +332,14 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       </div>
 
       <div className="rich-toolbar" aria-label="Note formatting toolbar">
+        <button className={penEnabled ? "pen-toggle active" : "pen-toggle"} aria-pressed={penEnabled} onClick={() => setPenEnabled((enabled) => !enabled)}>{penEnabled ? "Pen On" : "Pen"}</button>
+        <label title="Pen color">Pen color <input type="color" value={penColor} onChange={(event) => setPenColor(event.target.value)} /></label>
+        <select aria-label="Pen thickness" value={penWidth} onChange={(event) => setPenWidth(Number(event.target.value))}>
+          <option value="1">Fine pen</option><option value="3">Medium pen</option><option value="6">Thick pen</option><option value="12">Marker</option>
+        </select>
+        <button disabled={!selectedEditorId} onClick={undoDrawing}>Undo Ink</button>
+        <button disabled={!selectedEditorId} onClick={clearDrawing}>Clear Ink</button>
+        <span className="toolbar-divider" aria-hidden="true" />
         <select aria-label="Font" defaultValue="Arial" onChange={(event) => runCommand("fontName", event.target.value)}>
           <option>Arial</option><option>Georgia</option><option>Times New Roman</option><option>Verdana</option><option>Courier New</option>
         </select>
@@ -192,32 +355,60 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
         <button onMouseDown={(event) => { event.preventDefault(); runCommand("insertOrderedList"); }}>Numbering</button>
         <button onMouseDown={(event) => { event.preventDefault(); insertTable(); }}>Insert Table</button>
         <button onMouseDown={(event) => { event.preventDefault(); runCommand("removeFormat"); }}>Clear Formatting</button>
-        {!selectedNoteId ? <span className="muted">Select a sticky note to format its text.</span> : null}
+        {!selectedEditorId ? <span className="muted">Click the page or a sticky note to format its text.</span> : null}
       </div>
 
       <div className="notes-board-scroll">
         <div className="notes-board" onDragOver={(event) => event.preventDefault()} onDrop={onBoardDrop}>
+          <div
+            key={pageEditorId}
+            className={`notes-page-content${selectedEditorId === pageEditorId ? " selected" : ""}`}
+            data-note-editor={pageEditorId}
+            data-placeholder="Click anywhere on the page and start typing…"
+            contentEditable
+            suppressContentEditableWarning
+            dangerouslySetInnerHTML={{ __html: activePage.html || "" }}
+            onFocus={() => setSelectedEditorId(pageEditorId)}
+            onBlur={() => commitEditor(pageEditorId)}
+          />
+          {drawingLayer(pageEditorId, activePage.strokes || [])}
           {activePage.notes.filter((note) => !note.archived).map((note) => <article
             key={note.id}
             className={`sticky-note${selectedNoteId === note.id ? " selected" : ""}`}
             style={{ left: note.x, top: note.y, width: note.width, height: note.height, background: note.color, zIndex: note.zIndex }}
-            onMouseDown={() => { setSelectedNoteId(note.id); if (note.zIndex < topZ) updateNote(note.id, { zIndex: topZ + 1 }); }}
+            onMouseDown={() => { setSelectedEditorId(note.id); if (note.zIndex < topZ) updateNote(note.id, { zIndex: topZ + 1 }); }}
             onPointerUp={(event) => { const element = event.currentTarget; updateNote(note.id, { width: element.offsetWidth, height: element.offsetHeight }); }}
           >
-            <div className="sticky-note-header" draggable onDragStart={(event) => { event.dataTransfer.setData("application/x-lab-note", note.id); event.dataTransfer.effectAllowed = "move"; }}>
-              <span title="Drag to move">⋮⋮</span>
-              <div className="sticky-color-picker">{COLORS.map((color) => <button key={color} aria-label={`Set note color ${color}`} style={{ background: color }} onMouseDown={(event) => event.stopPropagation()} onClick={() => updateNote(note.id, { color })} />)}</div>
-              <button className="note-control" title="Move to saved notes bin" onClick={() => updateNote(note.id, { archived: true })}>Store</button>
+            <div className={`sticky-note-header${expandedNoteIds.has(note.id) ? " expanded" : ""}`}>
+              <span
+                className="sticky-drag-handle"
+                title="Drag to move"
+                onPointerDown={(event) => startNoteDrag(event, note)}
+                onPointerMove={moveNoteDrag}
+                onPointerUp={finishNoteDrag}
+                onPointerCancel={finishNoteDrag}
+              >⋮⋮</span>
+              <button className="note-control sticky-tools-toggle" aria-expanded={expandedNoteIds.has(note.id)} onClick={() => setExpandedNoteIds((current) => {
+                const next = new Set(current);
+                if (next.has(note.id)) next.delete(note.id); else next.add(note.id);
+                return next;
+              })}>{expandedNoteIds.has(note.id) ? "Hide tools" : "Tools"}</button>
+              {expandedNoteIds.has(note.id) ? <div className="sticky-note-tools">
+                <div className="sticky-color-picker">{COLORS.map((color) => <button key={color} aria-label={`Set note color ${color}`} title={color} style={{ "--note-swatch": color } as React.CSSProperties} onClick={() => updateNote(note.id, { color })} />)}</div>
+                <button className="note-control" title="Move to saved notes bin" onClick={() => updateNote(note.id, { archived: true })}>Store in bin</button>
+              </div> : null}
             </div>
             <div
               className="sticky-note-content"
               data-note-editor={note.id}
               contentEditable
               suppressContentEditableWarning
-              dangerouslySetInnerHTML={{ __html: note.html }}
-              onFocus={() => setSelectedNoteId(note.id)}
+              data-placeholder="Start typing…"
+              dangerouslySetInnerHTML={{ __html: note.html === "Start typing…" ? "" : note.html }}
+              onFocus={() => setSelectedEditorId(note.id)}
               onBlur={() => commitEditor(note.id)}
             />
+            {drawingLayer(note.id, note.strokes || [])}
           </article>)}
         </div>
       </div>
@@ -227,10 +418,10 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       <section className="card">
         <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>Search Notes</h2>
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all pages…" style={{ width: "100%", boxSizing: "border-box", padding: ".6rem" }} />
-        {query ? <div className="notes-search-results">{matches.map((match) => <button key={`${match.pageId}-${match.noteId}`} className="notes-search-result" onClick={() => { switchPage(match.pageId); setSelectedNoteId(match.noteId); }}><strong>{match.pageTitle}</strong><span>{match.excerpt}</span></button>)}{!matches.length ? <p className="muted">No matches.</p> : null}</div> : null}
+        {query ? <div className="notes-search-results">{matches.map((match) => <button key={`${match.pageId}-${match.editorId}`} className="notes-search-result" onClick={() => { switchPage(match.pageId); setSelectedEditorId(match.editorId); }}><strong>{match.pageTitle}</strong><span>{match.excerpt}</span></button>)}{!matches.length ? <p className="muted">No matches.</p> : null}</div> : null}
       </section>
 
-      <section className="card notes-bin" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const noteId = event.dataTransfer.getData("application/x-lab-note"); if (noteId) updateNote(noteId, { archived: true }); }}>
+      <section data-notes-bin="true" className="card notes-bin" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const noteId = event.dataTransfer.getData("application/x-lab-note"); if (noteId) updateNote(noteId, { archived: true }); }}>
         <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>Saved Notes Bin</h2>
         <p className="muted" style={{ fontSize: ".85rem" }}>Drag a sticky note here to store it for later.</p>
         {archived.map((note) => <div key={note.id} className="archived-note" style={{ borderLeftColor: note.color }} draggable onDragStart={(event) => event.dataTransfer.setData("application/x-lab-note", note.id)}>
