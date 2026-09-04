@@ -148,6 +148,49 @@ a:hover { text-decoration: underline; }
 .document-listing-title { margin: 0 0 .25rem; font-size: 1rem; color: var(--color-text); }
 .document-listing p, .document-admin-listing p { line-height: 1.45; }
 
+.document-admin-page, .document-management-workspace { display: grid; gap: 1.5rem; }
+.document-admin-title h1, .document-admin-title p, .document-connection-panel h2, .document-connection-panel p { margin: 0; }
+.document-admin-title p, .document-connection-panel p { margin-top: .4rem; }
+.document-management-panel, .document-management-card, .document-upload-section > form { overflow: visible; }
+.document-panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.document-panel-header h2, .document-panel-header p { margin: 0; }
+.document-panel-header p { margin-top: .35rem; }
+.document-category-create { display: flex; align-items: end; gap: .75rem; margin-top: 1rem; }
+.document-category-create label { display: grid; flex: 1; gap: .4rem; }
+.document-category-create input, .document-category-row input, .document-category-assignment select, .document-settings-form input:not([type="checkbox"]), .document-settings-form textarea, .document-delete-controls input { box-sizing: border-box; width: 100%; padding: .65rem .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent); background: var(--color-card); color: var(--color-text); font: inherit; }
+.document-category-grid { display: grid; gap: .65rem; margin-top: 1rem; }
+.document-category-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .6rem; padding: .7rem; align-items: center; border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent); background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.document-upload-section, .document-list-section { display: grid; gap: .8rem; }
+.document-upload-section > form { margin: 0; }
+.document-admin-grid { display: grid; gap: 1rem; }
+.document-management-card { display: grid; gap: .85rem; padding: 1rem; }
+.document-card-header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.document-card-header h3, .document-card-header p { margin: 0; }
+.document-card-header h3 { font-size: 1rem; }
+.document-card-header p { margin-top: .35rem; color: var(--color-muted); line-height: 1.45; }
+.document-card-header .status-label { flex: 0 0 auto; }
+.document-category-assignment { display: grid; grid-template-columns: minmax(190px, 1fr) auto; align-items: end; gap: .75rem; padding: .8rem 0; }
+.document-category-assignment label, .document-settings-form label { display: grid; gap: .4rem; }
+.document-primary-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+.document-admin-disclosure { border-top: 1px solid color-mix(in oklab, var(--color-text) 11%, transparent); }
+.document-admin-disclosure > summary { padding: .8rem .2rem; font-weight: 650; cursor: pointer; }
+.document-admin-disclosure[open] > summary { color: var(--color-primary); }
+.document-settings-form, .document-disclosure-body, .document-delete-controls { display: grid; gap: .75rem; padding: .35rem .2rem .85rem; }
+.document-settings-form .btn, .document-delete-controls .btn { justify-self: start; }
+.document-checkbox { display: flex !important; flex-direction: row; align-items: center; gap: .5rem !important; }
+.document-disclosure-body ul { margin: 0; padding-left: 1.25rem; }
+.document-delete-controls p { margin: 0; }
+.document-admin-disclosure.danger > summary { color: #991b1b; }
+.document-save-status { margin: 0; color: var(--color-accent); font-size: .86rem; font-weight: 650; }
+.document-error { color: #991b1b; }
+
+@media (max-width: 640px) {
+  .document-category-create, .document-category-row, .document-category-assignment { grid-template-columns: 1fr; align-items: stretch; }
+  .document-category-create { display: grid; }
+  .document-card-header { display: grid; }
+  .document-card-header .status-label { justify-self: start; }
+}
+
 .instrument-card {
   display: flex;
   flex-direction: column;
@@ -1606,9 +1649,9 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .project-panel-heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
 .project-panel-heading h2, .project-panel-heading p { margin: 0; }
 .project-panel-heading p { margin-top: .35rem; }
-.project-admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
-.project-admin-card { display: grid; grid-template-columns: 110px minmax(0, 1fr); border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
-.project-admin-thumb { display: grid; place-items: center; min-height: 150px; background-position: center; background-size: cover; color: var(--color-muted); font-size: .72rem; text-align: center; }
+.project-admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.project-admin-card { display: grid; grid-template-rows: 150px minmax(0, 1fr); min-width: 0; overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: var(--color-card); box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent); }
+.project-admin-thumb { display: grid; place-items: center; width: 100%; min-width: 0; background-position: center; background-size: cover; color: var(--color-muted); font-size: .72rem; text-align: center; }
 .project-admin-card-body { display: grid; align-content: start; gap: .35rem; padding: .8rem; min-width: 0; }
 .project-admin-card-body p { margin: .25rem 0; }
 .project-admin-card-body small { overflow-wrap: anywhere; }
@@ -1647,6 +1690,6 @@ button.project-photo-remove { position: absolute; top: 4px; right: 4px; width: 2
   .home-project-grid, .project-form-grid, .project-image-fields, .research-project-content { grid-template-columns: 1fr; }
   .research-project-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-supporting-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .project-admin-card { grid-template-columns: 90px minmax(0, 1fr); }
+  .project-admin-grid { grid-template-columns: 1fr; }
   .research-project-people { grid-template-columns: repeat(auto-fill, minmax(140px, 180px)); }
 }

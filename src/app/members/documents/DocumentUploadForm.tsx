@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 type UserOption = {
   id: string;
@@ -15,6 +16,7 @@ type Props = { users: UserOption[]; categories: CategoryOption[] };
 
 export default function DocumentUploadForm({ users, categories }: Props) {
   const t = useTranslations("sitePages.documentsAdmin");
+  const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
@@ -129,6 +131,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
       setTitle("");
       setAutoTitle("");
       setPublicOnly(false);
+      router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -159,6 +162,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
           <option value="">{t("uncategorized")}</option>
           {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
+        <small className="muted">{t("uploadCategoryHelp")}</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>

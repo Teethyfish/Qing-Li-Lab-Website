@@ -561,7 +561,11 @@
       "replacing": "Replacing…",
       "replaceSuccess": "File replaced. Existing access and links were preserved.",
       "chooseReplacement": "Choose a replacement file.",
-      "replaceFailed": "Could not replace the file."
+      "replaceFailed": "Could not replace the file.",
+      "uploadCategoryPrompt": "Choose the document’s category while uploading. You can change it later if needed.", "uploadCategoryHelp": "This places the document directly into the selected database section.",
+      "documentManagementHelp": "Assign categories directly or open a document’s settings for less common changes.", "saveCategory": "Save category", "saving": "Saving…", "saved": "Saved.", "saveFailed": "Changes could not be saved.",
+      "categoryName": "Category name", "categoryCreated": "Category created and added to the upload form.", "categoryRenamed": "Category renamed.", "categoryDeleted": "Category deleted; its documents are now uncategorized.", "confirmDeleteCategory": "Delete {name}? Documents in it will become uncategorized.",
+      "noDescription": "No description provided.", "noRecipients": "No individual recipients.", "deleteDocument": "Delete document", "deleteDocumentHelp": "Type DELETE to remove the website entry and attempt to remove its Google Drive file."
     },
     "instrumentAdmin": {
       "title": "Manage Instruments",

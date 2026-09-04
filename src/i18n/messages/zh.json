@@ -561,7 +561,11 @@
       "replacing": "替换中…",
       "replaceSuccess": "文件已替换。原有访问权限和链接已保留。",
       "chooseReplacement": "请选择替换文件。",
-      "replaceFailed": "无法替换文件。"
+      "replaceFailed": "无法替换文件。",
+      "uploadCategoryPrompt": "上传时直接选择文档分类；如有需要，以后仍可更改。", "uploadCategoryHelp": "文档将直接放入所选的数据库分区。",
+      "documentManagementHelp": "可直接分配分类，或打开文档设置进行其他更改。", "saveCategory": "保存分类", "saving": "保存中…", "saved": "已保存。", "saveFailed": "无法保存更改。",
+      "categoryName": "分类名称", "categoryCreated": "分类已创建并加入上传表单。", "categoryRenamed": "分类已重命名。", "categoryDeleted": "分类已删除，其中的文档现为未分类。", "confirmDeleteCategory": "删除 {name}？其中的文档将变为未分类。",
+      "noDescription": "未提供说明。", "noRecipients": "没有个人收件人。", "deleteDocument": "删除文档", "deleteDocumentHelp": "输入 DELETE 以删除网站条目，并尝试删除 Google Drive 文件。"
     },
     "instrumentAdmin": {
       "title": "管理仪器",
