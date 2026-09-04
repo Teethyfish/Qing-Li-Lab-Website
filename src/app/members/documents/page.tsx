@@ -3,8 +3,8 @@ export const runtime = "nodejs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import DocumentUploadForm from "./DocumentUploadForm";
+import { deleteDocumentEntry } from "@/app/database/actions";
 import { requireAdminUser } from "@/lib/document-access";
-import { deleteDriveDocument } from "@/lib/google";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
 
@@ -36,21 +36,6 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
       include: { recipients: { include: { user: { select: { name: true, email: true } } } } },
     }),
   ]);
-
-  async function deleteDocument(formData: FormData) {
-    "use server";
-    await requireAdminUser();
-    const id = String(formData.get("id") || "");
-    const confirmation = String(formData.get("confirmation") || "");
-    if (!id || confirmation !== "DELETE") return;
-    const document = await prisma.labDocument.findUnique({ where: { id } });
-    if (!document) return;
-    await deleteDriveDocument(document.driveFileId);
-    await prisma.labDocument.delete({ where: { id } });
-    revalidatePath("/members/documents");
-    revalidatePath("/database");
-    revalidatePath("/members/notifications");
-  }
 
   async function updateDocument(formData: FormData) {
     "use server";
@@ -152,7 +137,7 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1rem" }}>
                 <a className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</a>
                 <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
-                <form action={deleteDocument} style={{ display: "flex", gap: 6 }}>
+                <form action={deleteDocumentEntry} style={{ display: "flex", gap: 6 }}>
                   <input type="hidden" name="id" value={document.id} />
                   <input name="confirmation" placeholder={t("typeDelete")} aria-label={t("typeDelete")} />
                   <button className="btn btn-warning" type="submit">{t("deleteDrive")}</button>

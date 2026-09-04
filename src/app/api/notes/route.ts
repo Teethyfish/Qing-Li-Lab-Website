@@ -15,6 +15,7 @@ function cleanStrokes(value: unknown): DrawingStroke[] {
     if (!entry || typeof entry !== "object") return [];
     const stroke = entry as Record<string, unknown>;
     const id = typeof stroke.id === "string" ? stroke.id.slice(0, 100) : "";
+    const tool = stroke.tool === "eraser" ? "eraser" as const : "pen" as const;
     const color = typeof stroke.color === "string" && /^#[0-9a-f]{6}$/i.test(stroke.color) ? stroke.color : "#111827";
     if (!id || !Array.isArray(stroke.points)) return [];
     const points = stroke.points.slice(0, 2_000).flatMap((point): Array<{ x: number; y: number }> => {
@@ -23,7 +24,7 @@ function cleanStrokes(value: unknown): DrawingStroke[] {
       if (typeof candidate.x !== "number" || typeof candidate.y !== "number") return [];
       return [{ x: clamp(candidate.x, 0, 2_000, 0), y: clamp(candidate.y, 0, 1_400, 0) }];
     });
-    return points.length ? [{ id, color, width: clamp(stroke.width, 1, 24, 3), points }] : [];
+    return points.length ? [{ id, tool, color, width: clamp(stroke.width, 1, 36, 3), points }] : [];
   });
 }
 

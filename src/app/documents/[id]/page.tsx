@@ -31,7 +31,7 @@ export default async function DocumentViewerPage({ params }: Props) {
     <main style={{ display: "grid", gap: "1.25rem" }}>
       <header className="tile" style={{ display: "grid", gap: "0.75rem" }}>
         <div>
-          <Link href="/database">{t("back")}</Link>
+          <Link className="btn btn-muted" href="/database">{t("back")}</Link>
         </div>
         <div>
           <h1 style={{ margin: 0 }}>{document.title}</h1>

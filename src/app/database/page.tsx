@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import Link from "next/link";
+import AdminDeleteDocumentButton from "./AdminDeleteDocumentButton";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
@@ -14,7 +15,7 @@ function formatBytes(bytes: number) {
 export default async function DocumentDatabasePage() {
   const user = await getCurrentUser();
   const t = await getTranslations("sitePages.database");
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === "ADMIN" && user.isActive;
   const documents = await prisma.labDocument.findMany({
     where: isAdmin
       ? undefined
@@ -55,6 +56,15 @@ export default async function DocumentDatabasePage() {
                 <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", flex: "0 0 auto", alignSelf: "flex-start" }}>
                   <Link className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</Link>
                   <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
+                  {isAdmin ? (
+                    <AdminDeleteDocumentButton
+                      documentId={document.id}
+                      documentTitle={document.title}
+                      label={t("deleteEntry")}
+                      deletingLabel={t("deleting")}
+                      confirmMessage={t("deleteConfirm", { title: "{title}" })}
+                    />
+                  ) : null}
                 </div>
               </div>
               {isAdmin && recipients.length ? (

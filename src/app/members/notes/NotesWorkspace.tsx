@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Pencil, RotateCcw, X } from "lucide-react";
+import { Eraser, Pencil, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { CanvasTextBoxData, DrawingStroke, NoteWorkspaceData, RecentlyDeletedItem, ReminderData, StickyNoteData } from "@/lib/note-types";
 
@@ -82,9 +82,10 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const [reminders, setReminders] = useState(initialReminders);
   const [reminderBusy, setReminderBusy] = useState(false);
   const [reminderError, setReminderError] = useState<string | null>(null);
-  const [penEnabled, setPenEnabled] = useState(false);
+  const [drawingTool, setDrawingTool] = useState<"pen" | "eraser" | null>(null);
   const [penColor, setPenColor] = useState("#111827");
   const [penWidth, setPenWidth] = useState(3);
+  const [eraserWidth, setEraserWidth] = useState(18);
   const [boardSize, setBoardSize] = useState({ width: 1200, height: 760 });
   const [boardReady, setBoardReady] = useState(false);
   const [draftStroke, setDraftStroke] = useState<{ targetId: string; stroke: DrawingStroke } | null>(null);
@@ -114,7 +115,9 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const selectedTextBoxId = selectedEditorId?.startsWith("textbox:") ? selectedEditorId.slice(8) : null;
   const selectedNoteId = selectedEditorId && !selectedEditorId.startsWith("page:") && !selectedEditorId.startsWith("textbox:") ? selectedEditorId : null;
   const activeIndex = workspace.pages.findIndex((page) => page.id === activePage.id);
-  const archived = activePage.notes.filter((note) => note.archived);
+  const archived = workspace.pages.flatMap((page) => page.notes.flatMap((note) => note.archived
+    ? [{ pageId: page.id, pageTitle: page.title, note }]
+    : []));
   const recentlyDeleted = workspace.recentlyDeleted || [];
   const topZ = Math.max(2, ...activePage.notes.map((note) => note.zIndex), ...(activePage.textBoxes || []).map((box) => box.zIndex));
 
@@ -215,9 +218,26 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     updateItemOnPage(activePage.id, "textbox", boxId, values, immediate);
   };
 
-  const restoreNote = (note: StickyNoteData) => {
-    const bounds = visibleRect(note);
-    updateNote(note.id, { archived: false, ...bounds, zIndex: topZ + 1 }, true);
+  const restoreNote = (note: StickyNoteData, sourcePageId: string, placement?: Partial<Pick<StickyNoteData, "x" | "y" | "width" | "height">>) => {
+    const destinationPageId = activePage.id;
+    const bounds = visibleRect({
+      x: placement?.x ?? note.x,
+      y: placement?.y ?? note.y,
+      width: placement?.width ?? note.width,
+      height: placement?.height ?? note.height,
+    });
+    saveImmediately();
+    setWorkspace((current) => ({
+      ...current,
+      pages: current.pages.map((page) => {
+        if (sourcePageId === destinationPageId && page.id === destinationPageId) {
+          return { ...page, notes: page.notes.map((item) => item.id === note.id ? { ...item, ...bounds, archived: false, zIndex: topZ + 1 } : item) };
+        }
+        if (page.id === sourcePageId) return { ...page, notes: page.notes.filter((item) => item.id !== note.id) };
+        if (page.id === destinationPageId) return { ...page, notes: [...page.notes.filter((item) => item.id !== note.id), { ...note, ...bounds, archived: false, zIndex: topZ + 1 }] };
+        return page;
+      }),
+    }));
     setSelectedEditorId(note.id);
   };
 
@@ -258,17 +278,17 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   };
 
   const addTextBoxFromBoard = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0 || penEnabled || event.target !== event.currentTarget) return;
+    if (event.button !== 0 || drawingTool || event.target !== event.currentTarget) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     addTextBox(event.clientX - bounds.left, event.clientY - bounds.top);
   };
 
-  const deleteNote = (note: StickyNoteData) => {
-    const deleted: RecentlyDeletedItem = { id: id(), kind: "note", pageId: activePage.id, deletedAt: new Date().toISOString(), item: note };
+  const deleteNote = (note: StickyNoteData, pageId = activePage.id) => {
+    const deleted: RecentlyDeletedItem = { id: id(), kind: "note", pageId, deletedAt: new Date().toISOString(), item: note };
     saveImmediately();
     setWorkspace((current) => ({
       ...current,
-      pages: current.pages.map((page) => page.id === activePage.id ? { ...page, notes: page.notes.filter((item) => item.id !== note.id) } : page),
+      pages: current.pages.map((page) => page.id === pageId ? { ...page, notes: page.notes.filter((item) => item.id !== note.id) } : page),
       recentlyDeleted: [deleted, ...(current.recentlyDeleted || [])].slice(0, 5),
     }));
     if (selectedEditorId === note.id) setSelectedEditorId(null);
@@ -364,7 +384,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const runCommand = (command: string, value?: string) => {
     const editor = getSelectedEditor();
     if (!editor) return;
-    setPenEnabled(false);
+    setDrawingTool(null);
     restoreSelection(editor);
     document.execCommand(command, false, value);
     syncSelectedEditor();
@@ -373,7 +393,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const clearFormatting = () => {
     const editor = getSelectedEditor();
     if (!editor) return;
-    setPenEnabled(false);
+    setDrawingTool(null);
     const selection = restoreSelection(editor);
     if (!selection) return;
     const clearWholeEditor = !selection.rangeCount || selection.getRangeAt(0).collapsed;
@@ -398,7 +418,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const applyBlockSpacing = (property: "lineHeight" | "marginBottom", value: string) => {
     const editor = getSelectedEditor();
     if (!editor) return;
-    setPenEnabled(false);
+    setDrawingTool(null);
     const selection = restoreSelection(editor);
     if (!selection?.rangeCount) return;
     const initialBlock = selection.anchorNode instanceof HTMLElement
@@ -421,6 +441,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const columns = Math.min(8, Math.max(1, Number(prompt(t("tableColumns"), "3")) || 0));
     if (!columns) return;
     const cells = `<tr>${Array.from({ length: columns }, () => "<td><br></td>").join("")}</tr>`;
+    saveImmediately();
     runCommand("insertHTML", `<table><tbody>${Array.from({ length: rows }, () => cells).join("")}</tbody></table><p><br></p>`);
   };
 
@@ -435,10 +456,15 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const deleteTable = () => {
     const table = selectedTableRef.current;
     if (!table) return;
+    const editor = table.closest<HTMLElement>("[data-note-editor]");
+    const editorId = editor?.dataset.noteEditor;
     table.remove();
     selectedTableRef.current = null;
     setSelectedTable(false);
-    syncSelectedEditor();
+    if (editor && editorId) {
+      saveImmediately();
+      updateEditorHtml(editorId, editorHtml(editor));
+    }
   };
 
   const startItemDrag = (event: React.PointerEvent<HTMLElement>, kind: "note" | "textbox", item: { id: string; x: number; y: number }) => {
@@ -484,10 +510,18 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const noteId = event.dataTransfer.getData("application/x-lab-note");
     if (!noteId) return;
     const bounds = event.currentTarget.getBoundingClientRect();
-    const note = activePage.notes.find((item) => item.id === noteId);
-    const width = Math.min(note?.width || 280, bounds.width);
-    const height = Math.min(note?.height || 220, bounds.height);
-    updateNote(noteId, { archived: false, x: Math.max(0, Math.min(bounds.width - width, event.clientX - bounds.left - 40)), y: Math.max(0, Math.min(bounds.height - height, event.clientY - bounds.top - 20)), width, height, zIndex: topZ + 1 }, true);
+    const sourcePageId = event.dataTransfer.getData("application/x-lab-note-page")
+      || workspace.pages.find((page) => page.notes.some((item) => item.id === noteId))?.id;
+    const note = sourcePageId ? workspace.pages.find((page) => page.id === sourcePageId)?.notes.find((item) => item.id === noteId) : undefined;
+    if (!sourcePageId || !note) return;
+    const width = Math.min(note.width, bounds.width);
+    const height = Math.min(note.height, bounds.height);
+    restoreNote(note, sourcePageId, {
+      x: Math.max(0, Math.min(bounds.width - width, event.clientX - bounds.left - 40)),
+      y: Math.max(0, Math.min(bounds.height - height, event.clientY - bounds.top - 20)),
+      width,
+      height,
+    });
   };
 
   const pointIn = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -496,11 +530,18 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   };
 
   const startDrawing = (event: React.PointerEvent<SVGSVGElement>, targetId: string) => {
-    if (!penEnabled || event.button !== 0) return;
+    if (!drawingTool || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
-    const draft = { targetId, stroke: { id: id(), color: penColor, width: penWidth, points: [pointIn(event)] } };
+    const stroke: DrawingStroke = {
+      id: id(),
+      tool: drawingTool,
+      color: drawingTool === "eraser" ? "#000000" : penColor,
+      width: drawingTool === "eraser" ? eraserWidth : penWidth,
+      points: [pointIn(event)],
+    };
+    const draft = { targetId, stroke };
     draftStrokeRef.current = draft;
     lastDrawingTargetRef.current = targetId;
     setDraftStroke(draft);
@@ -533,11 +574,26 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     updateStrokes(draft.targetId, (strokes) => [...strokes, draft.stroke]);
   };
 
-  const strokePath = (stroke: DrawingStroke) => stroke.points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+  const strokePath = (stroke: DrawingStroke) => {
+    const path = stroke.points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ");
+    return stroke.points.length === 1 ? `${path} l0.01 0` : path;
+  };
   const drawingLayer = (targetId: string, strokes: DrawingStroke[]) => {
     const rendered = draftStroke?.targetId === targetId ? [...strokes, draftStroke.stroke] : strokes;
-    return <svg className={`notes-drawing-layer${penEnabled ? " pen-active" : ""}`} aria-label={penEnabled ? t("penOn") : undefined} onPointerDown={(event) => startDrawing(event, targetId)} onPointerMove={continueDrawing} onPointerUp={finishDrawing} onPointerCancel={finishDrawing}>
-      {rendered.map((stroke) => <path key={stroke.id} d={strokePath(stroke)} fill="none" stroke={stroke.color} strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" />)}
+    const inkLayers = rendered.flatMap((stroke, index) => stroke.tool === "eraser" ? [] : [{
+      stroke,
+      erasers: rendered.slice(index + 1).filter((candidate) => candidate.tool === "eraser"),
+      maskId: `ink-mask-${targetId}-${stroke.id}`.replace(/[^a-zA-Z0-9_-]/g, "-"),
+    }]);
+    const activeClass = drawingTool === "pen" ? " pen-active" : drawingTool === "eraser" ? " eraser-active" : "";
+    return <svg className={`notes-drawing-layer${activeClass}`} aria-label={drawingTool === "eraser" ? t("eraserOn") : drawingTool === "pen" ? t("penOn") : undefined} onPointerDown={(event) => startDrawing(event, targetId)} onPointerMove={continueDrawing} onPointerUp={finishDrawing} onPointerCancel={finishDrawing}>
+      <defs>
+        {inkLayers.filter(({ erasers }) => erasers.length).map(({ maskId, erasers }) => <mask key={maskId} id={maskId}>
+          <rect width="100%" height="100%" fill="white" />
+          {erasers.map((eraser) => <path key={eraser.id} d={strokePath(eraser)} fill="none" stroke="black" strokeWidth={eraser.width} strokeLinecap="round" strokeLinejoin="round" />)}
+        </mask>)}
+      </defs>
+      {inkLayers.map(({ stroke, erasers, maskId }) => <path key={stroke.id} d={strokePath(stroke)} fill="none" stroke={stroke.color} strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" mask={erasers.length ? `url(#${maskId})` : undefined} />)}
     </svg>;
   };
 
@@ -565,16 +621,17 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
 
   const createReminder = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setReminderBusy(true);
     setReminderError(null);
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const localDate = String(form.get("remindAt") || "");
     try {
       const response = await fetch("/api/reminders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: form.get("message"), remindAt: new Date(localDate).toISOString() }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || t("reminderError"));
       setReminders((current) => [...current, data.reminder].sort((a, b) => a.remindAt.localeCompare(b.remindAt)));
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (caught) { setReminderError(caught instanceof Error ? caught.message : t("reminderError")); }
     finally { setReminderBusy(false); }
   };
@@ -604,9 +661,12 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       </div>
 
       <div className="rich-toolbar" aria-label={t("formattingToolbar")}>
-        <button className={penEnabled ? "pen-toggle active" : "pen-toggle"} aria-pressed={penEnabled} onClick={() => setPenEnabled((enabled) => !enabled)}>{penEnabled ? t("penOn") : t("pen")}</button>
-        <label title={t("penColor")}>{t("penColor")} <input type="color" value={penColor} onChange={(event) => setPenColor(event.target.value)} /></label>
-        <select aria-label={t("penThickness")} value={penWidth} onChange={(event) => setPenWidth(Number(event.target.value))}><option value="1">{t("finePen")}</option><option value="3">{t("mediumPen")}</option><option value="6">{t("thickPen")}</option><option value="12">{t("marker")}</option></select>
+        <button className={drawingTool === "pen" ? "pen-toggle active" : "pen-toggle"} aria-pressed={drawingTool === "pen"} onClick={() => setDrawingTool((tool) => tool === "pen" ? null : "pen")}>{drawingTool === "pen" ? t("penOn") : t("pen")}</button>
+        <button className={drawingTool === "eraser" ? "pen-toggle active" : "pen-toggle"} aria-pressed={drawingTool === "eraser"} onClick={() => setDrawingTool((tool) => tool === "eraser" ? null : "eraser")}><Eraser size={14} aria-hidden="true" /> {drawingTool === "eraser" ? t("eraserOn") : t("eraser")}</button>
+        {drawingTool !== "eraser" ? <label title={t("penColor")}>{t("penColor")} <input type="color" value={penColor} onChange={(event) => setPenColor(event.target.value)} /></label> : null}
+        {drawingTool === "eraser"
+          ? <select aria-label={t("eraserSize")} value={eraserWidth} onChange={(event) => setEraserWidth(Number(event.target.value))}><option value="8">{t("smallEraser")}</option><option value="18">{t("mediumEraser")}</option><option value="32">{t("largeEraser")}</option></select>
+          : <select aria-label={t("penThickness")} value={penWidth} onChange={(event) => setPenWidth(Number(event.target.value))}><option value="1">{t("finePen")}</option><option value="3">{t("mediumPen")}</option><option value="6">{t("thickPen")}</option><option value="12">{t("marker")}</option></select>}
         <button onClick={undoDrawing}>{t("undoInk")}</button>
         <button onClick={clearDrawing}>{t("clearInk")}</button>
         <span className="toolbar-divider" aria-hidden="true" />
@@ -674,11 +734,11 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       <section data-notes-bin="true" className="card notes-bin" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const noteId = event.dataTransfer.getData("application/x-lab-note"); if (noteId) updateNote(noteId, { archived: true }, true); }}>
         <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>{t("bin")}</h2>
         <p className="muted" style={{ fontSize: ".85rem" }}>{t("binHelp")}</p>
-        <div className="archived-notes-grid">{archived.map((note) => <div key={note.id} className="archived-note" style={{ background: note.color }} draggable onDragStart={(event) => event.dataTransfer.setData("application/x-lab-note", note.id)}>
+        <div className="archived-notes-grid">{archived.map(({ note, pageId, pageTitle }) => <div key={`${pageId}-${note.id}`} className="archived-note" style={{ background: note.color }} title={`${note.subject || t("untitledNote")} · ${pageTitle}`} draggable onDragStart={(event) => { event.dataTransfer.setData("application/x-lab-note", note.id); event.dataTransfer.setData("application/x-lab-note-page", pageId); }}>
           <strong>{note.subject || t("untitledNote")}</strong>
           <span className="archived-note-actions">
-            <button className="archived-note-icon restore" aria-label={t("restore")} title={t("restore")} onClick={() => restoreNote(note)}><RotateCcw size={12} aria-hidden="true" /></button>
-            <button className="archived-note-icon delete" aria-label={t("delete")} title={t("delete")} onClick={() => deleteNote(note)}><X size={12} aria-hidden="true" /></button>
+            <button className="archived-note-icon restore" aria-label={t("restore")} title={t("restore")} onClick={() => restoreNote(note, pageId)}><RotateCcw size={12} aria-hidden="true" /></button>
+            <button className="archived-note-icon delete" aria-label={t("delete")} title={t("delete")} onClick={() => deleteNote(note, pageId)}><X size={12} aria-hidden="true" /></button>
           </span>
         </div>)}</div>
         {!archived.length ? <p className="muted">{t("emptyBin")}</p> : null}

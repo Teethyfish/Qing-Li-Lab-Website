@@ -1,5 +1,6 @@
 export type DrawingStroke = {
   id: string;
+  tool?: "pen" | "eraser";
   color: string;
   width: number;
   points: Array<{ x: number; y: number }>;

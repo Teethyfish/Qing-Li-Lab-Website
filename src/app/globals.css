@@ -398,9 +398,14 @@ button.note-control,
   touch-action: none;
 }
 
-.notes-drawing-layer.pen-active {
+.notes-drawing-layer.pen-active,
+.notes-drawing-layer.eraser-active {
   pointer-events: auto;
   cursor: crosshair;
+}
+
+.notes-drawing-layer.eraser-active {
+  cursor: cell;
 }
 
 .notes-board > .notes-drawing-layer {
