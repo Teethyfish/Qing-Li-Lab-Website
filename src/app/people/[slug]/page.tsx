@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { PROFILE_HEADER_LAYOUT, publicProfileFromUnknown, type ProfileBlockLayout } from "@/lib/public-profile";
 import { getTranslations } from "next-intl/server";
+import { publicMediaUrl } from "@/lib/media-url";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -22,7 +23,7 @@ export default async function PersonPage({ params }: Props) {
   if (!slug) notFound();
   const user = await prisma.user.findUnique({
     where: { slug },
-    select: { name: true, email: true, about: true, imageUrl: true, profileContent: true },
+    select: { id: true, name: true, email: true, about: true, imageUrl: true, profileContent: true, updatedAt: true },
   });
   if (!user) notFound();
   const profile = publicProfileFromUnknown(user.profileContent, user.email);
@@ -50,7 +51,7 @@ export default async function PersonPage({ params }: Props) {
       <section className="card public-profile-header public-profile-dashboard-tile" style={tileStyle(PROFILE_HEADER_LAYOUT)}>
         <div className="public-profile-identity">
           <div className="public-profile-photo">
-            {user.imageUrl ? <Image src={user.imageUrl} alt={user.name || "Profile"} width={160} height={160} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(user.name)}
+            {user.imageUrl ? <Image src={publicMediaUrl("user", user.id, "image", user.updatedAt)} alt={user.name || "Profile"} width={160} height={160} unoptimized style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(user.name)}
           </div>
           <div>
             <h1>{user.name || slug}</h1>
@@ -89,7 +90,8 @@ export default async function PersonPage({ params }: Props) {
 
       {visibleTiles.map((tile) => <section key={tile.id} className="card public-profile-dashboard-tile" style={tileStyle(tile.layout)}>
         {tile.type === "photo" ? <>
-          <img className="public-profile-tile-image" src={tile.imageUrl} alt={tile.title || tile.content || "Profile photo"} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="public-profile-tile-image" src={publicMediaUrl("user", user.id, `profile-${tile.id}`, user.updatedAt)} alt={tile.title || tile.content || "Profile photo"} />
           {tile.title ? <h2>{tile.title}</h2> : null}
           {tile.content ? <p className="muted" style={{ whiteSpace: "pre-wrap" }}>{tile.content}</p> : null}
         </> : <>

@@ -12,6 +12,7 @@ import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
 import { prisma } from "@/lib/prisma";
 import { defaultLocale, locales } from "@/i18n/config";
+import { publicMediaUrl } from "@/lib/media-url";
 
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -53,11 +54,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (email) {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      select: { id: true, slug: true, imageUrl: true, name: true, locale: true, themePreference: true, createdAt: true },
+      select: { id: true, slug: true, imageUrl: true, name: true, locale: true, themePreference: true, createdAt: true, updatedAt: true },
     });
     userId = user?.id ?? null;
     userSlug = user?.slug ?? null;
-    userImageUrl = user?.imageUrl ?? null;
+    userImageUrl = user?.imageUrl && user.id ? publicMediaUrl("user", user.id, "image", user.updatedAt) : null;
     userName = user?.name ?? null;
     userCreatedAt = user?.createdAt ?? null;
     userLocale = user?.locale ?? defaultLocale;

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
-import { projectImage, projectParticipants, projectSlug, projectText, supportingProjectImages } from "@/lib/research-project";
+import { projectImage, projectParticipants, projectSlug, projectText } from "@/lib/research-project";
 
 export const runtime = "nodejs";
 type Props = { params: Promise<{ id: string }> };
@@ -21,6 +21,26 @@ export async function PATCH(request: NextRequest, { params }: Props) {
       return NextResponse.json({ error: "Title, URL slug, caption, and body are required." }, { status: 400 });
     }
     const participants = projectParticipants(body.participants);
+    const existing = await prisma.researchProject.findUnique({ where: { id }, select: { tileImageUrl: true, mainImageUrl: true, supportingImages: true } });
+    if (!existing) return NextResponse.json({ error: "Project not found." }, { status: 404 });
+    const existingSupporting = Array.isArray(existing.supportingImages) ? existing.supportingImages : [];
+    const preserveOrReadImage = (value: unknown, slot: "tile" | "main") => {
+      if (typeof value === "string" && value.includes(`/api/media/project/${encodeURIComponent(id)}/${slot}`)) {
+        return slot === "tile" ? existing.tileImageUrl : existing.mainImageUrl;
+      }
+      return projectImage(value);
+    };
+    const nextSupporting = Array.isArray(body.supportingImages) ? body.supportingImages.slice(0, 4).flatMap((value) => {
+      if (typeof value === "string") {
+        const match = value.match(new RegExp(`/api/media/project/${encodeURIComponent(id)}/supporting-(\\d+)`));
+        if (match) {
+          const prior = existingSupporting[Number(match[1])];
+          return typeof prior === "string" ? [prior] : [];
+        }
+      }
+      const image = projectImage(value);
+      return image ? [image] : [];
+    }) : [];
     const validUsers = participants.length
       ? new Set((await prisma.user.findMany({ where: { id: { in: participants.map((item) => item.userId) } }, select: { id: true } })).map((user) => user.id))
       : new Set<string>();
@@ -33,9 +53,9 @@ export async function PATCH(request: NextRequest, { params }: Props) {
           slug,
           caption,
           body: projectBody,
-          tileImageUrl: projectImage(body.tileImageUrl),
-          mainImageUrl: projectImage(body.mainImageUrl),
-          supportingImages: supportingProjectImages(body.supportingImages) as Prisma.InputJsonValue,
+          tileImageUrl: preserveOrReadImage(body.tileImageUrl, "tile"),
+          mainImageUrl: preserveOrReadImage(body.mainImageUrl, "main"),
+          supportingImages: nextSupporting as Prisma.InputJsonValue,
           isPublished: body.isPublished !== false,
         },
       }),

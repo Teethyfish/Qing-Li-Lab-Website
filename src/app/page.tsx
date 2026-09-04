@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 import EditableHomeContent from "@/components/EditableHomeContent";
 import { BANNER_ASPECT_RATIO, BANNER_MAX_WIDTH } from "@/lib/banner";
+import { publicMediaUrl } from "@/lib/media-url";
 
 /**
  * Config keys this page reads:
@@ -38,15 +39,12 @@ function initials(name?: string | null) {
 }
 
 export default async function HomePage() {
-  const t = await getTranslations('home');
-  const tc = await getTranslations('common');
-
-  // Uses the account preference for members and the language cookie for visitors.
-  const userLocale = await getLocale();
-
-  // --- Config-driven content ---
-  const pi =
-    (await getConfig<{
+  const [t, tc, userLocale] = await Promise.all([
+    getTranslations("home"),
+    getTranslations("common"),
+    getLocale(),
+  ]);
+  type PiConfig = {
       name?: string;
       titleLines?: string[];
       email?: string;
@@ -54,8 +52,41 @@ export default async function HomePage() {
       office?: string;
       imageUrl?: string;
       intro?: string;
-    }>("pi")) ||
-    ({
+  };
+  type ConfiguredPerson = { name: string; slug?: string | null; role?: string; imageUrl?: string | null };
+
+  // All independent Supabase reads run together; this avoids a long chain of
+  // network round trips on every dynamic homepage request.
+  const [piConfig, welcomeConfig, titleConfig, subtitleConfig, configuredAlumniValue, collaboratorsValue, members, accountAlumni, announcements, researchProjects] = await Promise.all([
+    getConfig<PiConfig>("pi"),
+    getConfig<string>("home.welcome"),
+    getConfig<string>("home.labTitle"),
+    getConfig<string>("home.labSubtitle"),
+    getConfig<ConfiguredPerson[]>("home.alumni"),
+    getConfig<ConfiguredPerson[]>("home.collaborators"),
+    prisma.user.findMany({
+      where: { membershipStatus: "ACTIVE", role: { in: ["MEMBER", "PI", "ADMIN"] as any[] } },
+      select: { id: true, name: true, slug: true, imageUrl: true, role: true, updatedAt: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.user.findMany({
+      where: { membershipStatus: "ALUMNI" },
+      select: { id: true, name: true, slug: true, imageUrl: true, role: true, updatedAt: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.announcement.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { order: "asc" },
+      select: { id: true, imageUrl: true, title: true, text: true, hasDetailsPage: true, detailsSlug: true, updatedAt: true },
+    }),
+    prisma.researchProject.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true, updatedAt: true },
+    }),
+  ]);
+
+  const pi = piConfig || ({
       name: "Qing X. Li",
       titleLines: [
         "Graduate Chair",
@@ -66,44 +97,12 @@ export default async function HomePage() {
       imageUrl: "",
       intro:
         "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
-    } as const);
-
-  const welcome =
-    (await getConfig<string>("home.welcome")) ||
-    t('welcomeDefault');
-
-  const labTitle =
-    (await getConfig<string>("home.labTitle")) || "Qing X. Li's Lab";
-  const labSubtitle =
-    (await getConfig<string>("home.labSubtitle")) || "Proteomics Core Facility";
-
-  const configuredAlumni =
-    (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
-      "home.alumni"
-    )) || [];
-
-  const collaborators =
-    (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
-      "home.collaborators"
-    )) || [];
-
-  // --- Live members from DB (current members: MEMBER, PI, ADMIN) ---
-  const members = await prisma.user.findMany({
-    where: {
-      membershipStatus: "ACTIVE",
-      role: {
-        in: ["MEMBER", "PI", "ADMIN"] as any[]
-      }
-    },
-    select: { name: true, slug: true, imageUrl: true, role: true },
-    orderBy: { name: "asc" },
-  });
-
-  const accountAlumni = await prisma.user.findMany({
-    where: { membershipStatus: "ALUMNI" },
-    select: { name: true, slug: true, imageUrl: true, role: true },
-    orderBy: { name: "asc" },
-  });
+  } as const);
+  const welcome = welcomeConfig || t("welcomeDefault");
+  const labTitle = titleConfig || "Qing X. Li's Lab";
+  const labSubtitle = subtitleConfig || "Proteomics Core Facility";
+  const configuredAlumni = configuredAlumniValue || [];
+  const collaborators = collaboratorsValue || [];
 
   const alumni = [
     ...accountAlumni,
@@ -116,26 +115,6 @@ export default async function HomePage() {
         )
     ),
   ];
-
-  // --- Fetch active announcements ---
-  const announcements = await prisma.announcement.findMany({
-    where: { status: "ACTIVE" },
-    orderBy: { order: "asc" },
-    select: {
-      id: true,
-      imageUrl: true,
-      title: true,
-      text: true,
-      hasDetailsPage: true,
-      detailsSlug: true,
-    },
-  });
-
-  const researchProjects = await prisma.researchProject.findMany({
-    where: { isPublished: true },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true },
-  });
 
   // --- styles (no client handlers) ---
   const grid: React.CSSProperties = {
@@ -198,7 +177,14 @@ export default async function HomePage() {
               boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent)",
             }}
           >
-            <AnnouncementCarousel announcements={announcements} locale={userLocale} />
+            <AnnouncementCarousel announcements={announcements.map((announcement) => ({
+              id: announcement.id,
+              imageUrl: publicMediaUrl("announcement", announcement.id, "image", announcement.updatedAt),
+              title: announcement.title,
+              text: announcement.text,
+              hasDetailsPage: announcement.hasDetailsPage,
+              detailsSlug: announcement.detailsSlug,
+            }))} locale={userLocale} />
           </section>
         )}
 
@@ -315,7 +301,7 @@ export default async function HomePage() {
               {researchProjects.map((project) => <Link key={project.id} href={`/projects/${project.slug}`} className="tile home-project-tile">
                 <div className="home-project-image">
                   {project.tileImageUrl
-                    ? <Image src={project.tileImageUrl} alt="" fill sizes="(max-width: 720px) 100vw, 390px" unoptimized={project.tileImageUrl.startsWith("data:")} style={{ objectFit: "cover" }} />
+                    ? <Image src={publicMediaUrl("project", project.id, "tile", project.updatedAt)} alt="" fill sizes="(max-width: 720px) 100vw, 390px" unoptimized style={{ objectFit: "cover" }} />
                     : <span>{t("projectPhotoPlaceholder")}</span>}
                 </div>
                 <div className="home-project-copy">
@@ -360,7 +346,7 @@ export default async function HomePage() {
                     >
                       {m.imageUrl ? (
                         <Image
-                          src={m.imageUrl}
+                          src={publicMediaUrl("user", m.id, "image", m.updatedAt)}
                           alt={m.name || tc('member')}
                           width={80}
                           height={80}
@@ -415,7 +401,7 @@ export default async function HomePage() {
                     >
                       {a.imageUrl ? (
                         <Image
-                          src={a.imageUrl}
+                          src={"id" in a ? publicMediaUrl("user", a.id, "image", a.updatedAt) : a.imageUrl}
                           alt={a.name || t('alumni')}
                           width={80}
                           height={80}

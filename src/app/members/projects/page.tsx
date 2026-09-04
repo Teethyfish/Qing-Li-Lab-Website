@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import ProjectManager from "./ProjectManager";
+import { publicMediaUrl } from "@/lib/media-url";
 
 export const runtime = "nodejs";
 
@@ -32,10 +33,10 @@ export default async function ProjectAdminPage() {
         title: project.title,
         caption: project.caption,
         body: project.body,
-        tileImageUrl: project.tileImageUrl,
-        mainImageUrl: project.mainImageUrl,
+        tileImageUrl: project.tileImageUrl ? publicMediaUrl("project", project.id, "tile", project.updatedAt) : null,
+        mainImageUrl: project.mainImageUrl ? publicMediaUrl("project", project.id, "main", project.updatedAt) : null,
         supportingImages: Array.isArray(project.supportingImages)
-          ? project.supportingImages.filter((image): image is string => typeof image === "string")
+          ? project.supportingImages.flatMap((image, index) => typeof image === "string" ? [publicMediaUrl("project", project.id, `supporting-${index}`, project.updatedAt)] : [])
           : [],
         isPublished: project.isPublished,
         participants: project.participants.map(({ userId, isCurrent }) => ({ userId, isCurrent })),

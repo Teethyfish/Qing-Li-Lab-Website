@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import InstrumentManager from "./InstrumentManager";
 import { getTranslations } from "next-intl/server";
+import { publicMediaUrl } from "@/lib/media-url";
 
 export default async function InstrumentAdminPage() {
   const user = await getCurrentUser();
@@ -16,7 +17,7 @@ export default async function InstrumentAdminPage() {
   return <main style={{ display: "grid", gap: "1.5rem" }}>
     <header><h1>{t("title")}</h1><p className="muted">{t("subtitle")}</p></header>
     <InstrumentManager
-      instruments={instruments}
+      instruments={instruments.map((instrument) => ({ ...instrument, imageUrl: publicMediaUrl("instrument", instrument.id, "image", instrument.updatedAt) }))}
       requests={requests.map((request) => ({
         id: request.id,
         name: request.name,

@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import AnnouncementsManager from "./AnnouncementsManager";
+import { publicMediaUrl } from "@/lib/media-url";
 
 export default async function AnnouncementsPage() {
   const t = await getTranslations('announcements');
@@ -199,8 +200,8 @@ export default async function AnnouncementsPage() {
       </p>
 
       <AnnouncementsManager
-        activeAnnouncements={activeAnnouncements}
-        archivedAnnouncements={archivedAnnouncements}
+        activeAnnouncements={activeAnnouncements.map((announcement) => ({ ...announcement, imageUrl: publicMediaUrl("announcement", announcement.id, "image", announcement.updatedAt) }))}
+        archivedAnnouncements={archivedAnnouncements.map((announcement) => ({ ...announcement, imageUrl: publicMediaUrl("announcement", announcement.id, "image", announcement.updatedAt) }))}
         createAnnouncement={createAnnouncement}
         updateAnnouncement={updateAnnouncement}
         archiveAnnouncement={archiveAnnouncement}

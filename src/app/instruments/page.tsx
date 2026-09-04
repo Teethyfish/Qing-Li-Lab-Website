@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
+import { publicMediaUrl } from "@/lib/media-url";
 
 export default async function InstrumentsPage() {
-  const instruments = await prisma.instrument.findMany({ orderBy: { name: "asc" } });
+  const instruments = await prisma.instrument.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, description: true, location: true, isAvailable: true, updatedAt: true } });
   const t = await getTranslations("sitePages.instruments");
   return <main style={{ display: "grid", gap: "1.5rem" }}>
     <header>
@@ -12,7 +13,8 @@ export default async function InstrumentsPage() {
     </header>
     <section className="instrument-grid" data-edit-ignore="true">
       {instruments.map((instrument) => <article className="card instrument-card" key={instrument.id}>
-        <img src={instrument.imageUrl} alt={instrument.name} className="instrument-image" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={publicMediaUrl("instrument", instrument.id, "image", instrument.updatedAt)} alt={instrument.name} className="instrument-image" />
         <div style={{ paddingTop: "1rem", display: "grid", gap: ".75rem" }}>
           <div><span className={`status-label ${instrument.isAvailable ? "available" : "unavailable"}`}>{instrument.isAvailable ? t("available") : t("unavailable")}</span></div>
           <h2 style={{ margin: 0 }}>{instrument.name}</h2>
