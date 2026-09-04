@@ -40,7 +40,7 @@ export default function EditableText({
   const handleBlur = () => {
     if (isEditing) {
       setIsEditing(false);
-      if (localValue !== displayValue) {
+      if (localValue !== initialValue) {
         updateContent(contentKey, localValue);
       }
     }

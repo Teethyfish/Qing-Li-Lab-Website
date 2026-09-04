@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/document-access";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const role = (session?.user as any)?.role;
-
-    // Page content editing is admin-only.
-    if (!role || role.toUpperCase() !== "ADMIN") {
+    const user = await getCurrentUser();
+    if (!user?.isActive || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -20,8 +17,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    // Save each edited content item to AppConfig
-    const savePromises = Object.entries(editedContent).map(([key, value]) =>
+    const entries = Object.entries(editedContent);
+    if (entries.length > 250) {
+      return NextResponse.json({ error: "Too many changes in one save" }, { status: 400 });
+    }
+
+    for (const [key, value] of entries) {
+      const validKey = key.startsWith("content:") || key.startsWith("home.");
+      if (!validKey || typeof value !== "string" || value.length > 20_000) {
+        return NextResponse.json({ error: "Invalid page content" }, { status: 400 });
+      }
+    }
+
+    // AppConfig is persistent Supabase storage. A transaction prevents the UI
+    // from reporting success if only part of a multi-field save completes.
+    const savePromises = entries.map(([key, value]) =>
       prisma.appConfig.upsert({
         where: { key },
         update: { value: JSON.stringify(value) },
@@ -29,7 +39,8 @@ export async function POST(request: NextRequest) {
       })
     );
 
-    await Promise.all(savePromises);
+    await prisma.$transaction(savePromises);
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true });
   } catch (error) {

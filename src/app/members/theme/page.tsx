@@ -33,7 +33,7 @@ const DEFAULTS: KV = {
   "--color-muted": "#6b7280",
   "--color-accent": "#2563eb",
   "--color-card": "#ffffff",
-  "--font-family": "\"Times New Roman\", Times, serif",
+  "--font-family": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
 
   // === Cards/Tiles ===
   "--tile-radius": "2",

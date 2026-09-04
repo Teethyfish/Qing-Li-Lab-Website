@@ -25,9 +25,9 @@ export default function EditModeSaveBar() {
         body: JSON.stringify({ editedContent }),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to save");
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || `Save failed (${response.status})`);
       }
 
       setSuccess(true);

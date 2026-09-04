@@ -80,6 +80,22 @@ function elementPath(element: HTMLElement, root: HTMLElement) {
   return segments.join("/");
 }
 
+function normalizedText(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+// A small deterministic hash keeps keys stable when surrounding markup moves.
+// The locale and pathname are added by the caller, so identical copy on two
+// pages remains independently editable.
+function textHash(value: string) {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 export default function GlobalContentEditor({ canEdit, initialContent, children }: Props) {
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -91,18 +107,31 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
     const root = rootRef.current;
     if (!root) return;
 
+    const occurrences = new Map<string, number>();
+
     root.querySelectorAll<HTMLElement>(TEXT_SELECTOR).forEach((element) => {
       if (!isTextElement(element)) return;
 
       const locale = document.documentElement.lang || "en";
-      const key = `content:${locale}:${pathname}:${elementPath(element, root)}`;
+      const original = element.dataset.globalOriginal ?? element.textContent ?? "";
+      if (element.dataset.globalOriginal === undefined) {
+        element.dataset.globalOriginal = original;
+      }
+
+      const fingerprint = textHash(normalizedText(original));
+      const occurrence = (occurrences.get(fingerprint) ?? 0) + 1;
+      occurrences.set(fingerprint, occurrence);
+
+      const key = `content:${locale}:${pathname}:text:${fingerprint}:${occurrence}`;
+      const legacyKey = `content:${locale}:${pathname}:${elementPath(element, root)}`;
       const previousKey = element.dataset.globalContentKey;
 
       if (previousKey !== key) {
         element.dataset.globalContentKey = key;
-        element.dataset.globalOriginal = element.textContent ?? "";
+        element.dataset.globalLegacyContentKey = legacyKey;
 
-        const savedValue = editedContentRef.current[key] ?? initialContent[key];
+        const savedValue =
+          editedContentRef.current[key] ?? initialContent[key] ?? initialContent[legacyKey];
         if (typeof savedValue === "string") {
           element.textContent = savedValue;
         }
@@ -110,7 +139,11 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
 
       if (!isEditMode) {
         const restingValue =
-          initialContent[key] ?? element.dataset.globalOriginal ?? element.textContent ?? "";
+          initialContent[key] ??
+          initialContent[legacyKey] ??
+          element.dataset.globalOriginal ??
+          element.textContent ??
+          "";
         if (element.textContent !== restingValue) {
           element.textContent = restingValue;
         }

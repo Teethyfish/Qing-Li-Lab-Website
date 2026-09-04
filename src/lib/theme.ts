@@ -6,6 +6,7 @@ export type Theme = Record<string, string>;
 
 const LEGACY_FONT = "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif";
 const EDITORIAL_FONT = '"Times New Roman", Times, serif';
+const SANS_FONT = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 const DEFAULT_THEME: Theme = {
   "--color-bg": "#ffffff",
@@ -14,7 +15,7 @@ const DEFAULT_THEME: Theme = {
   "--color-muted": "#6b7280",
   "--color-accent": "#2563eb",
   "--color-card": "#ffffff",
-  "--font-family": EDITORIAL_FONT,
+  "--font-family": SANS_FONT,
   "--font-size": "16px",
   "--radius-sm": "1px",
   "--radius-md": "2px",
@@ -24,8 +25,12 @@ const DEFAULT_THEME: Theme = {
 export function normalizeLegacyTheme(theme: Theme): Theme {
   const normalized = { ...theme };
 
-  if (!normalized["--font-family"] || normalized["--font-family"] === LEGACY_FONT) {
-    normalized["--font-family"] = EDITORIAL_FONT;
+  if (
+    !normalized["--font-family"] ||
+    normalized["--font-family"] === LEGACY_FONT ||
+    normalized["--font-family"] === EDITORIAL_FONT
+  ) {
+    normalized["--font-family"] = SANS_FONT;
   }
   if (normalized["--tile-radius"] === "12") normalized["--tile-radius"] = "2";
   if (normalized["--btn-radius"] === "10") normalized["--btn-radius"] = "2";
