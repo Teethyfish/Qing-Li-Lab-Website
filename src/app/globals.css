@@ -66,20 +66,10 @@ html, body {
   margin-left: auto;
 }
 
-.home-content-backdrop {
-  left: -2rem !important;
-  width: calc(100% + 4rem) !important;
-}
-
 @media (max-width: 1360px) {
   .site-content-inner {
     padding-right: 1rem;
     padding-left: 1rem;
-  }
-
-  .home-content-backdrop {
-    left: -1rem !important;
-    width: calc(100% + 2rem) !important;
   }
 }
 

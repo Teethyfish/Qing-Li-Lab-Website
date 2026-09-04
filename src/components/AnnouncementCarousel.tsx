@@ -21,15 +21,6 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
   const [isHovering, setIsHovering] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("right");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  // Handle initial load animation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoad(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Auto-rotate every 5 seconds (unless hovering)
   useEffect(() => {
@@ -94,12 +85,10 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           left: 0,
           right: 0,
           bottom: 0,
-          transform: isInitialLoad
-            ? "translateX(100px)"
-            : isTransitioning
-              ? slideDirection === "right" ? "translateX(100px)" : "translateX(-100px)"
-              : "translateX(0)",
-          opacity: isInitialLoad || isTransitioning ? 0 : 1,
+          transform: isTransitioning
+            ? slideDirection === "right" ? "translateX(100px)" : "translateX(-100px)"
+            : "translateX(0)",
+          opacity: isTransitioning ? 0 : 1,
           transition: "transform 0.6s ease-out, opacity 0.6s ease-out",
         }}
       >
@@ -313,6 +302,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           textDecoration: "none",
           color: "inherit",
           display: "block",
+          height: "100%",
           cursor: "pointer",
         }}
       >

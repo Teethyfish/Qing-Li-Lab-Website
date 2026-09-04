@@ -14,23 +14,19 @@ export default function EditableHomeContent({ labTitle, labSubtitle }: Props) {
   const fullTitle = `${labTitle} – ${labSubtitle}`;
   const [typedLength, setTypedLength] = useState(0);
   const [animationComplete, setAnimationComplete] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) {
       setTypedLength(fullTitle.length);
       setAnimationComplete(true);
-      setShowCursor(false);
       return;
     }
 
     setTypedLength(0);
     setAnimationComplete(false);
-    setShowCursor(true);
 
     let currentLength = 0;
-    let cursorTimeout: number | undefined;
     const interval = window.setInterval(() => {
       currentLength += 1;
       setTypedLength(currentLength);
@@ -38,13 +34,11 @@ export default function EditableHomeContent({ labTitle, labSubtitle }: Props) {
       if (currentLength >= fullTitle.length) {
         window.clearInterval(interval);
         setAnimationComplete(true);
-        cursorTimeout = window.setTimeout(() => setShowCursor(false), 500);
       }
-    }, 16);
+    }, 28);
 
     return () => {
       window.clearInterval(interval);
-      if (cursorTimeout) window.clearTimeout(cursorTimeout);
     };
   }, [fullTitle]);
 
@@ -63,19 +57,18 @@ export default function EditableHomeContent({ labTitle, labSubtitle }: Props) {
               initialValue={labTitle}
               as="span"
             />{" "}
-            <span className="muted" style={{ fontWeight: 400 }}>
+            <span>
               – <EditableText
                 contentKey="home.labSubtitle"
                 initialValue={labSubtitle}
                 as="span"
-                className="muted"
               />
             </span>
           </>
         ) : (
           <span aria-hidden="true">{fullTitle.slice(0, typedLength)}</span>
         )}
-        {showCursor && !isEditMode ? (
+        {!isEditMode ? (
           <span className="typewriter-cursor" aria-hidden="true">|</span>
         ) : null}
       </h1>

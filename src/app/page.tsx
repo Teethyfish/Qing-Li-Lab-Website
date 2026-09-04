@@ -172,71 +172,40 @@ export default async function HomePage() {
   };
 
   return (
-    <>
-      {/* ===== Announcement Carousel (fixed full-width at top) ===== */}
-      {announcements.length > 0 && (
-        <div style={{
-          position: "fixed",
-          top: "calc(var(--nav-height, 56) * 1px)",
-          left: "50%",
-          width: "calc(100% - 3rem)",
-          maxWidth: BANNER_MAX_WIDTH,
-          aspectRatio: BANNER_ASPECT_RATIO,
-          transform: "translateX(-50%)",
-          zIndex: 1,
-          pointerEvents: "none",
-        }}>
-          <div style={{ height: "100%", pointerEvents: "auto" }}>
-            <AnnouncementCarousel announcements={announcements} locale={userLocale} />
-          </div>
-        </div>
-      )}
-
-      <main style={{
-        position: "relative",
-        zIndex: 10,
-        paddingBottom: "4rem",
-      }}>
-        {announcements.length > 0 && (
-          <div
-            aria-hidden="true"
-            style={{ width: "100%", aspectRatio: BANNER_ASPECT_RATIO }}
-          />
-        )}
+    <main style={{
+      position: "relative",
+      paddingBottom: "4rem",
+    }}>
         <div style={{
           ...grid,
           position: "relative",
           width: "100%",
         }}>
-        {/* Full background with fade effect */}
-        {announcements.length > 0 && (
-          <>
-            {/* Fade gradient at top */}
-            <div className="home-content-backdrop" style={{
-              position: "absolute",
-              top: "-160px",
-              height: "160px",
-              background: "linear-gradient(to bottom, transparent 0%, var(--color-content-bg) 100%)",
-              pointerEvents: "none",
-              zIndex: -1,
-            }} />
-            {/* Solid background for the rest */}
-            <div className="home-content-backdrop" style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              minHeight: "calc(100vh - 400px)",
-              background: "var(--color-content-bg)",
-              pointerEvents: "none",
-              zIndex: -1,
-            }} />
-          </>
-        )}
         {/* ===== Big header at the top ===== */}
         <EditableHomeContent
           labTitle={labTitle}
           labSubtitle={labSubtitle}
         />
+
+        {/* ===== Announcement Carousel ===== */}
+        {announcements.length > 0 && (
+          <section
+            aria-label="Lab announcements"
+            data-edit-ignore="true"
+            style={{
+              width: "100%",
+              maxWidth: BANNER_MAX_WIDTH,
+              aspectRatio: BANNER_ASPECT_RATIO,
+              overflow: "hidden",
+              background: "var(--color-card)",
+              border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
+              borderRadius: "calc(var(--tile-radius, 2) * 1px)",
+              boxShadow: "0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent)",
+            }}
+          >
+            <AnnouncementCarousel announcements={announcements} locale={userLocale} />
+          </section>
+        )}
 
         {/* ===== Two-column block (PI sidebar on the left) ===== */}
         <section style={twoCols} className="home-two-cols">
@@ -493,6 +462,5 @@ export default async function HomePage() {
       </section>
         </div>
     </main>
-    </>
   );
 }
