@@ -55,32 +55,41 @@ export default function DocumentUploadForm({ users }: Props) {
       const start = await startResponse.json();
       if (!startResponse.ok) throw new Error(start.error || "Could not start upload.");
 
-      const chunkSize = 8 * 1024 * 1024;
+      // Keep requests below Vercel's function body limit. Chunks go through the
+      // same-origin website proxy so browser CORS cannot interrupt finalization.
+      const chunkSize = 2 * 1024 * 1024;
       let offset = 0;
-      let uploaded: { id?: string; error?: { message?: string } } = {};
+      let uploaded: { id?: string } = {};
       while (offset < file.size) {
         const end = Math.min(offset + chunkSize, file.size);
         const chunk = file.slice(offset, end);
         const percent = Math.round((end / file.size) * 100);
-        setStatus(`Uploading directly to qinglilab@gmail.com Google Drive… ${percent}%`);
-        const uploadResponse = await fetch(start.sessionUrl, {
-          method: "PUT",
+        setStatus(`Uploading securely through the lab website… ${percent}%`);
+        const uploadResponse = await fetch("/api/documents/upload/chunk", {
+          method: "POST",
           headers: {
             "Content-Type": file.type || "application/octet-stream",
             "Content-Range": `bytes ${offset}-${end - 1}/${file.size}`,
+            "X-Drive-Upload-Url": start.sessionUrl,
           },
           body: chunk,
         });
 
-        if (uploadResponse.status === 308) {
-          offset = end;
-          continue;
+        const uploadResult = await uploadResponse.json().catch(() => null) as {
+          complete?: boolean;
+          id?: string;
+          nextOffset?: number;
+          error?: string;
+        } | null;
+        if (!uploadResponse.ok || !uploadResult) {
+          throw new Error(uploadResult?.error || `Upload failed (${uploadResponse.status}).`);
         }
-        uploaded = await uploadResponse.json().catch(() => ({}));
-        if (!uploadResponse.ok || !uploaded.id) {
-          throw new Error(uploaded.error?.message || "Google Drive upload failed.");
+        if (uploadResult.complete && uploadResult.id) {
+          uploaded = { id: uploadResult.id };
+          offset = file.size;
+        } else {
+          offset = uploadResult.nextOffset ?? end;
         }
-        offset = file.size;
       }
 
       if (!uploaded.id) throw new Error("Google Drive did not confirm the upload.");
@@ -130,7 +139,7 @@ export default function DocumentUploadForm({ users }: Props) {
       <label style={{ display: "grid", gap: 6 }}>
         <strong>Document</strong>
         <input name="file" type="file" required onChange={handleFileChange} style={inputStyle} />
-        <small className="muted">Any file type. The browser uploads it directly to Google Drive.</small>
+        <small className="muted">Any file type. The website securely transfers it to the lab Google Drive.</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>

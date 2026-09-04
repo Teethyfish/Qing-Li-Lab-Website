@@ -47,7 +47,7 @@ This repo includes registration → approval workflow, credential auth, email no
   - Full-width navbar with hover effects
 
 - **Document Database & Notifications**
-  - Admins upload arbitrary file types directly to the lab Google Drive
+  - Admins upload arbitrary file types to the lab Google Drive through a same-origin chunked proxy
   - Recipient groups and individual recipients are snapshotted per document
   - Private documents are only listed and downloaded for their recipients (plus admins)
   - Public documents are visible without an account
@@ -121,6 +121,6 @@ then sign in as an admin and open **Admin Only → Documents → Connect Google
 Drive and Gmail**. Connect only `qinglilab@gmail.com`.
 
 The app requests `drive.file` and `gmail.send`, stores the refresh token
-encrypted, uploads files directly from the browser with Drive's resumable upload
-flow, and keeps Drive files private. Website authorization is checked again on
+encrypted, uploads files through the website with Drive's resumable upload flow,
+and keeps Drive files private. Website authorization is checked again on
 every download.
