@@ -237,7 +237,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     setPenEnabled(false);
     const selection = restoreSelection(editor);
     if (!selection) return;
-    let clearWholeEditor = !selection.rangeCount || selection.getRangeAt(0).collapsed;
+    const clearWholeEditor = !selection.rangeCount || selection.getRangeAt(0).collapsed;
     if (clearWholeEditor) {
       const range = document.createRange();
       range.selectNodeContents(editor);
