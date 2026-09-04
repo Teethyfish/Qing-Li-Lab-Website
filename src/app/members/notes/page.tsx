@@ -15,7 +15,7 @@ export default async function NotesPage() {
     prisma.reminder.findMany({ where: { userId: user.id }, orderBy: { remindAt: "asc" } }),
   ]);
   const pageId = crypto.randomUUID();
-  const fallback: NoteWorkspaceData = { version: 1, activePageId: pageId, pages: [{ id: pageId, title: t("page", { number: 1 }), html: "", strokes: [], notes: [], textBoxes: [] }] };
+  const fallback: NoteWorkspaceData = { version: 1, activePageId: pageId, pages: [{ id: pageId, title: t("page", { number: 1 }), html: "", strokes: [], notes: [], textBoxes: [] }], recentlyDeleted: [] };
   const initialWorkspace = stored?.content && typeof stored.content === "object"
     ? stored.content as unknown as NoteWorkspaceData
     : fallback;

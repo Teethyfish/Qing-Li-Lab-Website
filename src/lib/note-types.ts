@@ -38,10 +38,29 @@ export type NotePageData = {
   textBoxes: CanvasTextBoxData[];
 };
 
+export type RecentlyDeletedNoteItem = {
+  id: string;
+  kind: "note";
+  pageId: string;
+  deletedAt: string;
+  item: StickyNoteData;
+};
+
+export type RecentlyDeletedTextBoxItem = {
+  id: string;
+  kind: "textbox";
+  pageId: string;
+  deletedAt: string;
+  item: CanvasTextBoxData;
+};
+
+export type RecentlyDeletedItem = RecentlyDeletedNoteItem | RecentlyDeletedTextBoxItem;
+
 export type NoteWorkspaceData = {
   version: 1;
   activePageId: string;
   pages: NotePageData[];
+  recentlyDeleted: RecentlyDeletedItem[];
 };
 
 export type ReminderData = {

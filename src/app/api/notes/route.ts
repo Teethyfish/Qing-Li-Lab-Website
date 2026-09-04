@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import sanitizeHtml from "sanitize-html";
 import { getCurrentUser } from "@/lib/document-access";
-import type { CanvasTextBoxData, DrawingStroke, NotePageData, NoteWorkspaceData, StickyNoteData } from "@/lib/note-types";
+import type { CanvasTextBoxData, DrawingStroke, NotePageData, NoteWorkspaceData, RecentlyDeletedItem, StickyNoteData } from "@/lib/note-types";
 import { prisma } from "@/lib/prisma";
 
 const NOTE_COLORS = new Set(["#fff3a6", "#ffd6e0", "#cdeffd", "#d9f7be", "#e8ddff", "#ffffff"]);
@@ -79,10 +79,33 @@ function cleanTextBox(value: unknown): CanvasTextBoxData | null {
     html: cleanRichText(box.html, 100_000),
     x: clamp(box.x, 0, 1_900, 36),
     y: clamp(box.y, 0, 1_300, 36),
-    width: clamp(box.width, 180, 900, 360),
-    height: clamp(box.height, 100, 900, 180),
+    width: clamp(box.width, 120, 900, 360),
+    height: clamp(box.height, 60, 900, 140),
     zIndex: Math.round(clamp(box.zIndex, 1, 10_000, 1)),
   };
+}
+
+function cleanRecentlyDeleted(value: unknown): RecentlyDeletedItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 5).flatMap((entry): RecentlyDeletedItem[] => {
+    if (!entry || typeof entry !== "object") return [];
+    const deleted = entry as Record<string, unknown>;
+    const id = typeof deleted.id === "string" ? deleted.id.slice(0, 100) : "";
+    const pageId = typeof deleted.pageId === "string" ? deleted.pageId.slice(0, 100) : "";
+    const deletedAt = typeof deleted.deletedAt === "string" && !Number.isNaN(Date.parse(deleted.deletedAt))
+      ? new Date(deleted.deletedAt).toISOString()
+      : new Date().toISOString();
+    if (!id || !pageId) return [];
+    if (deleted.kind === "note") {
+      const item = cleanNote(deleted.item);
+      return item ? [{ id, kind: "note", pageId, deletedAt, item }] : [];
+    }
+    if (deleted.kind === "textbox") {
+      const item = cleanTextBox(deleted.item);
+      return item ? [{ id, kind: "textbox", pageId, deletedAt, item }] : [];
+    }
+    return [];
+  });
 }
 
 function cleanWorkspace(value: unknown): NoteWorkspaceData | null {
@@ -119,7 +142,12 @@ function cleanWorkspace(value: unknown): NoteWorkspaceData | null {
   });
   if (!pages.length) return null;
   const requestedActive = typeof data.activePageId === "string" ? data.activePageId : "";
-  return { version: 1, pages, activePageId: pages.some((page) => page.id === requestedActive) ? requestedActive : pages[0].id };
+  return {
+    version: 1,
+    pages,
+    activePageId: pages.some((page) => page.id === requestedActive) ? requestedActive : pages[0].id,
+    recentlyDeleted: cleanRecentlyDeleted(data.recentlyDeleted),
+  };
 }
 
 export async function PUT(request: Request) {

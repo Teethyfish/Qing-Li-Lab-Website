@@ -324,18 +324,29 @@ button.note-control,
 
 .notes-board-scroll {
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent);
   box-shadow: 0 4px 14px color-mix(in oklab, var(--color-text) 10%, transparent);
 }
 
 .notes-board {
   position: relative;
-  width: 1200px;
-  min-height: 760px;
+  box-sizing: border-box;
+  width: 100%;
+  height: clamp(440px, 65dvh, 760px);
+  overflow: hidden;
   background-color: #fdfdfb;
   background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+.notes-page-click-hint {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 0;
+  color: rgba(17, 24, 39, .48);
+  pointer-events: none;
 }
 
 .notes-page-content {
@@ -343,7 +354,8 @@ button.note-control,
   inset: 0;
   z-index: 0;
   box-sizing: border-box;
-  min-height: 760px;
+  height: 100%;
+  overflow: hidden;
   padding: 2rem;
   outline: none;
   color: #111827;
@@ -461,7 +473,8 @@ button.note-control,
 }
 
 button.sticky-edit-toggle,
-button.canvas-item-delete {
+button.canvas-item-delete,
+button.canvas-text-drag {
   flex: 0 0 auto;
   width: 24px !important;
   height: 24px !important;
@@ -519,37 +532,53 @@ button.canvas-item-delete {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-width: 180px;
-  min-height: 100px;
+  min-width: 120px;
+  min-height: 60px;
   max-width: 900px;
   max-height: 900px;
-  resize: both;
+  resize: none;
   overflow: hidden;
   color: #111827;
-  background: rgba(255, 255, 255, .88);
-  border: 1px dashed rgba(17, 24, 39, .38);
-  box-shadow: 0 3px 10px rgba(17, 24, 39, .1);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
 }
 
 .canvas-text-box.selected {
-  outline: 2px solid color-mix(in oklab, var(--color-primary) 60%, transparent);
-  outline-offset: 2px;
+  resize: both;
+  background: rgba(255, 255, 255, .18);
+  border-color: color-mix(in oklab, var(--color-primary) 62%, transparent);
+  outline: 1px dashed color-mix(in oklab, var(--color-primary) 62%, transparent);
+  outline-offset: 1px;
 }
 
-.canvas-text-box-header {
-  position: relative;
-  z-index: 2;
+.canvas-text-box-controls {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 3;
+  display: none;
+  gap: 2px;
+}
+
+.canvas-text-box.selected .canvas-text-box-controls {
   display: flex;
-  justify-content: space-between;
-  min-height: 24px;
-  background: rgba(241, 245, 249, .92);
-  border-bottom: 1px solid rgba(17, 24, 39, .14);
+}
+
+button.canvas-text-drag {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+button.canvas-text-drag:active {
+  cursor: grabbing;
 }
 
 .canvas-text-box-content {
   flex: 1;
   min-height: 0;
-  padding: .65rem .75rem;
+  padding: .4rem;
   overflow: auto;
   outline: none;
   line-height: 1.5;
@@ -620,6 +649,51 @@ button.canvas-item-delete {
   min-height: 150px;
 }
 
+.recently-deleted-list {
+  display: grid;
+  gap: .4rem;
+}
+
+.recently-deleted-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .45rem .5rem;
+  background: color-mix(in oklab, var(--color-card) 92%, var(--color-text) 8%);
+  border-left: 3px solid color-mix(in oklab, var(--color-text) 28%, transparent);
+  font-size: .75rem;
+}
+
+.recently-deleted-item > span {
+  display: grid;
+  min-width: 0;
+  gap: .15rem;
+}
+
+.recently-deleted-item strong,
+.recently-deleted-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recently-deleted-item small {
+  color: var(--color-muted);
+  font-size: .67rem;
+}
+
+button.recently-deleted-restore {
+  flex: 0 0 auto;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+  color: #1d4ed8 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
 .reminder-item {
   display: grid;
   gap: .35rem;
@@ -662,6 +736,10 @@ button.canvas-item-delete {
 }
 
 .archived-note-actions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
   display: inline-flex;
   gap: 1px;
   opacity: 0;
