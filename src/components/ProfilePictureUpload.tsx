@@ -99,6 +99,8 @@ export default function ProfilePictureUpload({ currentImageUrl, userName, onImag
         >
           {previewUrl ? (
             <>
+              {/* Local blob/data URL preview; Next Image cannot optimize it. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
                 alt="Profile"

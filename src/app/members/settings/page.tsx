@@ -7,9 +7,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { localeNames } from "@/i18n/config";
+import { localeNames, locales } from "@/i18n/config";
+import bcrypt from "bcryptjs";
 
-export default async function SettingsPage() {
+type SettingsPageProps = {
+  searchParams: Promise<{ password?: string }>;
+};
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const { password: passwordStatus } = await searchParams;
   const session = await getServerSession(authOptions);
   const email = session?.user?.email?.toLowerCase();
   if (!email) redirect("/login");
@@ -27,12 +33,15 @@ export default async function SettingsPage() {
   async function updateLanguage(formData: FormData) {
     "use server";
     const locale = String(formData.get("locale") || "en");
-    const email = String(formData.get("email") || "");
+    const actionSession = await getServerSession(authOptions);
+    const actionEmail = actionSession?.user?.email?.toLowerCase();
 
-    if (!email) return;
+    if (!actionEmail || !locales.includes(locale as (typeof locales)[number])) {
+      return;
+    }
 
     await prisma.user.update({
-      where: { email: email.toLowerCase() },
+      where: { email: actionEmail },
       data: { locale },
     });
 
@@ -47,13 +56,32 @@ export default async function SettingsPage() {
     const newPassword = String(formData.get("newPassword") || "");
     const confirmPassword = String(formData.get("confirmPassword") || "");
 
-    // TODO: Implement password change logic
-    // 1. Verify current password
-    // 2. Validate new password matches confirm
-    // 3. Hash and update password
+    const actionSession = await getServerSession(authOptions);
+    const actionEmail = actionSession?.user?.email?.toLowerCase();
+    if (!actionEmail) redirect("/login");
 
-    console.log("Password change requested (not yet implemented)");
+    if (newPassword.length < 8) {
+      redirect("/members/settings?password=too-short");
+    }
+    if (newPassword !== confirmPassword) {
+      redirect("/members/settings?password=mismatch");
+    }
+
+    const account = await prisma.user.findUnique({
+      where: { email: actionEmail },
+      select: { id: true, passwordHash: true },
+    });
+    if (!account || !(await bcrypt.compare(currentPassword, account.passwordHash))) {
+      redirect("/members/settings?password=incorrect");
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: account.id },
+      data: { passwordHash },
+    });
     revalidatePath("/members/settings");
+    redirect("/members/settings?password=updated");
   }
 
   const inputStyle: React.CSSProperties = {
@@ -97,6 +125,23 @@ export default async function SettingsPage() {
             {t('changePassword')}
           </h3>
           <form action={changePassword} style={{ display: "grid", gap: "1rem" }}>
+            {passwordStatus && (
+              <p
+                role="status"
+                style={{
+                  color: passwordStatus === "updated" ? "#15803d" : "#b91c1c",
+                  margin: 0,
+                }}
+              >
+                {passwordStatus === "updated"
+                  ? "Password updated successfully."
+                  : passwordStatus === "too-short"
+                    ? "The new password must be at least 8 characters."
+                    : passwordStatus === "mismatch"
+                      ? "The new passwords do not match."
+                      : "The current password is incorrect."}
+              </p>
+            )}
             <div style={{ display: "grid", gap: "0.4rem" }}>
               <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('currentPassword')}</label>
               <input
@@ -175,7 +220,6 @@ export default async function SettingsPage() {
             {t('languageNote')}
           </p>
           <form action={updateLanguage} style={{ display: "grid", gap: "1rem" }}>
-            <input type="hidden" name="email" value={user.email} />
             <div style={{ display: "grid", gap: "0.4rem" }}>
               <select
                 name="locale"

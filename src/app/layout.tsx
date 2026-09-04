@@ -5,6 +5,7 @@ import NavBar from "../components/NavBar";
 import TranslationsProvider from "../components/TranslationsProvider";
 import { EditModeProvider } from "@/contexts/EditModeContext";
 import EditModeSaveBar from "../components/EditModeSaveBar";
+import GlobalContentEditor from "../components/GlobalContentEditor";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getTheme, themeToCss } from "@/lib/theme";
@@ -50,6 +51,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const theme = await getTheme();
   const cssVars = themeToCss(theme);
 
+  const editableRows = await prisma.appConfig.findMany({
+    where: { key: { startsWith: "content:" } },
+    select: { key: true, value: true },
+  });
+  const editableContent = Object.fromEntries(
+    editableRows.flatMap(({ key, value }) => {
+      try {
+        const parsed = JSON.parse(value);
+        return typeof parsed === "string" ? [[key, parsed]] : [];
+      } catch {
+        return [];
+      }
+    })
+  );
+
   return (
     <html lang={userLocale}>
       <body
@@ -73,13 +89,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <NavBar
               isAuthed={isAuthed}
               isAdmin={isAdmin}
+              canEdit={isAdmin}
               userSlug={userSlug}
               userImageUrl={userImageUrl}
               userName={userName}
             />
 
             {/* Page content */}
-            <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
+            <GlobalContentEditor canEdit={isAdmin} initialContent={editableContent}>
+              <div className="mx-auto max-w-5xl p-6" style={{ position: "relative", zIndex: 1, paddingTop: "calc(56px + 1.5rem)" }}>{children}</div>
+            </GlobalContentEditor>
 
             {/* Edit mode save bar */}
             <EditModeSaveBar />

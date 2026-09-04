@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const role = (session?.user as any)?.role;
 
-    // Only admins and PIs can save content
-    if (!role || (role.toUpperCase() !== "ADMIN" && role.toUpperCase() !== "PI")) {
+    // Page content editing is admin-only.
+    if (!role || role.toUpperCase() !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

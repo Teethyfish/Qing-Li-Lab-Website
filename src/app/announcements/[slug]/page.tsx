@@ -2,8 +2,9 @@
 export const runtime = "nodejs";
 
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getTranslations, getLocale } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -11,7 +12,6 @@ type Props = {
 
 export default async function AnnouncementDetailsPage({ params }: Props) {
   const { slug } = await params;
-  const t = await getTranslations();
 
   // Fetch announcement by slug, regardless of status (ACTIVE or ARCHIVED)
   const announcement = await prisma.announcement.findUnique({
@@ -67,6 +67,8 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
           border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
         }}
       >
+        {/* Announcement images may be database-backed data URLs. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={announcement.imageUrl}
           alt={title}
@@ -106,7 +108,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
 
       {/* Back link */}
       <div style={{ marginTop: "3rem" }}>
-        <a
+        <Link
           href="/"
           style={{
             color: "var(--color-text)",
@@ -115,7 +117,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
           }}
         >
           ← Back to home
-        </a>
+        </Link>
       </div>
     </main>
   );

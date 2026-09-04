@@ -13,8 +13,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "New password must be at least 8 characters." }, { status: 400 });
     }
 
+    const normalizedEmail = String(email).toLowerCase().trim();
     const user = await prisma.user.findUnique({
-      where: { email: String(email) },
+      where: { email: normalizedEmail },
       select: { id: true, passwordHash: true },
     });
     if (!user || !user.passwordHash) {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     const newHash = await bcrypt.hash(String(newPassword), 10);
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: newHash },
+      data: { passwordHash: newHash, mustResetPassword: false },
     });
 
     return NextResponse.json({ ok: true });

@@ -1,0 +1,205 @@
+"use client";
+
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+} from "react";
+import { usePathname } from "next/navigation";
+import { useEditMode } from "@/contexts/EditModeContext";
+
+const TEXT_SELECTOR = [
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "p",
+  "span",
+  "li",
+  "dt",
+  "dd",
+  "figcaption",
+  "small",
+  "strong",
+  "a",
+  "div",
+].join(",");
+
+const EXCLUDED_ANCESTORS = [
+  "nav",
+  "form",
+  "button",
+  "input",
+  "textarea",
+  "select",
+  "option",
+  "script",
+  "style",
+  "[data-edit-ignore='true']",
+].join(",");
+
+type Props = {
+  canEdit: boolean;
+  initialContent: Record<string, string>;
+  children: ReactNode;
+};
+
+function isTextElement(element: HTMLElement) {
+  if (element.closest(EXCLUDED_ANCESTORS)) return false;
+  if (element.children.length > 0) return false;
+
+  const text = element.textContent?.trim() ?? "";
+  return text.length >= 2;
+}
+
+function elementPath(element: HTMLElement, root: HTMLElement) {
+  const segments: string[] = [];
+  let current: HTMLElement | null = element;
+
+  while (current && current !== root) {
+    if (current.id) {
+      segments.unshift(`id(${current.id})`);
+      break;
+    }
+
+    const parent: HTMLElement | null = current.parentElement;
+    if (!parent) break;
+
+    const sameTagSiblings = Array.from(parent.children).filter(
+      (sibling) => sibling.tagName === current?.tagName
+    );
+    const position = sameTagSiblings.indexOf(current) + 1;
+    segments.unshift(`${current.tagName.toLowerCase()}:${position}`);
+    current = parent;
+  }
+
+  return segments.join("/");
+}
+
+export default function GlobalContentEditor({ canEdit, initialContent, children }: Props) {
+  const pathname = usePathname();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const { isEditMode, editedContent, updateContent } = useEditMode();
+  const editedContentRef = useRef(editedContent);
+  editedContentRef.current = editedContent;
+
+  const prepareElements = useCallback(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    root.querySelectorAll<HTMLElement>(TEXT_SELECTOR).forEach((element) => {
+      if (!isTextElement(element)) return;
+
+      const locale = document.documentElement.lang || "en";
+      const key = `content:${locale}:${pathname}:${elementPath(element, root)}`;
+      const previousKey = element.dataset.globalContentKey;
+
+      if (previousKey !== key) {
+        element.dataset.globalContentKey = key;
+        element.dataset.globalOriginal = element.textContent ?? "";
+
+        const savedValue = editedContentRef.current[key] ?? initialContent[key];
+        if (typeof savedValue === "string") {
+          element.textContent = savedValue;
+        }
+      }
+
+      if (!isEditMode) {
+        const restingValue =
+          initialContent[key] ?? element.dataset.globalOriginal ?? element.textContent ?? "";
+        if (element.textContent !== restingValue) {
+          element.textContent = restingValue;
+        }
+      }
+
+      if (canEdit && isEditMode) {
+        element.setAttribute("contenteditable", "true");
+        element.setAttribute("data-global-editable", "true");
+        element.setAttribute("spellcheck", "true");
+      } else {
+        element.removeAttribute("contenteditable");
+        element.removeAttribute("data-global-editable");
+        element.removeAttribute("spellcheck");
+      }
+    });
+  }, [canEdit, initialContent, isEditMode, pathname]);
+
+  useLayoutEffect(() => {
+    prepareElements();
+
+    const root = rootRef.current;
+    if (!root) return;
+
+    const observer = new MutationObserver(prepareElements);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [prepareElements]);
+
+  const editableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return null;
+    return target.closest<HTMLElement>("[data-global-content-key]");
+  };
+
+  const saveTarget = (target: HTMLElement) => {
+    const key = target.dataset.globalContentKey;
+    if (key) updateContent(key, target.innerText.trim());
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!canEdit || !isEditMode) return;
+    const target = editableTarget(event.target);
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    target.focus();
+  };
+
+  const handleFocus = (event: React.FocusEvent<HTMLDivElement>) => {
+    const target = editableTarget(event.target);
+    if (target) target.dataset.editStartValue = target.innerText;
+  };
+
+  const handleInput = (event: React.FormEvent<HTMLDivElement>) => {
+    const target = editableTarget(event.target);
+    if (target) saveTarget(target);
+  };
+
+  const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
+    const target = editableTarget(event.target);
+    if (target) saveTarget(target);
+  };
+
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const target = editableTarget(event.target);
+    if (!target) return;
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      target.blur();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      target.innerText = target.dataset.editStartValue ?? target.innerText;
+      saveTarget(target);
+      target.blur();
+    }
+  };
+
+  return (
+    <div
+      ref={rootRef}
+      data-global-content-root="true"
+      onClickCapture={handleClick}
+      onFocusCapture={handleFocus}
+      onInputCapture={handleInput}
+      onBlurCapture={handleBlur}
+      onKeyDownCapture={handleKeyDown}
+    >
+      {children}
+    </div>
+  );
+}

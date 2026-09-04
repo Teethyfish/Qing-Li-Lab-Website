@@ -80,3 +80,27 @@ This repo includes registration → approval workflow, credential auth, email no
 - **TypeScript**
 - Styling: custom CSS variables + small utility classes (migrated from Tailwind)
 
+---
+
+## Linux development
+
+The project targets Node.js 22 (Node 20 is also supported).
+
+```bash
+nvm use
+cp .env.example .env.local
+npm install
+npx prisma generate
+npm run dev
+```
+
+Fill in `.env.local` with the Supabase, authentication, and email values before
+starting the app. Text files are normalized to LF through `.gitattributes`, so
+Windows and Linux checkouts should no longer produce repository-wide line-ending
+changes.
+
+Before deploying a fresh database, apply the checked-in migrations:
+
+```bash
+npx prisma migrate deploy
+```

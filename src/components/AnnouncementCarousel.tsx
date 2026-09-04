@@ -76,6 +76,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
 
   const bannerContent = (
     <div
+      data-edit-ignore="true"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       style={{

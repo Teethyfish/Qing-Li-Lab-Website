@@ -17,6 +17,7 @@ function initials(name?: string | null) {
 type Props = {
   isAuthed: boolean;
   isAdmin: boolean;
+  canEdit: boolean;
   userSlug?: string | null;
   userImageUrl?: string | null;
   userName?: string | null;
@@ -51,13 +52,22 @@ function NavItem({
   );
 }
 
-export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, userName }: Props) {
+export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName }: Props) {
   const t = useTranslations('navigation');
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
-  const { isEditMode, setIsEditMode } = useEditMode();
+  const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
+
+  const toggleEditMode = () => {
+    if (isEditMode) {
+      const hasChanges = Object.keys(editedContent).length > 0;
+      if (hasChanges && !window.confirm("Discard your unsaved page changes?")) return;
+      resetContent();
+    }
+    setIsEditMode(!isEditMode);
+  };
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
@@ -197,10 +207,10 @@ export default function NavBar({ isAuthed, isAdmin, userSlug, userImageUrl, user
 
           {/* Right: edit mode + user + logout/login */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Edit Mode Toggle (Admin/PI only) */}
-            {isAdmin && (
+            {/* Edit Mode Toggle (admin only) */}
+            {canEdit && (
               <button
-                onClick={() => setIsEditMode(!isEditMode)}
+                onClick={toggleEditMode}
                 className="btn btn-basic"
                 style={{
                   fontSize: 14,

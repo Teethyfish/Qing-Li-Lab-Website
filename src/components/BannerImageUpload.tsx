@@ -104,6 +104,8 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
               background: "transparent",
             }}
           >
+            {/* Local blob/data URL preview; Next Image cannot optimize it. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={previewUrl}
               alt="Banner preview"

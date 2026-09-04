@@ -84,6 +84,11 @@ export default async function HomePage() {
     (await getConfig<string>("home.welcome")) ||
     t('welcome') + " " + "We are a research lab studying proteomics and molecular biosciences.";
 
+  const labTitle =
+    (await getConfig<string>("home.labTitle")) || "Qing X. Li's Lab";
+  const labSubtitle =
+    (await getConfig<string>("home.labSubtitle")) || "Proteomics Core Facility";
+
   const alumni =
     (await getConfig<Array<{ name: string; slug?: string | null; role?: string; imageUrl?: string | null }>>(
       "home.alumni"
@@ -153,9 +158,11 @@ export default async function HomePage() {
         <div style={{
           position: "fixed",
           top: "56px",
-          left: 0,
-          width: "100vw",
+          left: "50%",
+          width: "calc(100% - 3rem)",
+          maxWidth: "1280px",
           height: "500px",
+          transform: "translateX(-50%)",
           zIndex: 1,
           pointerEvents: "none",
         }}>
@@ -207,8 +214,8 @@ export default async function HomePage() {
         )}
         {/* ===== Big header at the top ===== */}
         <EditableHomeContent
-          labTitle="Qing X. Li's Lab"
-          labSubtitle="Proteomics Core Facility"
+          labTitle={labTitle}
+          labSubtitle={labSubtitle}
         />
 
         {/* ===== Two-column block (PI sidebar on the left) ===== */}

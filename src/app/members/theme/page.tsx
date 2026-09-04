@@ -189,41 +189,6 @@ export default async function ThemeEditorPage() {
     revalidatePath("/members/theme");
   }
 
-  // Small helper to render labeled inputs
-  const FieldRow = (f: Field) => {
-    const base: React.CSSProperties = { display: "grid", gap: "0.4rem" };
-    const inputBase: React.CSSProperties = {
-      width: "100%",
-      padding: "0.55rem 0.7rem",
-      borderRadius: 10,
-      border: "1px solid color-mix(in oklab, var(--color-text) 15%, transparent)",
-      background: "var(--color-card)",
-    };
-    return (
-      <label className="tile" style={{ ...base, padding: "0.9rem" }}>
-        <div>
-          <div style={{ fontWeight: 600 }}>{f.label}</div>
-          {"help" in f && f.help ? (
-            <div className="muted" style={{ fontSize: "0.85rem", marginTop: 2 }}>
-              {f.help}
-            </div>
-          ) : null}
-        </div>
-        {f.type === "color" ? (
-          <input type="color" name={f.var} defaultValue={theme[f.var] ?? "#000000"} />
-        ) : (
-          <input
-            type="text"
-            name={f.var}
-            defaultValue={theme[f.var] ?? ""}
-            placeholder={("placeholder" in f && f.placeholder) || ""}
-            style={inputBase}
-          />
-        )}
-      </label>
-    );
-  };
-
   // Compact color picker for button colors (no tile wrapper)
   const CompactColorField = ({ field }: { field: Field }) => {
     return (

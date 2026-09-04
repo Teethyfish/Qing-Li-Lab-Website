@@ -220,7 +220,7 @@ export default function AnnouncementsManager({
         show: true,
         missingLanguages: validation.missing,
         onConfirm: async () => {
-          await submitUpdate(formData, id);
+          await submitUpdate(formData);
           setWarning({ show: false, missingLanguages: [], onConfirm: () => {}, onCancel: () => {} });
         },
         onCancel: () => {
@@ -230,10 +230,10 @@ export default function AnnouncementsManager({
       return;
     }
 
-    await submitUpdate(formData, id);
+    await submitUpdate(formData);
   };
 
-  const submitUpdate = async (formData: FormData, id: string) => {
+  const submitUpdate = async (formData: FormData) => {
     const titleJson = buildTitleJson(formData);
     const textJson = buildTextJson(formData);
     const detailsJson = buildDetailsJson(formData);
@@ -799,6 +799,8 @@ export default function AnnouncementsManager({
                 ) : (
                   <div style={{ display: "grid", gap: "1rem" }}>
                     <div style={{ display: "flex", gap: "1rem", alignItems: "start" }}>
+                      {/* The database stores data URLs, which Next Image cannot optimize. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={announcement.imageUrl}
                         alt={titleTranslations.en}

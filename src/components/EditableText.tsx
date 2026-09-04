@@ -100,6 +100,7 @@ export default function EditableText({
     if (localValue.length > 50 || localValue.includes("\n")) {
       return (
         <textarea
+          data-edit-ignore="true"
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
           value={localValue}
           onChange={handleChange}
@@ -115,6 +116,7 @@ export default function EditableText({
     // Single line input
     return (
       <input
+        data-edit-ignore="true"
         ref={inputRef as React.RefObject<HTMLInputElement>}
         type="text"
         value={localValue}
@@ -128,7 +130,7 @@ export default function EditableText({
   }
 
   return (
-    <Component onClick={handleClick} className={className} style={editableStyle}>
+    <Component data-edit-ignore="true" onClick={handleClick} className={className} style={editableStyle}>
       {displayValue}
     </Component>
   );
