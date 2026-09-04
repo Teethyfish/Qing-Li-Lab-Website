@@ -28,9 +28,10 @@ export const authOptions: NextAuthOptions = {
             role: true,
             passwordHash: true,
             mustResetPassword: true, // <-- boolean column in User
+            isActive: true,
           },
         });
-        if (!user?.passwordHash) return null;
+        if (!user?.passwordHash || !user.isActive) return null;
 
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
@@ -42,6 +43,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name ?? undefined,
           role: user.role,
           needsPwReset: !!user.mustResetPassword,
+          isActive: true,
         } as any;
       },
     }),
@@ -54,6 +56,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         (token as any).role = (user as any).role;
         (token as any).needsPwReset = Boolean((user as any).needsPwReset);
+        (token as any).isActive = Boolean((user as any).isActive);
         return token;
       }
 
@@ -61,11 +64,15 @@ export const authOptions: NextAuthOptions = {
       if (token?.email) {
         const db = await prisma.user.findUnique({
           where: { email: String(token.email).toLowerCase() },
-          select: { mustResetPassword: true, role: true },
+          select: { mustResetPassword: true, role: true, isActive: true },
         });
         if (db) {
           (token as any).needsPwReset = Boolean(db.mustResetPassword);
-          (token as any).role = db.role;
+          (token as any).isActive = db.isActive;
+          (token as any).role = db.isActive ? db.role : "MEMBER";
+        } else {
+          (token as any).isActive = false;
+          (token as any).role = "MEMBER";
         }
       }
       return token;
@@ -75,6 +82,7 @@ export const authOptions: NextAuthOptions = {
       // Expose the flags/role to the client when needed
       if (session.user) {
         (session.user as any).role = (token as any)?.role ?? "MEMBER";
+        (session.user as any).isActive = (token as any)?.isActive !== false;
         (session as any).needsPwReset = Boolean((token as any)?.needsPwReset);
       }
       return session;

@@ -36,6 +36,7 @@ model User {
   imageUrl           String?
   locale             String              @default("en")
   mustResetPassword  Boolean             @default(false)
+  isActive            Boolean             @default(true)
   membershipStatus   MembershipStatus    @default(ACTIVE)
   documentsCreated   LabDocument[]       @relation("DocumentCreator")
   documentRecipients DocumentRecipient[]

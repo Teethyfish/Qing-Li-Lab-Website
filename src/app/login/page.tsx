@@ -6,7 +6,7 @@ import LoginForm from "./LoginForm";
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions);
-  if (session?.user?.email) {
+  if (session?.user?.email && (session.user as any).isActive !== false) {
     // already logged in → send to members
     redirect("/members");
   }

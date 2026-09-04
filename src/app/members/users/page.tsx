@@ -38,6 +38,7 @@ type URow = {
   name: string | null;
   slug: string | null;
   role: "ADMIN" | "PI" | "MEMBER";
+  isActive: boolean;
   membershipStatus: "ACTIVE" | "ALUMNI" | "INACTIVE";
   mustResetPassword: boolean;
 };
@@ -60,6 +61,7 @@ export default async function UsersAdminPage() {
       name: true,
       slug: true,
       role: true,
+      isActive: true,
       membershipStatus: true,
       mustResetPassword: true,
     },
@@ -103,6 +105,16 @@ export default async function UsersAdminPage() {
     revalidatePath("/members/users");
   }
 
+  async function setAccountActive(formData: FormData) {
+    "use server";
+    const admin = await requireAdminUser();
+    const id = String(formData.get("id") || "");
+    const isActive = String(formData.get("isActive") || "") === "true";
+    if (!id || id === admin.id) return;
+    await prisma.user.update({ where: { id }, data: { isActive } });
+    revalidatePath("/members/users");
+  }
+
   // 🔒 Require typing DELETE to proceed (server-side check, no client JS needed)
   async function deleteUser(formData: FormData) {
     "use server";
@@ -135,6 +147,7 @@ export default async function UsersAdminPage() {
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableSlug')}</th>
                 )}
                 <th style={{ textAlign: "left", padding: "8px" }}>{t('tableRole')}</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableAccount')}</th>
                 <th style={{ textAlign: "left", padding: "8px" }}>Membership</th>
                 {cfg.showResetCol !== false && (
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableMustResetPW')}</th>
@@ -145,7 +158,7 @@ export default async function UsersAdminPage() {
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="muted" style={{ padding: "10px" }}>
+                  <td colSpan={8} className="muted" style={{ padding: "10px" }}>
                     {t('noUsers')}
                   </td>
                 </tr>
@@ -158,6 +171,30 @@ export default async function UsersAdminPage() {
                       <td style={{ padding: "8px" }}>{u.slug ?? <em className="muted">—</em>}</td>
                     )}
                     <td style={{ padding: "8px" }}>{u.role}</td>
+                    <td style={{ padding: "8px" }}>
+                      <div style={{ display: "grid", gap: 6, justifyItems: "start" }}>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            color: u.isActive ? "#166534" : "#b91c1c",
+                          }}
+                        >
+                          {u.isActive ? t('accountActive') : t('accountInactive')}
+                        </span>
+                        {u.email.toLowerCase() !== session?.user?.email?.toLowerCase() && (
+                          <form action={setAccountActive}>
+                            <input type="hidden" name="id" value={u.id} />
+                            <input type="hidden" name="isActive" value={String(!u.isActive)} />
+                            <button
+                              className={u.isActive ? "btn btn-warning" : "btn btn-basic"}
+                              type="submit"
+                            >
+                              {u.isActive ? t('deactivateAccount') : t('activateAccount')}
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </td>
                     <td style={{ padding: "8px" }}>
                       <form action={setMembershipStatus} style={{ display: "flex", gap: 6 }}>
                         <input type="hidden" name="id" value={u.id} />

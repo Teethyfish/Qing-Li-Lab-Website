@@ -20,8 +20,13 @@ export default async function MembersLayout({ children }: { children: ReactNode 
   // Enforce password reset before accessing ANY /members page
   const me = await prisma.user.findUnique({
     where: { email },
-    select: { mustResetPassword: true },
+    select: { mustResetPassword: true, isActive: true },
   });
+
+  if (!me?.isActive) {
+    redirect("/login?account=inactive");
+    return null;
+  }
 
   if (me?.mustResetPassword) {
     redirect("/reset-password");

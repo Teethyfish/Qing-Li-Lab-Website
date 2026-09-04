@@ -13,6 +13,7 @@ export async function getCurrentUser() {
       email: true,
       name: true,
       role: true,
+      isActive: true,
       membershipStatus: true,
     },
   });
@@ -20,7 +21,7 @@ export async function getCurrentUser() {
 
 export async function requireAdminUser() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "ADMIN") throw new Error("Forbidden");
+  if (!user?.isActive || user.role !== "ADMIN") throw new Error("Forbidden");
   return user;
 }
 
