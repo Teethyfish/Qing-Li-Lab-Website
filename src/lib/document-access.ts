@@ -15,6 +15,7 @@ export async function getCurrentUser() {
       role: true,
       isActive: true,
       membershipStatus: true,
+      themePreference: true,
     },
   });
 }
