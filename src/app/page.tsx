@@ -131,6 +131,12 @@ export default async function HomePage() {
     },
   });
 
+  const researchProjects = await prisma.researchProject.findMany({
+    where: { isPublished: true },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true },
+  });
+
   // --- styles (no client handlers) ---
   const grid: React.CSSProperties = {
     display: "grid",
@@ -286,6 +292,13 @@ export default async function HomePage() {
               {t("hiringText")}
             </p>
           </Link>
+
+          <Link href="/cipdb" className="tile home-cipdb-tile">
+            <h2>CIPDB</h2>
+            <div className="home-cipdb-logo" aria-hidden="true">π</div>
+            <p>{t("cipdbName")}</p>
+            <span className="home-coming-soon">{t("comingSoon")}</span>
+          </Link>
         </aside>
 
         {/* Main column */}
@@ -295,6 +308,24 @@ export default async function HomePage() {
             <h2 style={sectionTitle}>{t('welcome')}</h2>
             <p style={{ marginTop: 8, lineHeight: 1.75, color: "var(--color-text)" }}>{welcome}</p>
           </div>
+
+          <section id="current-projects" className="home-projects-section" data-edit-ignore="true">
+            <h3 style={sectionTitle}>{t("currentProjects")}</h3>
+            <div className="home-project-grid">
+              {researchProjects.map((project) => <Link key={project.id} href={`/projects/${project.slug}`} className="tile home-project-tile">
+                <div className="home-project-image">
+                  {project.tileImageUrl
+                    ? <Image src={project.tileImageUrl} alt="" fill sizes="(max-width: 720px) 100vw, 390px" unoptimized={project.tileImageUrl.startsWith("data:")} style={{ objectFit: "cover" }} />
+                    : <span>{t("projectPhotoPlaceholder")}</span>}
+                </div>
+                <div className="home-project-copy">
+                  <h3>{project.title}</h3>
+                  <p>{project.caption}</p>
+                </div>
+              </Link>)}
+              {!researchProjects.length ? <p className="muted">{t("noCurrentProjects")}</p> : null}
+            </div>
+          </section>
 
           {/* members */}
           <section>

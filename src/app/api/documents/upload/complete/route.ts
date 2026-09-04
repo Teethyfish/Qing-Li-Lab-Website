@@ -107,19 +107,26 @@ export async function POST(request: NextRequest) {
       isPublic?: boolean;
       groups?: string[];
       userIds?: string[];
+      publicOnly?: boolean;
+      categoryId?: string;
     };
     const title = body.title?.trim();
     const description = body.description?.trim();
-    const emailSubject = body.emailSubject?.trim();
+    const publicOnly = body.publicOnly === true;
+    const emailSubject = body.emailSubject?.trim() || (publicOnly ? title : undefined);
     const driveFileId = body.driveFileId?.trim();
     if (!title || !description || !emailSubject || !driveFileId) {
       return NextResponse.json({ error: "Title, description, email title, and file are required." }, { status: 400 });
     }
 
-    const groups = (body.groups || []).filter((value): value is MembershipStatus =>
+    const categoryId = body.categoryId?.trim() || null;
+    if (categoryId && !await prisma.documentCategory.findUnique({ where: { id: categoryId }, select: { id: true } })) {
+      return NextResponse.json({ error: "The selected category no longer exists." }, { status: 400 });
+    }
+    const groups = (publicOnly ? [] : body.groups || []).filter((value): value is MembershipStatus =>
       MEMBERSHIP_STATUSES.has(value as MembershipStatus)
     );
-    const userIds = (body.userIds || []).filter((value) => typeof value === "string" && value);
+    const userIds = (publicOnly ? [] : body.userIds || []).filter((value) => typeof value === "string" && value);
     const recipientWhere = {
       OR: [
         ...(groups.length ? [{ membershipStatus: { in: groups } }] : []),
@@ -132,7 +139,7 @@ export async function POST(request: NextRequest) {
           select: { id: true, email: true, name: true },
         })
       : [];
-    if (!body.isPublic && recipients.length === 0) {
+    if (!publicOnly && !body.isPublic && recipients.length === 0) {
       return NextResponse.json({ error: "Choose at least one recipient or make the document public." }, { status: 400 });
     }
 
@@ -148,7 +155,8 @@ export async function POST(request: NextRequest) {
         mimeType: driveFile.mimeType,
         sizeBytes: driveFile.sizeBytes,
         driveFileId: driveFile.id,
-        isPublic: Boolean(body.isPublic),
+        isPublic: publicOnly || Boolean(body.isPublic),
+        categoryId,
         createdById: admin.id,
         recipients: {
           create: recipients.map((recipient) => ({ userId: recipient.id })),

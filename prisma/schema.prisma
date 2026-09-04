@@ -46,6 +46,7 @@ model User {
   noteWorkspace      NoteWorkspace?
   reminders          Reminder[]
   announcementReads  AnnouncementRead[]
+  projectParticipants ResearchProjectParticipant[]
 }
 
 model AppConfig {
@@ -115,12 +116,55 @@ model LabDocument {
   isPublic      Boolean             @default(false)
   createdById   String?
   createdBy     User?               @relation("DocumentCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  categoryId    String?
+  category      DocumentCategory?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   recipients    DocumentRecipient[]
   notifications Notification[]
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
   @@index([isPublic, createdAt])
+  @@index([categoryId, createdAt])
+}
+
+model DocumentCategory {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  slug      String        @unique
+  sortOrder Int           @default(0)
+  documents LabDocument[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([sortOrder, name])
+}
+
+model ResearchProject {
+  id               String                       @id @default(cuid())
+  slug             String                       @unique
+  title            String
+  caption          String
+  body             String
+  tileImageUrl     String?
+  mainImageUrl     String?
+  supportingImages Json?
+  isPublished      Boolean                      @default(true)
+  participants     ResearchProjectParticipant[]
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  @@index([isPublished, createdAt])
+}
+
+model ResearchProjectParticipant {
+  projectId String
+  userId    String
+  isCurrent Boolean         @default(true)
+  project   ResearchProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@index([userId])
 }
 
 model DocumentRecipient {

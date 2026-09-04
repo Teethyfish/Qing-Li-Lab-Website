@@ -12,6 +12,7 @@
     "announcements": "공지사항",
     "database": "문서 데이터베이스",
     "documents": "문서",
+    "projects": "연구 프로젝트",
     "notifications": "알림",
     "theme": "테마",
     "instruments": "기기",
@@ -113,7 +114,12 @@
     "announcement": "공지사항",
     "noAnnouncements": "아직 공지사항이 없습니다.",
     "hiringTitle": "채용 및 전문가 협력 기회",
-    "hiringText": "연구실 참여 또는 협력 기회를 확인하세요."
+    "hiringText": "연구실 참여 또는 협력 기회를 확인하세요.",
+    "currentProjects": "현재 프로젝트",
+    "noCurrentProjects": "아직 게시된 현재 프로젝트가 없습니다.",
+    "projectPhotoPlaceholder": "프로젝트 사진",
+    "cipdbName": "단백질 데이터 뱅크의 양이온 및 π 상호작용",
+    "comingSoon": "곧 공개됩니다"
   },
   "auth": {
     "login": "로그인",
@@ -307,7 +313,9 @@
       "deleteEntry": "항목 삭제",
       "deleting": "삭제 중…",
       "deleteConfirm": "웹사이트 데이터베이스에서 “{title}”을(를) 삭제하시겠습니까? Google Drive 파일도 삭제를 시도합니다. 이 작업은 되돌릴 수 없습니다.",
-      "visibleTo": "수신자 {count}명에게 표시"
+      "visibleTo": "수신자 {count}명에게 표시",
+      "uncategorized": "미분류",
+      "manageDatabase": "문서 데이터베이스 관리"
     },
     "viewer": {
       "back": "← 문서 데이터베이스로",
@@ -499,6 +507,15 @@
       "uploadHeading": "문서 업로드",
       "uploadedHeading": "업로드된 문서",
       "noDocuments": "아직 업로드된 문서가 없습니다.",
+      "manageCategories": "분류 관리",
+      "categoriesHelp": "데이터베이스 섹션을 만들고 이름을 변경합니다. 분류를 삭제해도 문서는 안전하게 미분류 상태로 남습니다.",
+      "newCategoryName": "새 분류 이름",
+      "createCategory": "분류 만들기",
+      "renameCategory": "이름 변경",
+      "deleteCategory": "분류 삭제",
+      "noCategories": "아직 만든 분류가 없습니다.",
+      "category": "분류",
+      "uncategorized": "미분류",
       "public": "공개",
       "private": "비공개",
       "recipients": "수신자 ({count})",
@@ -525,6 +542,10 @@
       "individuals": "추가 개별 수신자",
       "noUsers": "사용 가능한 사용자 계정이 없습니다.",
       "publicDatabase": "공개 데이터베이스에도 추가 (로그인 없이 볼 수 있음)",
+      "publicOnly": "공개 데이터베이스에만 업로드",
+      "publicOnlyHelp": "수신자를 선택하지 않고, 웹사이트 알림이나 이메일을 보내지 않습니다.",
+      "uploadPublicOnly": "공개 데이터베이스에 업로드",
+      "publishedPublicOnly": "알림 없이 공개 데이터베이스에 게시했습니다.",
       "publishing": "게시 중…",
       "uploadNotify": "업로드 및 알림",
       "chooseDocument": "먼저 문서를 선택하세요.",
@@ -533,7 +554,14 @@
       "creatingNotices": "알림 생성 및 이메일 전송 중…",
       "published": "수신자 {count}명에게 게시했습니다.",
       "emailsSent": "이메일과 웹사이트 알림을 전송했습니다.",
-      "emailFailures": "이메일 알림 {count}건이 실패했지만 웹사이트 알림은 생성되었습니다."
+      "emailFailures": "이메일 알림 {count}건이 실패했지만 웹사이트 알림은 생성되었습니다.",
+      "replaceFile": "저장된 파일 교체",
+      "replacementFile": "새 파일",
+      "replaceButton": "파일 교체",
+      "replacing": "교체 중…",
+      "replaceSuccess": "파일을 교체했습니다. 기존 접근 권한과 링크는 유지됩니다.",
+      "chooseReplacement": "교체할 파일을 선택하세요.",
+      "replaceFailed": "파일을 교체하지 못했습니다."
     },
     "instrumentAdmin": {
       "title": "장비 관리",
@@ -564,6 +592,23 @@
       "notRequired": "불필요",
       "experiment": "실험 및 시료:",
       "noRequests": "제출된 사용 신청이 없습니다."
+    },
+    "projectsAdmin": {
+      "title": "현재 프로젝트 관리", "subtitle": "홈 페이지의 현재 프로젝트 영역에 표시할 연구 페이지를 만듭니다.",
+      "existingProjects": "연구 프로젝트", "existingHelp": "게시된 프로젝트는 홈에 표시되고 초안은 여기에 보관됩니다.", "addProject": "프로젝트 추가",
+      "photoPlaceholder": "프로젝트 사진", "published": "게시됨", "draft": "초안", "edit": "편집", "preview": "미리보기", "delete": "삭제", "none": "생성된 프로젝트가 없습니다.",
+      "editProject": "연구 프로젝트 편집", "newProject": "새 연구 프로젝트", "titleField": "프로젝트 제목", "slug": "페이지 URL", "caption": "홈페이지 짧은 설명", "body": "프로젝트 본문",
+      "tilePhoto": "홈페이지 타일 사진", "mainPhoto": "페이지 대표 사진", "removePhoto": "사진 제거", "supportingPhotos": "보조 사진", "supportingHelp": "프로젝트 페이지 왼쪽에 작은 사진을 최대 4장 추가합니다.",
+      "participants": "참여 연구실 멤버", "participantsHelp": "이 연구에 현재 또는 과거에 참여한 멤버를 표시합니다.", "notInvolved": "참여하지 않음", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여",
+      "publish": "공개 사이트에 이 프로젝트 게시", "saved": "프로젝트를 저장했습니다.", "saving": "저장 중…", "save": "프로젝트 저장", "cancel": "편집 취소", "saveError": "프로젝트를 저장하지 못했습니다.",
+      "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.", "deleteConfirm": "{title}을(를) 삭제할까요? 공개 페이지도 함께 삭제됩니다.", "deleteError": "프로젝트를 삭제하지 못했습니다."
+    },
+    "project": {
+      "back": "현재 프로젝트로 돌아가기", "mainPhotoPlaceholder": "프로젝트 대표 사진", "supportingPhotos": "프로젝트 보조 사진", "supportingPhotoAlt": "프로젝트 보조 사진 {number}", "supportingPhotoPlaceholder": "여기에 보조 사진을 추가할 수 있습니다.",
+      "currentResearch": "현재 연구", "team": "참여 연구실 멤버", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여", "noCurrentMembers": "지정된 현재 참여 멤버가 없습니다.", "noPastMembers": "지정된 과거 참여 멤버가 없습니다."
+    },
+    "cipdb": {
+      "title": "단백질 데이터 뱅크의 양이온 및 π 상호작용", "comingSoon": "곧 공개됩니다.", "back": "홈으로 돌아가기"
     }
   },
   "editorTools": {

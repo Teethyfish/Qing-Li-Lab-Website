@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/document-access";
 import { startResumableDriveUpload } from "@/lib/google";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,7 @@ export async function POST(request: NextRequest) {
       fileName?: string;
       mimeType?: string;
       sizeBytes?: number;
+      documentId?: string;
     };
     const fileName = body.fileName?.trim();
     const sizeBytes = Number(body.sizeBytes);
@@ -21,10 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid file metadata." }, { status: 400 });
     }
 
+    const documentId = body.documentId?.trim();
+    const existingDocument = documentId
+      ? await prisma.labDocument.findUnique({ where: { id: documentId }, select: { driveFileId: true } })
+      : null;
+    if (documentId && !existingDocument) {
+      return NextResponse.json({ error: "Document not found." }, { status: 404 });
+    }
+
     const sessionUrl = await startResumableDriveUpload({
       fileName,
       mimeType: body.mimeType?.trim() || "application/octet-stream",
       sizeBytes,
+      fileId: existingDocument?.driveFileId,
     });
     return NextResponse.json({ sessionUrl });
   } catch (error) {

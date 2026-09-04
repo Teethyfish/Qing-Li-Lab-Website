@@ -159,13 +159,16 @@ export async function startResumableDriveUpload(args: {
   fileName: string;
   mimeType: string;
   sizeBytes: number;
+  fileId?: string;
 }) {
   const accessToken = await getGoogleAccessToken();
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim();
   const response = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size",
+    args.fileId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(args.fileId)}?uploadType=resumable&fields=id,name,mimeType,size`
+      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size",
     {
-      method: "POST",
+      method: args.fileId ? "PATCH" : "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json; charset=UTF-8",
@@ -174,7 +177,7 @@ export async function startResumableDriveUpload(args: {
       },
       body: JSON.stringify({
         name: args.fileName,
-        ...(folderId ? { parents: [folderId] } : {}),
+        ...(!args.fileId && folderId ? { parents: [folderId] } : {}),
       }),
     }
   );

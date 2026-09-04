@@ -141,6 +141,13 @@ a:hover { text-decoration: underline; }
   gap: 1.25rem;
 }
 
+.document-category-section { display: grid; gap: .65rem; }
+.document-category-section > h2 { margin: 0; font-size: 1.05rem; }
+.document-category-list { display: grid; gap: .65rem; }
+.document-listing, .document-admin-listing { padding: .8rem 1rem; }
+.document-listing-title { margin: 0 0 .25rem; font-size: 1rem; color: var(--color-text); }
+.document-listing p, .document-admin-listing p { line-height: 1.45; }
+
 .instrument-card {
   display: flex;
   flex-direction: column;
@@ -1527,4 +1534,82 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 @media (max-width: 850px) {
   .nav-preferences { gap: 3px; }
   button.nav-pref-button { min-width: 24px; padding: 0 4px !important; }
+}
+
+/* Current research cards and project pages */
+.home-projects-section { display: grid; gap: .6rem; }
+.home-projects-section > h3 { margin: 0; }
+.home-project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.home-project-tile { display: grid; grid-template-rows: 150px auto; padding: 0; min-width: 0; }
+.home-project-image { position: relative; display: grid; place-items: center; overflow: hidden; background: color-mix(in oklab, var(--color-card) 82%, var(--color-text) 18%); color: var(--color-muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+.home-project-copy { padding: .9rem 1rem 1rem; }
+.home-project-copy h3 { margin: 0; font-size: 1rem; }
+.home-project-copy p { margin: .35rem 0 0; }
+.home-cipdb-tile { display: grid; place-items: center; gap: .55rem; padding: 1rem; text-align: center; }
+.home-cipdb-tile h2, .home-cipdb-tile p { margin: 0; }
+.home-cipdb-tile h2 { font-size: 1rem; justify-self: start; }
+.home-cipdb-logo, .cipdb-logo-placeholder { display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 1px dashed color-mix(in oklab, var(--color-text) 30%, transparent); color: var(--color-muted); font-family: Georgia, serif; font-size: 2.2rem; }
+.home-coming-soon { font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .2rem .5rem; background: color-mix(in oklab, var(--color-accent) 18%, var(--color-card)); }
+
+.research-project-page { display: grid; gap: 1rem; }
+.research-project-page > .btn { justify-self: start; }
+.research-project-shell { overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: var(--color-card); box-shadow: 0 5px 18px color-mix(in oklab, var(--color-text) 12%, transparent); }
+.research-project-hero { position: relative; display: grid; place-items: center; min-height: clamp(260px, 40vw, 480px); background: color-mix(in oklab, var(--color-card) 80%, var(--color-text) 20%); color: var(--color-muted); text-transform: uppercase; letter-spacing: .1em; }
+.research-project-content { display: grid; grid-template-columns: minmax(190px, 28%) minmax(0, 1fr); gap: clamp(1.25rem, 4vw, 3rem); padding: clamp(1.25rem, 4vw, 3rem); align-items: start; }
+.research-project-gallery { display: grid; gap: 1rem; }
+.research-project-gallery-image, .research-project-gallery-empty { position: relative; min-height: 170px; overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 88%, var(--color-text) 12%); }
+.research-project-gallery-empty { display: grid; place-items: center; padding: 1rem; color: var(--color-muted); font-size: .82rem; text-align: center; }
+.research-project-copy h1 { margin: .15rem 0 .8rem; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.05; }
+.research-project-kicker { margin: 0; color: var(--color-accent); font-size: .78rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.research-project-caption { font-size: 1.1rem; color: var(--color-muted); line-height: 1.55; }
+.research-project-body { margin-top: 1.5rem; white-space: pre-wrap; line-height: 1.8; }
+.research-project-team { border-top: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); padding: clamp(1.25rem, 4vw, 3rem); }
+.research-project-team > h2 { margin-top: 0; }
+.research-project-team-group + .research-project-team-group { margin-top: 1.5rem; }
+.research-project-team-group h3 { font-size: .9rem; text-transform: uppercase; letter-spacing: .07em; }
+.research-project-people { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; }
+.research-project-person { display: flex; align-items: center; gap: .75rem; padding: .7rem; border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent); color: inherit; text-decoration: none; background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.research-project-person-image { display: grid; place-items: center; width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; border-radius: 50%; background: color-mix(in oklab, var(--color-card) 80%, var(--color-text) 20%); font-size: .75rem; }
+.research-project-person-image img { width: 100%; height: 100%; object-fit: cover; }
+.cipdb-page { min-height: 65vh; display: grid; place-items: center; }
+.cipdb-placeholder-page { width: min(100%, 680px); display: grid; place-items: center; gap: 1rem; text-align: center; padding: clamp(2rem, 7vw, 5rem); }
+.cipdb-placeholder-page h1, .cipdb-placeholder-page p { margin: 0; }
+
+/* Admin research-project manager */
+.project-admin-page, .project-manager { display: grid; gap: 1.5rem; }
+.project-panel-heading { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.project-panel-heading h2, .project-panel-heading p { margin: 0; }
+.project-panel-heading p { margin-top: .35rem; }
+.project-admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.project-admin-card { display: grid; grid-template-columns: 110px minmax(0, 1fr); border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.project-admin-thumb { display: grid; place-items: center; min-height: 150px; background-position: center; background-size: cover; color: var(--color-muted); font-size: .72rem; text-align: center; }
+.project-admin-card-body { display: grid; align-content: start; gap: .35rem; padding: .8rem; min-width: 0; }
+.project-admin-card-body p { margin: .25rem 0; }
+.project-admin-card-body small { overflow-wrap: anywhere; }
+.project-card-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; }
+.project-card-actions .btn { padding: .42rem .62rem !important; font-size: .78rem !important; }
+.project-editor { display: grid; gap: 1rem; overflow: visible; }
+.project-editor > h2 { margin: 0; }
+.project-editor label { display: grid; gap: .4rem; }
+.project-editor input:not([type="checkbox"]):not([type="file"]), .project-editor textarea, .project-editor select { width: 100%; box-sizing: border-box; padding: .65rem; color: var(--color-text); background: var(--color-card); border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent); }
+.project-form-grid, .project-image-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.project-image-field, .project-supporting-field, .project-participants { min-width: 0; margin: 0; padding: 1rem; border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
+.project-image-preview { min-height: 170px; margin-bottom: .75rem; background: color-mix(in oklab, var(--color-card) 85%, var(--color-text) 15%) center / cover no-repeat; }
+.project-image-field .btn { margin-top: .6rem; }
+.project-supporting-field > p, .project-participants > p { margin-top: 0; }
+.project-supporting-previews { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin-top: .8rem; }
+.project-supporting-preview { position: relative; min-height: 110px; background: color-mix(in oklab, var(--color-card) 85%, var(--color-text) 15%) center / cover no-repeat; }
+button.project-photo-remove { position: absolute; top: 4px; right: 4px; width: 25px; height: 25px; min-width: 0; padding: 0 !important; border-radius: 50% !important; background: #991b1b !important; color: white !important; }
+.project-participant-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .7rem; }
+.project-participant-grid label { grid-template-columns: minmax(0, 1fr) 150px; align-items: center; padding: .65rem; background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.project-participant-grid small { display: block; overflow-wrap: anywhere; }
+.project-publish-toggle { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: .5rem !important; }
+.project-editor-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+.project-manager-message { margin: 0; font-weight: 600; }
+
+@media (max-width: 720px) {
+  .home-project-grid, .project-form-grid, .project-image-fields, .research-project-content { grid-template-columns: 1fr; }
+  .research-project-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-supporting-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-admin-card { grid-template-columns: 90px minmax(0, 1fr); }
 }

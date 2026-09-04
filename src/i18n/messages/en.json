@@ -12,6 +12,7 @@
     "announcements": "Announcements",
     "database": "Database",
     "documents": "Documents",
+    "projects": "Research Projects",
     "notifications": "Notifications",
     "theme": "Theme",
     "instruments": "Instruments",
@@ -113,7 +114,12 @@
     "announcement": "Announcement",
     "noAnnouncements": "No announcements yet.",
     "hiringTitle": "Hiring and Expert Opportunities",
-    "hiringText": "View current opportunities to join or collaborate with the lab."
+    "hiringText": "View current opportunities to join or collaborate with the lab.",
+    "currentProjects": "Current Projects",
+    "noCurrentProjects": "No current projects have been published yet.",
+    "projectPhotoPlaceholder": "Project photo",
+    "cipdbName": "Cation and π Interaction in Protein Data Bank",
+    "comingSoon": "Coming soon"
   },
   "auth": {
     "login": "Login",
@@ -307,7 +313,9 @@
       "deleteEntry": "Delete entry",
       "deleting": "Deleting…",
       "deleteConfirm": "Delete “{title}” from the website database? The site will also try to remove its Google Drive file. This cannot be undone.",
-      "visibleTo": "Visible to {count} recipient(s)"
+      "visibleTo": "Visible to {count} recipient(s)",
+      "uncategorized": "Uncategorized",
+      "manageDatabase": "Manage document database"
     },
     "viewer": {
       "back": "← Back to document database",
@@ -499,6 +507,15 @@
       "uploadHeading": "Upload a document",
       "uploadedHeading": "Uploaded documents",
       "noDocuments": "No documents have been uploaded yet.",
+      "manageCategories": "Manage categories",
+      "categoriesHelp": "Create and rename database sections. Deleting a category leaves its documents safely uncategorized.",
+      "newCategoryName": "New category name",
+      "createCategory": "Create category",
+      "renameCategory": "Rename",
+      "deleteCategory": "Delete category",
+      "noCategories": "No categories have been created yet.",
+      "category": "Category",
+      "uncategorized": "Uncategorized",
       "public": "Public",
       "private": "Private",
       "recipients": "Recipients ({count})",
@@ -525,6 +542,10 @@
       "individuals": "Additional individual recipients",
       "noUsers": "No user accounts are available.",
       "publicDatabase": "Also place this in the public database (visible without signing in)",
+      "publicOnly": "Upload only to the public database",
+      "publicOnlyHelp": "Do not select recipients, create website notifications, or send email.",
+      "uploadPublicOnly": "Upload to public database",
+      "publishedPublicOnly": "Published to the public database without sending notifications.",
       "publishing": "Publishing…",
       "uploadNotify": "Upload and notify",
       "chooseDocument": "Choose a document first.",
@@ -533,7 +554,14 @@
       "creatingNotices": "Creating notifications and sending email…",
       "published": "Published to {count} recipient(s).",
       "emailsSent": "Email and website notifications were sent.",
-      "emailFailures": "{count} email notification(s) failed; the website notifications were still created."
+      "emailFailures": "{count} email notification(s) failed; the website notifications were still created.",
+      "replaceFile": "Replace stored file",
+      "replacementFile": "New file",
+      "replaceButton": "Replace file",
+      "replacing": "Replacing…",
+      "replaceSuccess": "File replaced. Existing access and links were preserved.",
+      "chooseReplacement": "Choose a replacement file.",
+      "replaceFailed": "Could not replace the file."
     },
     "instrumentAdmin": {
       "title": "Manage Instruments",
@@ -564,6 +592,23 @@
       "notRequired": "Not required",
       "experiment": "Experiment and samples:",
       "noRequests": "No access requests have been submitted."
+    },
+    "projectsAdmin": {
+      "title": "Manage Current Projects", "subtitle": "Create the research pages shown in the Current Projects section of the home page.",
+      "existingProjects": "Research projects", "existingHelp": "Published projects appear on the home page; drafts remain available here.", "addProject": "Add project",
+      "photoPlaceholder": "Project photo", "published": "Published", "draft": "Draft", "edit": "Edit", "preview": "Preview", "delete": "Delete", "none": "No projects have been created.",
+      "editProject": "Edit research project", "newProject": "New research project", "titleField": "Project title", "slug": "Page URL", "caption": "Short homepage caption", "body": "Main project text",
+      "tilePhoto": "Homepage tile photo", "mainPhoto": "Main page photo", "removePhoto": "Remove photo", "supportingPhotos": "Supporting photos", "supportingHelp": "Add up to four smaller photos for the left side of the project page.",
+      "participants": "Lab members involved", "participantsHelp": "Mark members as currently or previously involved in this research.", "notInvolved": "Not involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved",
+      "publish": "Publish this project on the public site", "saved": "Project saved.", "saving": "Saving…", "save": "Save project", "cancel": "Cancel editing", "saveError": "Could not save the project.",
+      "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.", "deleteConfirm": "Delete {title}? This also removes its public page.", "deleteError": "Could not delete the project."
+    },
+    "project": {
+      "back": "Back to current projects", "mainPhotoPlaceholder": "Main project photo", "supportingPhotos": "Supporting project photos", "supportingPhotoAlt": "Supporting project photo {number}", "supportingPhotoPlaceholder": "Supporting photos can be added here.",
+      "currentResearch": "Current research", "team": "Lab members involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved", "noCurrentMembers": "No current members have been assigned.", "noPastMembers": "No previous members have been assigned."
+    },
+    "cipdb": {
+      "title": "Cation and π Interaction in Protein Data Bank", "comingSoon": "Coming soon.", "back": "Back to home"
     }
   },
   "editorTools": {

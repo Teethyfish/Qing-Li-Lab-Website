@@ -10,14 +10,16 @@ type UserOption = {
   membershipStatus: "ACTIVE" | "ALUMNI" | "INACTIVE";
 };
 
-type Props = { users: UserOption[] };
+type CategoryOption = { id: string; name: string };
+type Props = { users: UserOption[]; categories: CategoryOption[] };
 
-export default function DocumentUploadForm({ users }: Props) {
+export default function DocumentUploadForm({ users, categories }: Props) {
   const t = useTranslations("sitePages.documentsAdmin");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
   const [autoTitle, setAutoTitle] = useState("");
+  const [publicOnly, setPublicOnly] = useState(false);
 
   function titleFromFileName(fileName: string) {
     const withoutExtension = fileName.replace(/\.[^.]+$/, "");
@@ -105,7 +107,9 @@ export default function DocumentUploadForm({ users }: Props) {
           title: data.get("title"),
           description: data.get("description"),
           emailSubject: data.get("emailSubject"),
-          isPublic: data.get("isPublic") === "on",
+          isPublic: publicOnly || data.get("isPublic") === "on",
+          publicOnly,
+          categoryId: data.get("categoryId"),
           groups: data.getAll("groups"),
           userIds: data.getAll("userIds"),
         }),
@@ -113,13 +117,18 @@ export default function DocumentUploadForm({ users }: Props) {
       const completed = await completeResponse.json();
       if (!completeResponse.ok) throw new Error(completed.error || "Could not publish document.");
 
-      const emailNote = completed.emailFailureCount
-        ? t("emailFailures", { count: completed.emailFailureCount })
-        : t("emailsSent");
-      setStatus(`${t("published", { count: completed.recipientCount })} ${emailNote}`);
+      if (publicOnly) {
+        setStatus(t("publishedPublicOnly"));
+      } else {
+        const emailNote = completed.emailFailureCount
+          ? t("emailFailures", { count: completed.emailFailureCount })
+          : t("emailsSent");
+        setStatus(`${t("published", { count: completed.recipientCount })} ${emailNote}`);
+      }
       form.reset();
       setTitle("");
       setAutoTitle("");
+      setPublicOnly(false);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -145,6 +154,14 @@ export default function DocumentUploadForm({ users }: Props) {
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
+        <strong>{t("category")}</strong>
+        <select name="categoryId" style={inputStyle} defaultValue="">
+          <option value="">{t("uncategorized")}</option>
+          {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+        </select>
+      </label>
+
+      <label style={{ display: "grid", gap: 6 }}>
         <strong>{t("documentTitle")}</strong>
         <input
           name="title"
@@ -162,10 +179,16 @@ export default function DocumentUploadForm({ users }: Props) {
         <small className="muted">{t("summaryHelp")}</small>
       </label>
 
-      <label style={{ display: "grid", gap: 6 }}>
-        <strong>{t("emailTitle")}</strong>
-        <input name="emailSubject" required style={inputStyle} />
+      <label className="document-public-only-option" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <input type="checkbox" checked={publicOnly} onChange={(event) => setPublicOnly(event.target.checked)} />
+        <span><strong>{t("publicOnly")}</strong><small className="muted" style={{ display: "block" }}>{t("publicOnlyHelp")}</small></span>
       </label>
+
+      {!publicOnly ? <>
+        <label style={{ display: "grid", gap: 6 }}>
+          <strong>{t("emailTitle")}</strong>
+          <input name="emailSubject" required style={inputStyle} />
+        </label>
 
       <fieldset style={{ border: "1px solid color-mix(in oklab, var(--color-text) 18%, transparent)", padding: "1rem" }}>
         <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>{t("audienceGroups")}</legend>
@@ -214,10 +237,11 @@ export default function DocumentUploadForm({ users }: Props) {
         <input type="checkbox" name="isPublic" />
         <span>{t("publicDatabase")}</span>
       </label>
+      </> : null}
 
       <div>
         <button type="submit" className="btn btn-basic" disabled={busy}>
-          {busy ? t("publishing") : t("uploadNotify")}
+          {busy ? t("publishing") : publicOnly ? t("uploadPublicOnly") : t("uploadNotify")}
         </button>
       </div>
       {status ? <p role="status" style={{ margin: 0 }}>{status}</p> : null}

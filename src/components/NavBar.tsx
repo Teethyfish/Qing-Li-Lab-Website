@@ -110,6 +110,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
     { href: "/members/users", label: t('users') },
     { href: "/members/announcements", label: t('announcements') },
     { href: "/members/documents", label: t('documents') },
+    { href: "/members/projects", label: t('projects') },
     { href: "/members/instruments", label: t('instrumentsRequests') },
     { href: "/members/theme", label: t('theme') },
   ];
