@@ -601,7 +601,8 @@
       "tilePhoto": "Homepage tile photo", "mainPhoto": "Main page photo", "removePhoto": "Remove photo", "supportingPhotos": "Supporting photos", "supportingHelp": "Add up to four smaller photos for the left side of the project page.",
       "participants": "Lab members involved", "participantsHelp": "Mark members as currently or previously involved in this research.", "notInvolved": "Not involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved",
       "publish": "Publish this project on the public site", "saved": "Project saved.", "saving": "Saving…", "save": "Save project", "cancel": "Cancel editing", "saveError": "Could not save the project.",
-      "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.", "deleteConfirm": "Delete {title}? This also removes its public page.", "deleteError": "Could not delete the project."
+      "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.", "deleteConfirm": "Delete {title}? This also removes its public page.", "deleteError": "Could not delete the project.",
+      "cropPhoto": "Crop project photo", "clickToRecrop": "Click to adjust crop", "recropSupporting": "Adjust supporting photo {number}"
     },
     "project": {
       "back": "Back to current projects", "mainPhotoPlaceholder": "Main project photo", "supportingPhotos": "Supporting project photos", "supportingPhotoAlt": "Supporting project photo {number}", "supportingPhotoPlaceholder": "Supporting photos can be added here.",

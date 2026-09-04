@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import ProjectImageCropper from "@/components/ProjectImageCropper";
 
 type Participant = { userId: string; isCurrent: boolean };
 type Project = {
@@ -20,6 +21,12 @@ type Project = {
 };
 type UserOption = { id: string; name: string | null; email: string; membershipStatus: string };
 type Draft = Omit<Project, "id">;
+type CropTarget = {
+  kind: "tile" | "main" | "supporting-new" | "supporting-existing";
+  source: string;
+  aspect: number;
+  index?: number;
+};
 
 const emptyDraft: Draft = {
   slug: "",
@@ -37,29 +44,14 @@ function slugify(value: string) {
   return value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
 }
 
-async function compressImage(file: File): Promise<string> {
+async function readImage(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("image");
-  const source = await new Promise<string>((resolve, reject) => {
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = source;
-  });
-  const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(image.width * scale));
-  canvas.height = Math.max(1, Math.round(image.height * scale));
-  canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
-  let result = canvas.toDataURL("image/jpeg", 0.76);
-  if (result.length > 650_000) result = canvas.toDataURL("image/jpeg", 0.55);
-  if (result.length > 800_000) throw new Error("size");
-  return result;
 }
 
 export default function ProjectManager({ initialProjects, users }: { initialProjects: Project[]; users: UserOption[] }) {
@@ -70,6 +62,7 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
 
   const beginNew = () => { setEditingId(null); setDraft(emptyDraft); setMessage(""); };
   const beginEdit = (project: Project) => {
@@ -94,23 +87,36 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
     event.target.value = "";
     if (!file) return;
     try {
-      setDraft((current) => ({ ...current, [field]: null }));
-      const value = await compressImage(file);
-      setDraft((current) => ({ ...current, [field]: value }));
+      setCropTarget({
+        kind: field === "tileImageUrl" ? "tile" : "main",
+        source: await readImage(file),
+        aspect: field === "tileImageUrl" ? 8 / 3 : 12 / 5,
+      });
     } catch {
       setMessage(t("imageError"));
     }
   };
 
   const chooseSupportingImages = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []).slice(0, 4 - draft.supportingImages.length);
+    const file = event.target.files?.[0];
     event.target.value = "";
+    if (!file || draft.supportingImages.length >= 4) return;
     try {
-      const images = await Promise.all(files.map(compressImage));
-      setDraft((current) => ({ ...current, supportingImages: [...current.supportingImages, ...images].slice(0, 4) }));
+      setCropTarget({ kind: "supporting-new", source: await readImage(file), aspect: 4 / 3 });
     } catch {
       setMessage(t("imageError"));
     }
+  };
+
+  const completeCrop = (image: string) => {
+    if (!cropTarget) return;
+    if (cropTarget.kind === "tile") setDraft((current) => ({ ...current, tileImageUrl: image }));
+    if (cropTarget.kind === "main") setDraft((current) => ({ ...current, mainImageUrl: image }));
+    if (cropTarget.kind === "supporting-new") setDraft((current) => ({ ...current, supportingImages: [...current.supportingImages, image].slice(0, 4) }));
+    if (cropTarget.kind === "supporting-existing" && cropTarget.index !== undefined) {
+      setDraft((current) => ({ ...current, supportingImages: current.supportingImages.map((existing, index) => index === cropTarget.index ? image : existing) }));
+    }
+    setCropTarget(null);
   };
 
   const setParticipant = (userId: string, status: string) => {
@@ -194,17 +200,18 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
       <label><span>{t("body")}</span><textarea required maxLength={30000} rows={10} value={draft.body} onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))} /></label>
 
       <div className="project-image-fields">
-        <ImageField label={t("tilePhoto")} value={draft.tileImageUrl} onChoose={(event) => chooseImage(event, "tileImageUrl")} onRemove={() => setDraft((current) => ({ ...current, tileImageUrl: null }))} removeLabel={t("removePhoto")} />
-        <ImageField label={t("mainPhoto")} value={draft.mainImageUrl} onChoose={(event) => chooseImage(event, "mainImageUrl")} onRemove={() => setDraft((current) => ({ ...current, mainImageUrl: null }))} removeLabel={t("removePhoto")} />
+        <ImageField label={t("tilePhoto")} value={draft.tileImageUrl} onChoose={(event) => chooseImage(event, "tileImageUrl")} onRecrop={() => draft.tileImageUrl && setCropTarget({ kind: "tile", source: draft.tileImageUrl, aspect: 8 / 3 })} onRemove={() => setDraft((current) => ({ ...current, tileImageUrl: null }))} removeLabel={t("removePhoto")} recropLabel={t("clickToRecrop")} />
+        <ImageField label={t("mainPhoto")} value={draft.mainImageUrl} onChoose={(event) => chooseImage(event, "mainImageUrl")} onRecrop={() => draft.mainImageUrl && setCropTarget({ kind: "main", source: draft.mainImageUrl, aspect: 12 / 5 })} onRemove={() => setDraft((current) => ({ ...current, mainImageUrl: null }))} removeLabel={t("removePhoto")} recropLabel={t("clickToRecrop")} />
       </div>
 
       <fieldset className="project-supporting-field">
         <legend>{t("supportingPhotos")}</legend>
         <p className="muted">{t("supportingHelp")}</p>
-        <input type="file" accept="image/*" multiple disabled={draft.supportingImages.length >= 4} onChange={chooseSupportingImages} />
+        <input type="file" accept="image/*" disabled={draft.supportingImages.length >= 4} onChange={chooseSupportingImages} />
         <div className="project-supporting-previews">
-          {draft.supportingImages.map((image, index) => <div key={`${image.slice(-25)}-${index}`} className="project-supporting-preview" style={{ backgroundImage: `url(${image})` }}>
-            <button type="button" className="project-photo-remove" aria-label={t("removePhoto")} onClick={() => setDraft((current) => ({ ...current, supportingImages: current.supportingImages.filter((_, imageIndex) => imageIndex !== index) }))}>×</button>
+          {draft.supportingImages.map((image, index) => <div key={`${image.slice(-25)}-${index}`} className="project-supporting-preview" role="button" tabIndex={0} aria-label={t("recropSupporting", { number: index + 1 })} onClick={() => setCropTarget({ kind: "supporting-existing", source: image, aspect: 4 / 3, index })} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setCropTarget({ kind: "supporting-existing", source: image, aspect: 4 / 3, index }); }} style={{ backgroundImage: `url(${image})` }}>
+            <span className="project-recrop-overlay">{t("clickToRecrop")}</span>
+            <button type="button" className="project-photo-remove" aria-label={t("removePhoto")} onClick={(event) => { event.stopPropagation(); setDraft((current) => ({ ...current, supportingImages: current.supportingImages.filter((_, imageIndex) => imageIndex !== index) })); }}>×</button>
           </div>)}
         </div>
       </fieldset>
@@ -233,14 +240,17 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
         <button type="submit" className="btn btn-basic" disabled={busy}>{busy ? t("saving") : t("save")}</button>
         {editingId ? <button type="button" className="btn btn-muted" onClick={beginNew}>{t("cancel")}</button> : null}
       </div>
+      {cropTarget ? <ProjectImageCropper imageSrc={cropTarget.source} aspect={cropTarget.aspect} title={t("cropPhoto")} onComplete={completeCrop} onCancel={() => setCropTarget(null)} /> : null}
     </form>
   </div>;
 }
 
-function ImageField({ label, value, onChoose, onRemove, removeLabel }: { label: string; value: string | null; onChoose: (event: ChangeEvent<HTMLInputElement>) => void; onRemove: () => void; removeLabel: string }) {
+function ImageField({ label, value, onChoose, onRecrop, onRemove, removeLabel, recropLabel }: { label: string; value: string | null; onChoose: (event: ChangeEvent<HTMLInputElement>) => void; onRecrop: () => void; onRemove: () => void; removeLabel: string; recropLabel: string }) {
   return <fieldset className="project-image-field">
     <legend>{label}</legend>
-    <div className="project-image-preview" style={value ? { backgroundImage: `url(${value})` } : undefined} />
+    <div className={`project-image-preview${value ? " has-image" : ""}`} role={value ? "button" : undefined} tabIndex={value ? 0 : undefined} onClick={value ? onRecrop : undefined} onKeyDown={value ? (event) => { if (event.key === "Enter" || event.key === " ") onRecrop(); } : undefined} style={value ? { backgroundImage: `url(${value})` } : undefined}>
+      {value ? <span className="project-recrop-overlay">{recropLabel}</span> : null}
+    </div>
     <input type="file" accept="image/*" onChange={onChoose} />
     {value ? <button type="button" className="btn btn-muted" onClick={onRemove}>{removeLabel}</button> : null}
   </fieldset>;

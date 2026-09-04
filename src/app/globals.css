@@ -1554,10 +1554,10 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .research-project-page { display: grid; gap: 1rem; }
 .research-project-page > .btn { justify-self: start; }
 .research-project-shell { overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: var(--color-card); box-shadow: 0 5px 18px color-mix(in oklab, var(--color-text) 12%, transparent); }
-.research-project-hero { position: relative; display: grid; place-items: center; min-height: clamp(260px, 40vw, 480px); background: color-mix(in oklab, var(--color-card) 80%, var(--color-text) 20%); color: var(--color-muted); text-transform: uppercase; letter-spacing: .1em; }
+.research-project-hero { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 12 / 5; background: color-mix(in oklab, var(--color-card) 80%, var(--color-text) 20%); color: var(--color-muted); text-transform: uppercase; letter-spacing: .1em; }
 .research-project-content { display: grid; grid-template-columns: minmax(190px, 28%) minmax(0, 1fr); gap: clamp(1.25rem, 4vw, 3rem); padding: clamp(1.25rem, 4vw, 3rem); align-items: start; }
 .research-project-gallery { display: grid; gap: 1rem; }
-.research-project-gallery-image, .research-project-gallery-empty { position: relative; min-height: 170px; overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 88%, var(--color-text) 12%); }
+.research-project-gallery-image, .research-project-gallery-empty { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 88%, var(--color-text) 12%); }
 .research-project-gallery-empty { display: grid; place-items: center; padding: 1rem; color: var(--color-muted); font-size: .82rem; text-align: center; }
 .research-project-copy h1 { margin: .15rem 0 .8rem; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.05; }
 .research-project-kicker { margin: 0; color: var(--color-accent); font-size: .78rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
@@ -1567,9 +1567,9 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .research-project-team > h2 { margin-top: 0; }
 .research-project-team-group + .research-project-team-group { margin-top: 1.5rem; }
 .research-project-team-group h3 { font-size: .9rem; text-transform: uppercase; letter-spacing: .07em; }
-.research-project-people { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .75rem; }
-.research-project-person { display: flex; align-items: center; gap: .75rem; padding: .7rem; border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent); color: inherit; text-decoration: none; background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
-.research-project-person-image { display: grid; place-items: center; width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; border-radius: 50%; background: color-mix(in oklab, var(--color-card) 80%, var(--color-text) 20%); font-size: .75rem; }
+.research-project-people { display: grid; grid-template-columns: repeat(auto-fill, 180px); gap: 1rem; justify-content: start; }
+.research-project-person { display: flex; min-height: 126px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; padding: .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); border-radius: calc(var(--tile-radius, 2) * 1px); color: inherit; text-align: center; text-decoration: none; background: var(--color-card); box-shadow: 0 3px 10px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * .7%), transparent); }
+.research-project-person-image { display: grid; place-items: center; width: 80px; height: 80px; flex: 0 0 80px; overflow: hidden; border-radius: 50%; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-text) 6%, #f3f4f6); color: var(--color-text); font-size: .9rem; font-weight: 600; }
 .research-project-person-image img { width: 100%; height: 100%; object-fit: cover; }
 .cipdb-page { min-height: 65vh; display: grid; place-items: center; }
 .cipdb-placeholder-page { width: min(100%, 680px); display: grid; place-items: center; gap: 1rem; text-align: center; padding: clamp(2rem, 7vw, 5rem); }
@@ -1594,7 +1594,10 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .project-editor input:not([type="checkbox"]):not([type="file"]), .project-editor textarea, .project-editor select { width: 100%; box-sizing: border-box; padding: .65rem; color: var(--color-text); background: var(--color-card); border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent); }
 .project-form-grid, .project-image-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .project-image-field, .project-supporting-field, .project-participants { min-width: 0; margin: 0; padding: 1rem; border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
-.project-image-preview { min-height: 170px; margin-bottom: .75rem; background: color-mix(in oklab, var(--color-card) 85%, var(--color-text) 15%) center / cover no-repeat; }
+.project-image-preview { position: relative; min-height: 170px; margin-bottom: .75rem; overflow: hidden; background: color-mix(in oklab, var(--color-card) 85%, var(--color-text) 15%) center / cover no-repeat; }
+.project-image-preview.has-image, .project-supporting-preview { cursor: pointer; }
+.project-recrop-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: .75rem; background: rgb(0 0 0 / 62%); color: white; font-size: .8rem; font-weight: 650; text-align: center; opacity: 0; transition: opacity .15s ease; }
+.project-image-preview:hover .project-recrop-overlay, .project-image-preview:focus .project-recrop-overlay, .project-supporting-preview:hover .project-recrop-overlay, .project-supporting-preview:focus .project-recrop-overlay { opacity: 1; }
 .project-image-field .btn { margin-top: .6rem; }
 .project-supporting-field > p, .project-participants > p { margin-top: 0; }
 .project-supporting-previews { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin-top: .8rem; }
@@ -1606,10 +1609,18 @@ button.project-photo-remove { position: absolute; top: 4px; right: 4px; width: 2
 .project-publish-toggle { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: .5rem !important; }
 .project-editor-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
 .project-manager-message { margin: 0; font-weight: 600; }
+.project-crop-backdrop { position: fixed; inset: 0; z-index: 99998; background: rgb(0 0 0 / 72%); }
+.project-crop-modal { position: fixed; top: 50%; left: 50%; z-index: 99999; width: min(92vw, 780px); max-height: 92vh; transform: translate(-50%, -50%); display: grid; gap: 1rem; padding: 1.25rem; box-sizing: border-box; overflow-y: auto; background: var(--color-card); color: var(--color-text); border: 1px solid color-mix(in oklab, var(--color-text) 16%, transparent); box-shadow: 0 12px 50px rgb(0 0 0 / 35%); }
+.project-crop-modal h2, .project-crop-modal p { margin: 0; }
+.project-crop-stage { position: relative; width: 100%; height: min(58vh, 480px); min-height: 280px; overflow: hidden; background: #000; }
+.project-crop-zoom { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem !important; }
+.project-crop-zoom input { width: 100%; }
+.project-crop-actions { display: flex; justify-content: flex-end; gap: .75rem; }
 
 @media (max-width: 720px) {
   .home-project-grid, .project-form-grid, .project-image-fields, .research-project-content { grid-template-columns: 1fr; }
   .research-project-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-supporting-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-admin-card { grid-template-columns: 90px minmax(0, 1fr); }
+  .research-project-people { grid-template-columns: repeat(auto-fill, minmax(140px, 180px)); }
 }

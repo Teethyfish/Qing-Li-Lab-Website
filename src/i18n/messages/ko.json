@@ -601,7 +601,8 @@
       "tilePhoto": "홈페이지 타일 사진", "mainPhoto": "페이지 대표 사진", "removePhoto": "사진 제거", "supportingPhotos": "보조 사진", "supportingHelp": "프로젝트 페이지 왼쪽에 작은 사진을 최대 4장 추가합니다.",
       "participants": "참여 연구실 멤버", "participantsHelp": "이 연구에 현재 또는 과거에 참여한 멤버를 표시합니다.", "notInvolved": "참여하지 않음", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여",
       "publish": "공개 사이트에 이 프로젝트 게시", "saved": "프로젝트를 저장했습니다.", "saving": "저장 중…", "save": "프로젝트 저장", "cancel": "편집 취소", "saveError": "프로젝트를 저장하지 못했습니다.",
-      "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.", "deleteConfirm": "{title}을(를) 삭제할까요? 공개 페이지도 함께 삭제됩니다.", "deleteError": "프로젝트를 삭제하지 못했습니다."
+      "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.", "deleteConfirm": "{title}을(를) 삭제할까요? 공개 페이지도 함께 삭제됩니다.", "deleteError": "프로젝트를 삭제하지 못했습니다.",
+      "cropPhoto": "프로젝트 사진 자르기", "clickToRecrop": "클릭하여 자르기 조정", "recropSupporting": "보조 사진 {number} 조정"
     },
     "project": {
       "back": "현재 프로젝트로 돌아가기", "mainPhotoPlaceholder": "프로젝트 대표 사진", "supportingPhotos": "프로젝트 보조 사진", "supportingPhotoAlt": "프로젝트 보조 사진 {number}", "supportingPhotoPlaceholder": "여기에 보조 사진을 추가할 수 있습니다.",

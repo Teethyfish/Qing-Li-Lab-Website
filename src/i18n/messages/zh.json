@@ -601,7 +601,8 @@
       "tilePhoto": "主页图块图片", "mainPhoto": "页面主图片", "removePhoto": "移除图片", "supportingPhotos": "辅助图片", "supportingHelp": "最多添加四张显示在项目页面左侧的小图片。",
       "participants": "参与的实验室成员", "participantsHelp": "将成员标记为目前参与或曾经参与该研究。", "notInvolved": "未参与", "currentlyInvolved": "目前参与", "previouslyInvolved": "曾经参与",
       "publish": "在公开网站发布此项目", "saved": "项目已保存。", "saving": "保存中…", "save": "保存项目", "cancel": "取消编辑", "saveError": "无法保存项目。",
-      "imageError": "无法处理该图片。请使用几 MB 以内的 JPG、PNG 或 WebP 图片。", "deleteConfirm": "删除 {title}？其公开页面也会被删除。", "deleteError": "无法删除项目。"
+      "imageError": "无法处理该图片。请使用几 MB 以内的 JPG、PNG 或 WebP 图片。", "deleteConfirm": "删除 {title}？其公开页面也会被删除。", "deleteError": "无法删除项目。",
+      "cropPhoto": "裁剪项目图片", "clickToRecrop": "点击调整裁剪", "recropSupporting": "调整辅助图片 {number}"
     },
     "project": {
       "back": "返回当前项目", "mainPhotoPlaceholder": "项目主图片", "supportingPhotos": "项目辅助图片", "supportingPhotoAlt": "项目辅助图片 {number}", "supportingPhotoPlaceholder": "可在这里添加辅助图片。",
