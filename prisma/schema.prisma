@@ -36,11 +36,13 @@ model User {
   imageUrl           String?
   locale             String              @default("en")
   mustResetPassword  Boolean             @default(false)
-  isActive            Boolean             @default(true)
+  isActive           Boolean             @default(true)
   membershipStatus   MembershipStatus    @default(ACTIVE)
   documentsCreated   LabDocument[]       @relation("DocumentCreator")
   documentRecipients DocumentRecipient[]
   notifications      Notification[]
+  noteWorkspace      NoteWorkspace?
+  reminders          Reminder[]
 }
 
 model AppConfig {
@@ -139,4 +141,56 @@ model GoogleConnection {
   encryptedRefreshToken String
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+model Instrument {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  location    String
+  imageUrl    String
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model InstrumentAccessRequest {
+  id                    String   @id @default(cuid())
+  name                  String
+  department            String
+  supervisor            String?
+  email                 String
+  requestedInstruments  String
+  experimentDescription String
+  trainingRequired      Boolean
+  status                String   @default("NEW")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([email, createdAt])
+}
+
+model NoteWorkspace {
+  userId    String   @id
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id        String    @id @default(cuid())
+  userId    String
+  message   String
+  remindAt  DateTime
+  emailedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, remindAt])
+  @@index([emailedAt, remindAt])
 }

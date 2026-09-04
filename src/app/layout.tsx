@@ -61,16 +61,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     where: { key: { startsWith: "content:" } },
     select: { key: true, value: true },
   });
-  const editableContent = Object.fromEntries(
-    editableRows.flatMap(({ key, value }) => {
-      try {
-        const parsed = JSON.parse(value);
-        return typeof parsed === "string" ? [[key, parsed]] : [];
-      } catch {
-        return [];
-      }
-    })
-  );
+  const editableContent: Record<string, { value: string; format: "text" | "html" }> = {};
+  for (const { key, value } of editableRows) {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (typeof parsed === "string") editableContent[key] = { value: parsed, format: "text" };
+      else if (
+        parsed &&
+        typeof parsed === "object" &&
+        "format" in parsed &&
+        "value" in parsed &&
+        parsed.format === "html" &&
+        typeof parsed.value === "string"
+      ) editableContent[key] = { value: parsed.value, format: "html" };
+    } catch {
+      // Ignore malformed legacy content rows.
+    }
+  }
 
   return (
     <html lang={userLocale}>

@@ -187,6 +187,11 @@ export default async function HomePage() {
           labSubtitle={labSubtitle}
         />
 
+        <Link href="/hiring" className="tile" style={{ display: "block" }}>
+          <h2 style={{ margin: 0, fontSize: "1.2rem" }}>Hiring and Expert Opportunities</h2>
+          <p>View current opportunities to join or collaborate with the Qing X. Li Lab.</p>
+        </Link>
+
         {/* ===== Announcement Carousel ===== */}
         {announcements.length > 0 && (
           <section

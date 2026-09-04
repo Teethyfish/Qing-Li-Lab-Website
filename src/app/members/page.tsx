@@ -71,6 +71,11 @@ export default async function MembersPage() {
       title: "Notifications",
       description: "Review new documents and lab updates.",
     },
+    {
+      href: "/members/notes",
+      title: "Private notes and reminders",
+      description: "Organize private sticky-note pages and schedule email reminders.",
+    },
   ];
   const tiles = [
     ...configuredTiles.filter((tile) => tile.href !== "/members/reading-list"),

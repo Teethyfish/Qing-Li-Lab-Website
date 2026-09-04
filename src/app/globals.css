@@ -17,6 +17,53 @@ html, body {
   background: color-mix(in oklab, var(--btn-warning-bg, #f59e0b) 10%, transparent);
 }
 
+[data-global-editable="true"] table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: .75rem 0;
+}
+
+[data-global-editable="true"] td,
+[data-global-editable="true"] th {
+  min-width: 42px;
+  padding: .35rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 35%, transparent);
+}
+
+.admin-rich-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  color: #111827;
+}
+
+.admin-rich-toolbar button {
+  min-width: 0 !important;
+  padding: .35rem .5rem !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+  font-size: .8rem !important;
+}
+
+.admin-rich-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .2rem .35rem;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  font-size: .75rem;
+}
+
+.admin-rich-toolbar input[type="color"] {
+  width: 26px;
+  height: 24px;
+  padding: 0;
+}
+
 :root {
   /* Safe fallbacks in case the DB theme hasn't loaded yet */
   --color-bg: #ffffff;
@@ -84,6 +131,296 @@ a:hover { text-decoration: underline; }
   border-radius: calc(var(--tile-radius, 2) * 1px);
   padding: calc(var(--tile-padding, 1) * 1rem);
   box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 1%), transparent);
+}
+
+.instrument-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 1.25rem;
+}
+
+.instrument-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.instrument-image {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent);
+  box-sizing: border-box;
+}
+
+.status-label {
+  display: inline-block;
+  padding: .25rem .55rem;
+  border: 1px solid currentColor;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.status-label.available {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-label.unavailable {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.form-field {
+  display: grid;
+  gap: .4rem;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select,
+.instrument-request-form fieldset {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .65rem .75rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent);
+  background: var(--color-card);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.instrument-request-form {
+  position: relative;
+  display: grid;
+  gap: 1.15rem;
+  padding: 1.5rem;
+}
+
+.notes-page-shell {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.notes-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.notes-main {
+  min-width: 0;
+}
+
+.notes-topbar,
+.notes-page-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: .75rem;
+  flex-wrap: wrap;
+}
+
+.notes-page-title-row input {
+  flex: 1 1 280px;
+  min-width: 0;
+  padding: .65rem .75rem;
+  border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent);
+  background: var(--color-card);
+  color: var(--color-text);
+  font: 600 1.05rem/1.2 inherit;
+}
+
+.notes-save-state {
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.notes-save-state.saving { color: #92400e; }
+.notes-save-state.error { color: #b91c1c; }
+.notes-save-state.saved { color: #166534; }
+
+.rich-toolbar {
+  position: sticky;
+  top: calc((var(--nav-height, 56) * 1px) + .5rem);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .55rem;
+  margin-bottom: .75rem;
+  flex-wrap: wrap;
+  background: var(--color-card);
+  border: 1px solid color-mix(in oklab, var(--color-text) 16%, transparent);
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--color-text) 10%, transparent);
+}
+
+.rich-toolbar button,
+button.note-control,
+.notes-search-result {
+  min-width: 0 !important;
+  padding: .38rem .55rem !important;
+  border-radius: 1px !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: .8rem !important;
+}
+
+.rich-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .78rem;
+}
+
+.rich-toolbar input[type="color"] {
+  width: 28px;
+  height: 28px;
+  padding: 1px;
+}
+
+.notes-board-scroll {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--color-text) 10%, transparent);
+}
+
+.notes-board {
+  position: relative;
+  width: 1200px;
+  min-height: 760px;
+  background-color: #fdfdfb;
+  background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.sticky-note {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  min-height: 140px;
+  max-width: 700px;
+  max-height: 700px;
+  resize: both;
+  overflow: auto;
+  color: #111827;
+  border: 1px solid rgba(17, 24, 39, .22);
+  box-shadow: 0 7px 16px rgba(17, 24, 39, .16);
+}
+
+.sticky-note.selected {
+  outline: 3px solid color-mix(in oklab, var(--color-primary) 65%, transparent);
+  outline-offset: 2px;
+}
+
+.sticky-note-header {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 32px;
+  padding: .25rem .35rem;
+  border-bottom: 1px solid rgba(17, 24, 39, .15);
+  cursor: move;
+  background: rgba(255, 255, 255, .28);
+}
+
+.sticky-color-picker {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.sticky-color-picker button {
+  display: block !important;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(17, 24, 39, .3) !important;
+  border-radius: 50% !important;
+}
+
+.sticky-note-content {
+  flex: 1;
+  padding: .75rem;
+  outline: none;
+  overflow: auto;
+  line-height: 1.45;
+}
+
+.sticky-note-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: .5rem 0;
+}
+
+.sticky-note-content td,
+.sticky-note-content th {
+  min-width: 36px;
+  padding: .25rem;
+  border: 1px solid rgba(17, 24, 39, .45);
+}
+
+.notes-sidebar {
+  position: sticky;
+  top: calc((var(--nav-height, 56) * 1px) + 1rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.notes-search-results,
+.reminder-list {
+  display: grid;
+  gap: .5rem;
+  margin-top: .75rem;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.notes-search-result {
+  display: grid !important;
+  justify-items: start !important;
+  text-align: left;
+}
+
+.notes-search-result span {
+  overflow: hidden;
+  max-width: 100%;
+  color: #6b7280;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes-bin {
+  min-height: 150px;
+}
+
+.archived-note,
+.reminder-item {
+  display: grid;
+  gap: .35rem;
+  padding: .55rem;
+  margin-top: .5rem;
+  background: color-mix(in oklab, var(--color-card) 92%, var(--color-text) 8%);
+  border-left: 5px solid #d1d5db;
+  font-size: .85rem;
+}
+
+.reminder-item {
+  border-left-color: var(--color-primary);
+}
+
+button.note-control.danger { color: #991b1b !important; }
+
+@media (max-width: 980px) {
+  .notes-layout { grid-template-columns: 1fr; }
+  .notes-sidebar { position: static; }
 }
 
 

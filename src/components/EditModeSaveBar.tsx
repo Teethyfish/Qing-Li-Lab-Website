@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useEditMode } from "@/contexts/EditModeContext";
+import AdminRichTextToolbar from "@/components/AdminRichTextToolbar";
 
 export default function EditModeSaveBar() {
   const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
@@ -63,51 +64,46 @@ export default function EditModeSaveBar() {
         borderTop: "2px solid var(--btn-warning-hover-bg, #d97706)",
         padding: "1rem",
         zIndex: 1000,
-        display: "flex",
+        display: "grid",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "stretch",
         gap: "1rem",
         boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.1)",
       }}
     >
-      <div style={{ color: "#fff", fontWeight: 600, fontSize: "0.95rem" }}>
-        {hasChanges
-          ? `${Object.keys(editedContent).length} change${Object.keys(editedContent).length === 1 ? "" : "s"} pending`
-          : "Edit Mode Active - Click any text to edit"}
-      </div>
-
-      <div style={{ display: "flex", gap: "0.75rem" }}>
-        <button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          className="btn btn-basic"
-          style={{
-            minWidth: "100px",
-            opacity: !hasChanges || saving ? 0.6 : 1,
-          }}
-        >
-          {saving ? "Saving..." : success ? "Saved!" : "Save Changes"}
-        </button>
-        <button
-          onClick={handleCancel}
-          disabled={saving}
-          className="btn btn-muted"
-          style={{ minWidth: "80px" }}
-        >
-          Cancel
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ color: "#fff", fontSize: "0.85rem", marginLeft: "1rem" }}>
-          ❌ {error}
+      <AdminRichTextToolbar />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
+        <div style={{ color: "#fff", fontWeight: 600, fontSize: "0.95rem" }}>
+          {hasChanges
+            ? `${Object.keys(editedContent).length} change${Object.keys(editedContent).length === 1 ? "" : "s"} pending`
+            : "Edit Mode Active - Click any text to edit"}
         </div>
-      )}
-      {success && (
-        <div style={{ color: "#fff", fontSize: "0.85rem", marginLeft: "1rem" }}>
-          ✅ Saved successfully!
+
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <button
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            className="btn btn-basic"
+            style={{
+              minWidth: "100px",
+              opacity: !hasChanges || saving ? 0.6 : 1,
+            }}
+          >
+            {saving ? "Saving..." : success ? "Saved!" : "Save Changes"}
+          </button>
+          <button
+            onClick={handleCancel}
+            disabled={saving}
+            className="btn btn-muted"
+            style={{ minWidth: "80px" }}
+          >
+            Cancel
+          </button>
         </div>
-      )}
+
+        {error && <div style={{ color: "#fff", fontSize: "0.85rem" }}>❌ {error}</div>}
+        {success && <div style={{ color: "#fff", fontSize: "0.85rem" }}>✅ Saved successfully!</div>}
+      </div>
     </div>
   );
 }

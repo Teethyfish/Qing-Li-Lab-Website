@@ -62,7 +62,7 @@ export default async function NotificationsPage() {
             <p className="muted">{notification.createdAt.toLocaleString()}</p>
             <form action={openNotification}>
               <input type="hidden" name="id" value={notification.id} />
-              <button className="btn btn-basic" type="submit">Open document</button>
+              <button className="btn btn-basic" type="submit">Open</button>
             </form>
           </article>
         ))}

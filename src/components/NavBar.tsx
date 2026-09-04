@@ -72,6 +72,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
 
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
+    { href: "/instruments", label: "Instruments", show: true },
     { href: "/database", label: t('database'), show: true },
     { href: "/members", label: t('members'), show: isAuthed },
     { href: "/register", label: t('register'), show: !isAuthed },
@@ -83,6 +84,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
     { href: "/members/users", label: t('users') },
     { href: "/members/announcements", label: t('announcements') },
     { href: "/members/documents", label: t('documents') },
+    { href: "/members/instruments", label: "Instruments & Requests" },
     { href: "/members/theme", label: t('theme') },
   ];
 

@@ -44,13 +44,17 @@ const EXCLUDED_ANCESTORS = [
 
 type Props = {
   canEdit: boolean;
-  initialContent: Record<string, string>;
+  initialContent: Record<string, { value: string; format: "text" | "html" }>;
   children: ReactNode;
 };
 
 function isTextElement(element: HTMLElement) {
   if (element.closest(EXCLUDED_ANCESTORS)) return false;
-  if (element.children.length > 0) return false;
+  if (element.parentElement?.closest("[data-global-content-key]")) return false;
+  if (element.querySelector("button, input, textarea, select, iframe, img, video, audio")) return false;
+
+  const richBlock = /^(H[1-6]|P|LI|DT|DD|FIGCAPTION)$/.test(element.tagName);
+  if (!richBlock && element.children.length > 0) return false;
 
   const text = element.textContent?.trim() ?? "";
   return text.length >= 2;
@@ -116,6 +120,7 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
       const original = element.dataset.globalOriginal ?? element.textContent ?? "";
       if (element.dataset.globalOriginal === undefined) {
         element.dataset.globalOriginal = original;
+        element.dataset.globalOriginalHtml = element.innerHTML;
       }
 
       const fingerprint = textHash(normalizedText(original));
@@ -130,22 +135,24 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
         element.dataset.globalContentKey = key;
         element.dataset.globalLegacyContentKey = legacyKey;
 
-        const savedValue =
-          editedContentRef.current[key] ?? initialContent[key] ?? initialContent[legacyKey];
-        if (typeof savedValue === "string") {
-          element.textContent = savedValue;
+        const hasPendingEdit = Object.prototype.hasOwnProperty.call(editedContentRef.current, key);
+        const saved = initialContent[key] ?? initialContent[legacyKey];
+        if (hasPendingEdit) {
+          element.innerHTML = editedContentRef.current[key];
+        } else if (saved?.format === "html") {
+          element.innerHTML = saved.value;
+        } else if (saved?.format === "text") {
+          element.textContent = saved.value;
         }
       }
 
       if (!isEditMode) {
-        const restingValue =
-          initialContent[key] ??
-          initialContent[legacyKey] ??
-          element.dataset.globalOriginal ??
-          element.textContent ??
-          "";
-        if (element.textContent !== restingValue) {
-          element.textContent = restingValue;
+        const resting = initialContent[key] ?? initialContent[legacyKey];
+        if (resting?.format === "html" && element.innerHTML !== resting.value) element.innerHTML = resting.value;
+        else if (resting?.format === "text" && element.textContent !== resting.value) element.textContent = resting.value;
+        else if (!resting) {
+          const originalHtml = element.dataset.globalOriginalHtml ?? "";
+          if (element.innerHTML !== originalHtml) element.innerHTML = originalHtml;
         }
       }
 
@@ -179,7 +186,7 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
 
   const saveTarget = (target: HTMLElement) => {
     const key = target.dataset.globalContentKey;
-    if (key) updateContent(key, target.innerText.trim());
+    if (key) updateContent(key, target.innerHTML.trim());
   };
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -194,7 +201,7 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
 
   const handleFocus = (event: React.FocusEvent<HTMLDivElement>) => {
     const target = editableTarget(event.target);
-    if (target) target.dataset.editStartValue = target.innerText;
+    if (target) target.dataset.editStartValue = target.innerHTML;
   };
 
   const handleInput = (event: React.FormEvent<HTMLDivElement>) => {
@@ -211,12 +218,12 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
     const target = editableTarget(event.target);
     if (!target) return;
 
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       target.blur();
     } else if (event.key === "Escape") {
       event.preventDefault();
-      target.innerText = target.dataset.editStartValue ?? target.innerText;
+      target.innerHTML = target.dataset.editStartValue ?? target.innerHTML;
       saveTarget(target);
       target.blur();
     }
