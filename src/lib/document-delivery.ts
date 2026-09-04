@@ -60,11 +60,15 @@ const TEXT_APPLICATION_TYPES = new Set([
   "application/yaml",
 ]);
 
-export type DocumentViewerKind = "pdf" | "image" | "text" | "audio" | "video" | "unsupported";
+export type DocumentViewerKind = "pdf" | "docx" | "image" | "text" | "audio" | "video" | "unsupported";
 
-export function documentViewerKind(mimeType: string): DocumentViewerKind {
+export function documentViewerKind(mimeType: string, fileName = ""): DocumentViewerKind {
   const normalized = mimeType.toLowerCase().split(";", 1)[0].trim();
   if (normalized === "application/pdf") return "pdf";
+  if (
+    normalized === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    fileName.toLowerCase().endsWith(".docx")
+  ) return "docx";
   if (SAFE_BITMAP_TYPES.has(normalized)) return "image";
   if (normalized.startsWith("text/") || TEXT_APPLICATION_TYPES.has(normalized)) return "text";
   if (normalized.startsWith("audio/")) return "audio";

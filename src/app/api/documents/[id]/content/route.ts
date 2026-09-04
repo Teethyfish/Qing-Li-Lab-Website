@@ -17,7 +17,8 @@ export async function GET(request: NextRequest, { params }: Props) {
   const document = await findAccessibleDocument(id, user);
   if (!document) return NextResponse.json({ error: "Document not found." }, { status: 404 });
 
-  if (documentViewerKind(document.mimeType) === "unsupported") {
+  const viewerKind = documentViewerKind(document.mimeType, document.fileName);
+  if (viewerKind === "unsupported" || viewerKind === "docx") {
     return NextResponse.json(
       { error: "This file type cannot be previewed safely in the browser." },
       { status: 415 }

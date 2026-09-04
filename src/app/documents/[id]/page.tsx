@@ -19,8 +19,10 @@ export default async function DocumentViewerPage({ params }: Props) {
   const document = await findAccessibleDocument(id, user);
   if (!document) notFound();
 
-  const kind = documentViewerKind(document.mimeType);
-  const contentUrl = `/api/documents/${document.id}/content`;
+  const kind = documentViewerKind(document.mimeType, document.fileName);
+  const contentUrl = kind === "docx"
+    ? `/api/documents/${document.id}/docx`
+    : `/api/documents/${document.id}/content`;
   const downloadUrl = `/api/documents/${document.id}/download`;
 
   return (
@@ -52,10 +54,11 @@ export default async function DocumentViewerPage({ params }: Props) {
         aria-label={`Viewer for ${document.title}`}
         style={{ minHeight: "65vh", padding: "1rem" }}
       >
-        {kind === "pdf" || kind === "text" ? (
+        {kind === "pdf" || kind === "docx" || kind === "text" ? (
           <iframe
             src={contentUrl}
             title={document.title}
+            sandbox={kind === "docx" ? "allow-popups allow-popups-to-escape-sandbox" : undefined}
             style={{ width: "100%", height: "72vh", border: 0, background: "#fff" }}
           />
         ) : null}
