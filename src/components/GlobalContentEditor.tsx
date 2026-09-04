@@ -172,12 +172,22 @@ export default function GlobalContentEditor({ canEdit, initialContent, children 
     prepareElements();
 
     const root = rootRef.current;
-    if (!root) return;
+    // Public visitors only need the saved overrides applied once. Keeping a
+    // whole-page MutationObserver alive for them made the editor observe its
+    // own innerHTML updates and could lock the browser in a microtask loop.
+    if (!root || !canEdit) return;
 
-    const observer = new MutationObserver(prepareElements);
-    observer.observe(root, { childList: true, subtree: true });
+    const options: MutationObserverInit = { childList: true, subtree: true };
+    const observer = new MutationObserver(() => {
+      // Do not enqueue another callback for mutations made by
+      // prepareElements itself.
+      observer.disconnect();
+      prepareElements();
+      observer.observe(root, options);
+    });
+    observer.observe(root, options);
     return () => observer.disconnect();
-  }, [prepareElements]);
+  }, [canEdit, prepareElements]);
 
   const editableTarget = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return null;
