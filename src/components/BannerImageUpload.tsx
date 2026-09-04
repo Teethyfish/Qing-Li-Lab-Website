@@ -7,6 +7,7 @@ import {
   BANNER_RECOMMENDED_HEIGHT,
   BANNER_RECOMMENDED_WIDTH,
 } from "@/lib/banner";
+import { useTranslations } from "next-intl";
 
 type Props = {
   currentImageUrl?: string | null;
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function BannerImageUpload({ currentImageUrl, onImageCropped }: Props) {
+  const t = useTranslations('editorTools');
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const [isHovering, setIsHovering] = useState(false);
@@ -32,9 +34,12 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
           img.width < BANNER_RECOMMENDED_WIDTH ||
           img.height < BANNER_RECOMMENDED_HEIGHT
         ) {
-          const proceed = confirm(
-            `Warning: This image is ${img.width}x${img.height}px, which is smaller than the recommended ${BANNER_RECOMMENDED_WIDTH}x${BANNER_RECOMMENDED_HEIGHT}px minimum. The image may not look good on the banner. Do you want to continue anyway?`
-          );
+          const proceed = confirm(t('smallBannerWarning', {
+            width: img.width,
+            height: img.height,
+            recommendedWidth: BANNER_RECOMMENDED_WIDTH,
+            recommendedHeight: BANNER_RECOMMENDED_HEIGHT,
+          }));
           if (!proceed) {
             if (fileInputRef.current) {
               fileInputRef.current.value = "";
@@ -115,7 +120,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={previewUrl}
-              alt="Banner preview"
+              alt={t('bannerPreview')}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
             {/* Overlay on hover */}
@@ -136,7 +141,7 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
                   fontWeight: 600,
                 }}
               >
-                Click to re-crop
+                {t('clickToRecrop')}
               </div>
             )}
           </button>
@@ -154,8 +159,8 @@ export default function BannerImageUpload({ currentImageUrl, onImageCropped }: P
           />
           <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {previewUrl
-              ? "Upload a new image or click the preview to re-crop"
-              : `Upload a banner image (recommended: ${BANNER_RECOMMENDED_WIDTH}x${BANNER_RECOMMENDED_HEIGHT}px or larger, 12:5 ratio)`}
+              ? t('uploadNewBanner')
+              : t('uploadBanner', {width: BANNER_RECOMMENDED_WIDTH, height: BANNER_RECOMMENDED_HEIGHT})}
           </div>
         </div>
       </div>

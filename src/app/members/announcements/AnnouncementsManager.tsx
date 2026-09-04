@@ -91,13 +91,13 @@ export default function AnnouncementsManager({
     const textKo = String(formData.get("text_ko") || "").trim();
 
     if (!titleEn || !textEn) {
-      missing.push("English");
+      missing.push(t('english'));
     }
     if (enableCh && (!titleZh || !textZh)) {
-      missing.push("Chinese");
+      missing.push(t('chinese'));
     }
     if (enableKo && (!titleKo || !textKo)) {
-      missing.push("Korean");
+      missing.push(t('korean'));
     }
 
     return { valid: missing.length === 0, missing };
@@ -261,9 +261,7 @@ export default function AnnouncementsManager({
   };
 
   const handleDelete = async (id: string, hasDetails: boolean) => {
-    const message = hasDetails
-      ? "Are you sure you want to delete this announcement? This will remove both the banner and the details page."
-      : "Are you sure you want to delete this announcement?";
+    const message = hasDetails ? t('confirmDeleteWithDetails') : t('confirmDelete');
 
     if (!confirm(message)) return;
 
@@ -322,7 +320,7 @@ export default function AnnouncementsManager({
               color: activeTab === "active" ? "var(--color-text)" : "color-mix(in oklab, var(--color-text) 60%, transparent)",
             }}
           >
-            Active ({activeAnnouncements.length})
+            {t('active')} ({activeAnnouncements.length})
           </button>
           <button
             onClick={() => setActiveTab("archived")}
@@ -337,7 +335,7 @@ export default function AnnouncementsManager({
               color: activeTab === "archived" ? "var(--color-text)" : "color-mix(in oklab, var(--color-text) 60%, transparent)",
             }}
           >
-            Archived ({archivedAnnouncements.length})
+            {t('archived')} ({archivedAnnouncements.length})
           </button>
         </div>
 
@@ -374,12 +372,12 @@ export default function AnnouncementsManager({
               {/* Title (required) */}
               <div>
                 <label style={{ display: "grid", gap: "0.4rem" }}>
-                  <div style={{ fontWeight: 600 }}>Title (English) *</div>
+                  <div style={{ fontWeight: 600 }}>{t('titleEnglish')} *</div>
                   <input
                     name="title_en"
                     type="text"
                     required
-                    placeholder="Enter announcement title..."
+                    placeholder={t('titlePlaceholder')}
                     style={inputStyle}
                   />
                 </label>
@@ -388,12 +386,12 @@ export default function AnnouncementsManager({
               {/* Subtitle/Text (required) */}
               <div>
                 <label style={{ display: "grid", gap: "0.4rem" }}>
-                  <div style={{ fontWeight: 600 }}>Subtitle (English) *</div>
+                  <div style={{ fontWeight: 600 }}>{t('subtitleEnglish')} *</div>
                   <textarea
                     name="text_en"
                     rows={2}
                     required
-                    placeholder="Enter subtitle text..."
+                    placeholder={t('subtitlePlaceholder')}
                     style={inputStyle}
                   />
                 </label>
@@ -401,7 +399,7 @@ export default function AnnouncementsManager({
 
               {/* Language options */}
               <div style={{ display: "grid", gap: "0.75rem" }}>
-                <div style={{ fontWeight: 600 }}>Additional Languages</div>
+                <div style={{ fontWeight: 600 }}>{t('additionalLanguages')}</div>
 
                 {/* Chinese checkbox */}
                 <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -410,7 +408,7 @@ export default function AnnouncementsManager({
                     checked={enableChinese}
                     onChange={(e) => setEnableChinese(e.target.checked)}
                   />
-                  <span>Chinese (中文)</span>
+                  <span>{t('chinese')} (中文)</span>
                 </label>
                 {enableChinese && (
                   <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
@@ -436,7 +434,7 @@ export default function AnnouncementsManager({
                     checked={enableKorean}
                     onChange={(e) => setEnableKorean(e.target.checked)}
                   />
-                  <span>Korean (한국어)</span>
+                  <span>{t('korean')} (한국어)</span>
                 </label>
                 {enableKorean && (
                   <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
@@ -467,35 +465,35 @@ export default function AnnouncementsManager({
                     checked={hasDetailsPage}
                     onChange={(e) => setHasDetailsPage(e.target.checked)}
                   />
-                  <span style={{ fontWeight: 600 }}>Enable Details Page</span>
+                  <span style={{ fontWeight: 600 }}>{t('enableDetails')}</span>
                 </label>
 
                 {hasDetailsPage && (
                   <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
-                        <div style={{ fontWeight: 600 }}>URL Slug *</div>
+                        <div style={{ fontWeight: 600 }}>{t('urlSlug')} *</div>
                         <input
                           name="detailsSlug"
                           type="text"
                           required={hasDetailsPage}
-                          placeholder="e.g., summer-symposium-2024"
+                          placeholder={t('slugPlaceholder')}
                           style={inputStyle}
                         />
                         <div className="muted" style={{ fontSize: "0.85rem" }}>
-                          Will be accessible at: /announcements/[your-slug]
+                          {t('slugHelp')}
                         </div>
                       </label>
                     </div>
 
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
-                        <div style={{ fontWeight: 600 }}>Details Content (English) *</div>
+                        <div style={{ fontWeight: 600 }}>{t('detailsEnglish')} *</div>
                         <textarea
                           name="details_en"
                           rows={4}
                           required={hasDetailsPage}
-                          placeholder="Enter detailed content..."
+                          placeholder={t('detailsPlaceholder')}
                           style={inputStyle}
                         />
                       </label>
@@ -504,7 +502,7 @@ export default function AnnouncementsManager({
                     {enableChinese && (
                       <div>
                         <label style={{ display: "grid", gap: "0.4rem" }}>
-                          <div style={{ fontWeight: 600 }}>Details Content (Chinese)</div>
+                          <div style={{ fontWeight: 600 }}>{t('detailsChinese')}</div>
                           <textarea
                             name="details_zh"
                             rows={4}
@@ -518,7 +516,7 @@ export default function AnnouncementsManager({
                     {enableKorean && (
                       <div>
                         <label style={{ display: "grid", gap: "0.4rem" }}>
-                          <div style={{ fontWeight: 600 }}>Details Content (Korean)</div>
+                          <div style={{ fontWeight: 600 }}>{t('detailsKorean')}</div>
                           <textarea
                             name="details_ko"
                             rows={4}
@@ -598,13 +596,13 @@ export default function AnnouncementsManager({
                     {/* Title (required) */}
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
-                        <div style={{ fontWeight: 600 }}>Title (English) *</div>
+                        <div style={{ fontWeight: 600 }}>{t('titleEnglish')} *</div>
                         <input
                           name="title_en"
                           type="text"
                           required
                           defaultValue={titleTranslations.en || ""}
-                          placeholder="Enter announcement title..."
+                          placeholder={t('titlePlaceholder')}
                           style={inputStyle}
                         />
                       </label>
@@ -613,7 +611,7 @@ export default function AnnouncementsManager({
                     {/* English text (required) */}
                     <div>
                       <label style={{ display: "grid", gap: "0.4rem" }}>
-                        <div style={{ fontWeight: 600 }}>Subtitle (English) *</div>
+                        <div style={{ fontWeight: 600 }}>{t('subtitleEnglish')} *</div>
                         <textarea
                           name="text_en"
                           rows={2}
@@ -626,7 +624,7 @@ export default function AnnouncementsManager({
 
                     {/* Language options */}
                     <div style={{ display: "grid", gap: "0.75rem" }}>
-                      <div style={{ fontWeight: 600 }}>Additional Languages</div>
+                      <div style={{ fontWeight: 600 }}>{t('additionalLanguages')}</div>
 
                       {/* Chinese checkbox */}
                       <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -635,7 +633,7 @@ export default function AnnouncementsManager({
                           checked={enableChinese}
                           onChange={(e) => setEnableChinese(e.target.checked)}
                         />
-                        <span>Chinese (中文)</span>
+                        <span>{t('chinese')} (中文)</span>
                       </label>
                       {enableChinese && (
                         <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
@@ -663,7 +661,7 @@ export default function AnnouncementsManager({
                           checked={enableKorean}
                           onChange={(e) => setEnableKorean(e.target.checked)}
                         />
-                        <span>Korean (한국어)</span>
+                        <span>{t('korean')} (한국어)</span>
                       </label>
                       {enableKorean && (
                         <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
@@ -696,20 +694,20 @@ export default function AnnouncementsManager({
                           checked={hasDetailsPage}
                           onChange={(e) => setHasDetailsPage(e.target.checked)}
                         />
-                        <span style={{ fontWeight: 600 }}>Enable Details Page</span>
+                        <span style={{ fontWeight: 600 }}>{t('enableDetails')}</span>
                       </label>
 
                       {hasDetailsPage && (
                         <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
                           <div>
                             <label style={{ display: "grid", gap: "0.4rem" }}>
-                              <div style={{ fontWeight: 600 }}>URL Slug *</div>
+                              <div style={{ fontWeight: 600 }}>{t('urlSlug')} *</div>
                               <input
                                 name="detailsSlug"
                                 type="text"
                                 required={hasDetailsPage}
                                 defaultValue={announcement.detailsSlug || ""}
-                                placeholder="e.g., summer-symposium-2024"
+                                placeholder={t('slugPlaceholder')}
                                 style={inputStyle}
                               />
                             </label>
@@ -717,13 +715,13 @@ export default function AnnouncementsManager({
 
                           <div>
                             <label style={{ display: "grid", gap: "0.4rem" }}>
-                              <div style={{ fontWeight: 600 }}>Details Content (English) *</div>
+                              <div style={{ fontWeight: 600 }}>{t('detailsEnglish')} *</div>
                               <textarea
                                 name="details_en"
                                 rows={4}
                                 required={hasDetailsPage}
                                 defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).en : ""}
-                                placeholder="Enter detailed content..."
+                                placeholder={t('detailsPlaceholder')}
                                 style={inputStyle}
                               />
                             </label>
@@ -732,7 +730,7 @@ export default function AnnouncementsManager({
                           {enableChinese && (
                             <div>
                               <label style={{ display: "grid", gap: "0.4rem" }}>
-                                <div style={{ fontWeight: 600 }}>Details Content (Chinese)</div>
+                                <div style={{ fontWeight: 600 }}>{t('detailsChinese')}</div>
                                 <textarea
                                   name="details_zh"
                                   rows={4}
@@ -747,7 +745,7 @@ export default function AnnouncementsManager({
                           {enableKorean && (
                             <div>
                               <label style={{ display: "grid", gap: "0.4rem" }}>
-                                <div style={{ fontWeight: 600 }}>Details Content (Korean)</div>
+                                <div style={{ fontWeight: 600 }}>{t('detailsKorean')}</div>
                                 <textarea
                                   name="details_ko"
                                   rows={4}
@@ -829,7 +827,7 @@ export default function AnnouncementsManager({
                         </div>
                         <div className="muted" style={{ fontSize: "0.875rem" }}>
                           {t('order')}: {announcement.order}
-                          {announcement.hasDetailsPage && ` • Details: /announcements/${announcement.detailsSlug}`}
+                          {announcement.hasDetailsPage && ` • ${t('details')}: /announcements/${announcement.detailsSlug}`}
                         </div>
                       </div>
                     </div>
@@ -846,14 +844,14 @@ export default function AnnouncementsManager({
                           onClick={() => handleArchive(announcement.id)}
                           className="btn btn-muted"
                         >
-                          Archive
+                          {t('archive')}
                         </button>
                       ) : (
                         <button
                           onClick={() => handleUnarchive(announcement.id)}
                           className="btn btn-basic"
                         >
-                          Unarchive
+                          {t('unarchive')}
                         </button>
                       )}
                       <button
@@ -871,7 +869,7 @@ export default function AnnouncementsManager({
 
           {currentAnnouncements.length === 0 && !showNewForm && (
             <div className="muted" style={{ textAlign: "center", padding: "2rem" }}>
-              {activeTab === "active" ? t('noAnnouncements') : "No archived announcements."}
+              {activeTab === "active" ? t('noAnnouncements') : t('noArchived')}
             </div>
           )}
         </div>
@@ -905,26 +903,26 @@ export default function AnnouncementsManager({
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>
-              Missing Translations
+              {t('missingTranslations')}
             </h3>
             <p style={{ marginBottom: "1.5rem", lineHeight: 1.6 }}>
-              The following language translations are missing or empty:
+              {t('missingTranslationsBody')}
               <strong> {warning.missingLanguages.join(", ")}</strong>.
               <br /><br />
-              Do you want to save anyway?
+              {t('saveAnywayQuestion')}
             </p>
             <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
               <button
                 onClick={warning.onCancel}
                 className="btn btn-muted"
               >
-                Go Back
+                {t('goBack')}
               </button>
               <button
                 onClick={warning.onConfirm}
                 className="btn btn-warning"
               >
-                Save Anyway
+                {t('saveAnyway')}
               </button>
             </div>
           </div>

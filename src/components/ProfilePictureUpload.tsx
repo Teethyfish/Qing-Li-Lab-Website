@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import ProfilePictureCropper from "./ProfilePictureCropper";
+import { useTranslations } from "next-intl";
 
 type Props = {
   currentImageUrl?: string | null;
@@ -16,6 +17,7 @@ function initials(name?: string | null) {
 }
 
 export default function ProfilePictureUpload({ currentImageUrl, userName, onImageCropped }: Props) {
+  const t = useTranslations('editorTools');
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const [isHovering, setIsHovering] = useState(false);
@@ -103,7 +105,7 @@ export default function ProfilePictureUpload({ currentImageUrl, userName, onImag
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
-                alt="Profile"
+                alt={t('profilePicture')}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
               {/* Overlay on hover */}
@@ -124,7 +126,7 @@ export default function ProfilePictureUpload({ currentImageUrl, userName, onImag
                     fontWeight: 600,
                   }}
                 >
-                  Edit
+                  {t('edit')}
                 </div>
               )}
             </>
@@ -142,8 +144,8 @@ export default function ProfilePictureUpload({ currentImageUrl, userName, onImag
           />
           <div className="muted" style={{ fontSize: "0.85rem", marginTop: "0.4rem" }}>
             {previewUrl
-              ? "Upload a new picture or click your photo to re-crop"
-              : "Upload a new profile picture (JPG, PNG, etc.)"}
+              ? t('uploadNewProfile')
+              : t('uploadProfile')}
           </div>
         </div>
       </div>

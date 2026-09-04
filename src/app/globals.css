@@ -75,6 +75,8 @@ html, body {
 
   --font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-size: 16px;
+  --btn-font-family: var(--font-family);
+  --btn-font-size: 14;
 
   --radius-sm: 1px;
   --radius-md: 2px;
@@ -868,7 +870,7 @@ button.note-control.danger { color: #991b1b !important; }
 .dashboard-card {
   position: relative;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: .85rem;
   align-items: start;
   min-height: 122px;
@@ -887,16 +889,6 @@ button.note-control.danger { color: #991b1b !important; }
   border-color: color-mix(in oklab, var(--color-primary) 50%, transparent);
   box-shadow: 0 8px 20px color-mix(in oklab, var(--color-text) 13%, transparent);
   text-decoration: none;
-}
-
-.dashboard-card-icon {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  color: var(--color-primary);
-  background: color-mix(in oklab, var(--color-primary) 10%, var(--color-card));
-  border: 1px solid color-mix(in oklab, var(--color-primary) 24%, transparent);
 }
 
 .dashboard-card h2 { margin: 0 0 .35rem; font-size: 1.02rem; }
@@ -1024,6 +1016,9 @@ button.note-control.danger { color: #991b1b !important; }
   position: relative;
   min-width: 1100px;
   overflow: hidden;
+}
+
+.profile-dashboard-canvas {
   background-color: color-mix(in oklab, var(--color-content-bg) 95%, var(--color-text) 5%);
   background-image:
     linear-gradient(color-mix(in oklab, var(--color-text) 5%, transparent) 1px, transparent 1px),
@@ -1031,6 +1026,12 @@ button.note-control.danger { color: #991b1b !important; }
   background-size: 24px 24px;
   border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent);
   box-shadow: inset 0 0 24px color-mix(in oklab, var(--color-text) 5%, transparent);
+}
+
+.public-profile-dashboard {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .profile-dashboard-tile,
@@ -1076,6 +1077,23 @@ button.profile-dashboard-drag {
 }
 
 button.profile-dashboard-drag:active { cursor: grabbing !important; }
+button.profile-dashboard-resize {
+  position: absolute !important;
+  right: 4px;
+  bottom: 4px;
+  z-index: 5;
+  display: grid !important;
+  width: 27px !important;
+  height: 27px !important;
+  min-width: 27px !important;
+  padding: 0 !important;
+  place-items: center !important;
+  color: var(--color-text) !important;
+  background: color-mix(in oklab, var(--color-card) 88%, var(--color-text) 12%) !important;
+  border: 1px solid color-mix(in oklab, var(--color-text) 25%, transparent) !important;
+  cursor: nwse-resize !important;
+  touch-action: none;
+}
 button.profile-remove-icon { display: grid !important; width: 28px !important; height: 28px !important; min-width: 28px !important; padding: 0 !important; place-items: center !important; color: #b91c1c !important; background: transparent !important; border-color: color-mix(in oklab, #b91c1c 35%, transparent) !important; }
 
 .publication-editor-list { align-content: start; }
@@ -1235,6 +1253,7 @@ button.notification-bell-button {
   .profile-dashboard-tile,
   .public-profile-dashboard-tile { position: static; width: auto !important; height: auto !important; max-height: none; overflow: visible; }
   .profile-dashboard-tile { min-height: 280px; }
+  button.profile-dashboard-resize { display: none !important; }
   .profile-header-editor { order: -10; }
   .public-profile-dashboard .public-profile-header { align-items: stretch; flex-direction: initial; }
   .profile-publication-grid { grid-template-columns: 1fr; }
@@ -1330,6 +1349,8 @@ input[type="button"] {
   color: var(--_fg) !important;
   text-decoration: none !important;
   line-height: 1.2 !important;
+  font-family: var(--btn-font-family, var(--font-family)) !important;
+  font-size: calc(var(--btn-font-size, 14) * 1px) !important;
   font-weight: var(--btn-weight, 600) !important;
   cursor: pointer !important;
   transition: background .15s, border-color .15s, color .15s, opacity .15s !important;

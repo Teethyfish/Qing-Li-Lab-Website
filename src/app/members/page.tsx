@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell, BookOpen, Boxes, ClipboardList, FileText, NotebookPen, Settings, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
@@ -17,18 +16,6 @@ async function getConfig<T = unknown>(key: string): Promise<T | null> {
     const rows = await prisma.$queryRawUnsafe<AppRow[]>(`select value from "AppConfig" where key = $1`, key);
     return rows[0]?.value ? JSON.parse(rows[0].value) as T : null;
   } catch { return null; }
-}
-
-function DashboardIcon({ href }: { href: string }) {
-  const props = { size: 23, strokeWidth: 1.8, "aria-hidden": true as const };
-  if (href.includes("notification")) return <Bell {...props} />;
-  if (href.includes("notes")) return <NotebookPen {...props} />;
-  if (href.includes("profile")) return <UserRound {...props} />;
-  if (href.includes("settings")) return <Settings {...props} />;
-  if (href.includes("database")) return <BookOpen {...props} />;
-  if (href.includes("docs.google.com/spreadsheets")) return <Boxes {...props} />;
-  if (href.includes("docs.google.com/forms")) return <ClipboardList {...props} />;
-  return <FileText {...props} />;
 }
 
 export default async function MembersPage() {
@@ -86,7 +73,6 @@ export default async function MembersPage() {
 
     <section className="member-dashboard-grid">
       {tiles.map((tile) => <Link key={tile.href} href={tile.href} className="dashboard-card" target={tile.href.startsWith("https://") ? "_blank" : undefined} rel={tile.href.startsWith("https://") ? "noopener noreferrer" : undefined}>
-        <span className="dashboard-card-icon"><DashboardIcon href={tile.href} /></span>
         <div>
           <h2>{tile.title}</h2>
           {tile.description ? <p>{tile.description}</p> : null}

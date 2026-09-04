@@ -2,11 +2,13 @@ export const runtime = "nodejs";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_THEME, getThemeCatalog, type Theme, type ThemeCategory, type ThemePreset } from "@/lib/theme";
+import ThemeManagementActions from "./ThemeManagementActions";
 
-type Props = { searchParams: Promise<{ preset?: string; saved?: string; error?: string }> };
+type Props = { searchParams: Promise<{ preset?: string; saved?: string; renamed?: string; deleted?: string; error?: string }> };
 type Field = { variable: string; label: string; type: "color" | "text" | "range"; min?: number; max?: number; step?: number; unit?: string };
 
 const GROUPS: Array<{ title: string; fields: Field[] }> = [
@@ -20,6 +22,8 @@ const GROUPS: Array<{ title: string; fields: Field[] }> = [
   ] },
   { title: "Typography", fields: [
     { variable: "--font-family", label: "Font family", type: "text" },
+    { variable: "--btn-font-family", label: "Button font family", type: "text" },
+    { variable: "--btn-font-size", label: "Button font size", type: "range", min: 10, max: 24, step: 1, unit: "px" },
   ] },
   { title: "Cards and tiles", fields: [
     { variable: "--tile-radius", label: "Corner radius", type: "range", min: 0, max: 24, step: 1, unit: "px" },
@@ -69,6 +73,7 @@ function slugifyThemeName(value: string) {
 
 export default async function ThemeEditorPage({ searchParams }: Props) {
   const admin = await requireAdminUser().catch(() => redirect("/"));
+  const t = await getTranslations('themeEditor');
   const query = await searchParams;
   const catalog = await getThemeCatalog();
   const selected = catalog.find((preset) => preset.id === query.preset)
@@ -112,50 +117,88 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
     redirect(`/members/theme?preset=${encodeURIComponent(id)}&saved=1`);
   }
 
-  async function resetOrDeletePreset(formData: FormData) {
+  async function renamePreset(formData: FormData) {
     "use server";
     await requireAdminUser();
     const id = String(formData.get("presetId") || "");
+    const name = String(formData.get("themeName") || "").trim().slice(0, 80);
+    const catalog = await getThemeCatalog();
+    if (!name) redirect(`/members/theme?preset=${encodeURIComponent(id)}&error=name-required`);
+    if (!catalog.some((preset) => preset.id === id)) redirect("/members/theme?error=invalid-target");
+    await writePresets(catalog.map((preset) => preset.id === id ? { ...preset, name } : preset));
+    revalidatePath("/", "layout");
+    redirect(`/members/theme?preset=${encodeURIComponent(id)}&renamed=1`);
+  }
+
+  async function deletePreset(formData: FormData) {
+    "use server";
+    await requireAdminUser();
+    const id = String(formData.get("presetId") || "");
+    const catalog = await getThemeCatalog();
+    const target = catalog.find((preset) => preset.id === id);
+    if (!target) redirect("/members/theme?error=invalid-target");
+    if (target.builtIn) redirect(`/members/theme?preset=${encodeURIComponent(id)}&error=protected-theme`);
+
+    await prisma.$transaction([
+      prisma.user.updateMany({ where: { themePreference: id }, data: { themePreference: "light" } }),
+      prisma.appConfig.upsert({
+        where: { key: "themePresets" },
+        create: { key: "themePresets", value: JSON.stringify(catalog.filter((preset) => preset.id !== id).map(({ id, name, category, values }) => ({ id, name, category, values }))) },
+        update: { value: JSON.stringify(catalog.filter((preset) => preset.id !== id).map(({ id, name, category, values }) => ({ id, name, category, values }))) },
+      }),
+    ]);
+    revalidatePath("/", "layout");
+    redirect("/members/theme?preset=light&deleted=1");
+  }
+
+  async function resetPreset(formData: FormData) {
+    "use server";
+    await requireAdminUser();
+    const id = String(formData.get("presetId") || "");
+    if (!CATEGORIES.slice(0, 3).includes(id as ThemeCategory)) redirect("/members/theme?error=invalid-target");
     await writePresets((await getThemeCatalog()).filter((preset) => preset.id !== id));
     if (id === "light") await prisma.appConfig.deleteMany({ where: { key: "theme" } });
     revalidatePath("/", "layout");
-    redirect(`/members/theme?preset=${encodeURIComponent(["light", "dark", "muted"].includes(id) ? id : "light")}`);
+    redirect(`/members/theme?preset=${encodeURIComponent(id)}`);
   }
 
   return <main className="mx-auto max-w-5xl p-6 space-y-6" data-edit-ignore="true">
     <header>
-      <h1>Theme Editor</h1>
-      <p className="muted">Edit the site’s global theme definitions. Members choose among these themes in their Settings.</p>
+      <h1>{t('heading')}</h1>
+      <p className="muted">{t('description')}</p>
     </header>
 
-    {query.saved ? <p role="status" className="tile" style={{ borderLeft: "4px solid #15803d" }}>Theme saved and available in member settings.</p> : null}
-    {query.error === "name-required" ? <p role="alert" className="tile" style={{ borderLeft: "4px solid #b91c1c" }}>Enter a name before creating an extra theme.</p> : null}
-    {query.error === "invalid-target" ? <p role="alert" className="tile" style={{ borderLeft: "4px solid #b91c1c" }}>That theme no longer exists. Choose another destination.</p> : null}
+    {query.saved ? <p role="status" className="tile" style={{ borderLeft: "4px solid #15803d" }}>{t('saved')}</p> : null}
+    {query.renamed ? <p role="status" className="tile" style={{ borderLeft: "4px solid #15803d" }}>{t('renamed')}</p> : null}
+    {query.deleted ? <p role="status" className="tile" style={{ borderLeft: "4px solid #15803d" }}>{t('deleted')}</p> : null}
+    {query.error === "name-required" ? <p role="alert" className="tile" style={{ borderLeft: "4px solid #b91c1c" }}>{t('nameRequired')}</p> : null}
+    {query.error === "invalid-target" ? <p role="alert" className="tile" style={{ borderLeft: "4px solid #b91c1c" }}>{t('invalidTarget')}</p> : null}
+    {query.error === "protected-theme" ? <p role="alert" className="tile" style={{ borderLeft: "4px solid #b91c1c" }}>{t('protectedTheme')}</p> : null}
 
     <section className="tile theme-load-panel">
       <div>
-        <h2>Theme being edited</h2>
-        <p className="muted">Load a theme’s current values into the editor.</p>
+        <h2>{t('beingEdited')}</h2>
+        <p className="muted">{t('loadDescription')}</p>
       </div>
       <form method="get" className="theme-load-form">
-        <select name="preset" defaultValue={selected.id} aria-label="Theme to edit">
+        <select name="preset" defaultValue={selected.id} aria-label={t('themeToEdit')}>
           {CATEGORIES.map((category) => {
             const themes = catalog.filter((preset) => preset.category === category);
-            return themes.length ? <optgroup key={category} label={category[0].toUpperCase() + category.slice(1)}>
+            return themes.length ? <optgroup key={category} label={t(`categories.${category}`)}>
               {themes.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
             </optgroup> : null;
           })}
         </select>
-        <button className="btn btn-muted" type="submit">Load theme</button>
+        <button className="btn btn-muted" type="submit">{t('loadTheme')}</button>
       </form>
     </section>
 
     <form action={savePreset} className="space-y-6">
       {GROUPS.map((group) => <section key={group.title} className="space-y-3">
-        <h2>{group.title}</h2>
+        <h2>{t(`groups.${group.title}`)}</h2>
         <div className="tile theme-field-grid">
           {group.fields.map((field) => <label key={field.variable} className="theme-field">
-            <span><strong>{field.label}</strong>{field.unit ? <small>{theme[field.variable]}{field.unit}</small> : null}</span>
+            <span><strong>{t(`fields.${field.label}`)}</strong>{field.unit ? <small>{theme[field.variable]}{field.unit}</small> : null}</span>
             <input
               type={field.type}
               name={field.variable}
@@ -169,38 +212,54 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
       </section>)}
 
       <section className="space-y-3">
-        <h2>Button preview</h2>
+        <h2>{t('buttonPreview')}</h2>
         <div className="tile theme-button-preview">
-          <button className="btn btn-basic" type="button">Basic</button>
-          <button className="btn btn-muted" type="button">Muted</button>
-          <button className="btn btn-warning" type="button">Warning</button>
+          <button className="btn btn-basic" type="button">{t('basic')}</button>
+          <button className="btn btn-muted" type="button">{t('muted')}</button>
+          <button className="btn btn-warning" type="button">{t('warning')}</button>
         </div>
       </section>
 
       <section className="tile theme-save-panel">
         <div>
-          <h2>Save global theme</h2>
-          <p className="muted">Choose which sitewide theme receives the values currently in this editor.</p>
+          <h2>{t('saveGlobal')}</h2>
+          <p className="muted">{t('saveDescription')}</p>
         </div>
-        <label><strong>Save these settings to</strong>
+        <label><strong>{t('saveSettingsTo')}</strong>
           <select name="saveTarget" defaultValue={selected.id}>
-            {catalog.map((preset) => <option key={preset.id} value={preset.id}>{preset.name} — {preset.category}</option>)}
-            <option value="__new__">+ Create an extra theme</option>
+            {catalog.map((preset) => <option key={preset.id} value={preset.id}>{preset.name} — {t(`categories.${preset.category}`)}</option>)}
+            <option value="__new__">+ {t('createExtra')}</option>
           </select>
         </label>
         <div className="theme-new-fields">
-          <label><strong>New theme name</strong><input name="newThemeName" maxLength={80} placeholder="Only needed for an extra theme" /></label>
-          <label><strong>New theme category</strong><select name="category" defaultValue="custom">{CATEGORIES.map((category) => <option key={category} value={category}>{category[0].toUpperCase() + category.slice(1)}</option>)}</select></label>
+          <label><strong>{t('newThemeName')}</strong><input name="newThemeName" maxLength={80} placeholder={t('newThemePlaceholder')} /></label>
+          <label><strong>{t('newThemeCategory')}</strong><select name="category" defaultValue="custom">{CATEGORIES.map((category) => <option key={category} value={category}>{t(`categories.${category}`)}</option>)}</select></label>
         </div>
         <div className="theme-editor-actions">
-          <button className="btn btn-basic" type="submit">Save theme sitewide</button>
+          <button className="btn btn-basic" type="submit">{t('saveSitewide')}</button>
         </div>
       </section>
     </form>
 
-    <form action={resetOrDeletePreset}>
+    <ThemeManagementActions
+      presetId={selected.id}
+      currentName={selected.name}
+      canDelete={!selected.builtIn}
+      renameAction={renamePreset}
+      deleteAction={deletePreset}
+      labels={{
+        rename: t('manageTheme'),
+        name: t('themeName'),
+        saveName: t('renameTheme'),
+        delete: t('deleteTheme', {name: selected.name}),
+        confirmDelete: t('confirmDeleteTheme', {name: selected.name}),
+        protectedTheme: t('protectedTheme'),
+      }}
+    />
+
+    {selected.builtIn ? <form action={resetPreset}>
       <input type="hidden" name="presetId" value={selected.id} />
-      <button className="btn btn-warning">{selected.builtIn ? `Reset ${selected.name} to defaults` : `Delete ${selected.name}`}</button>
-    </form>
+      <button className="btn btn-warning">{t('resetToDefaults', {name: selected.name})}</button>
+    </form> : null}
   </main>;
 }

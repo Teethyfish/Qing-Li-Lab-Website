@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { Grip, Plus, Trash2 } from "lucide-react";
+import { Grip, Maximize2, Plus, Trash2 } from "lucide-react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import {
   PROFILE_HEADER_LAYOUT,
@@ -32,6 +32,16 @@ type DragState = {
   startClientY: number;
   startX: number;
   startY: number;
+  element: HTMLElement;
+};
+
+type ResizeState = {
+  pointerId: number;
+  blockId: string;
+  startClientX: number;
+  startClientY: number;
+  startWidth: number;
+  startHeight: number;
   element: HTMLElement;
 };
 
@@ -90,6 +100,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
   const [status, setStatus] = useState<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
+  const resizeRef = useRef<ResizeState | null>(null);
 
   const topZ = Math.max(
     profile.layout.contact.zIndex,
@@ -192,6 +203,48 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
     });
   };
 
+  const startResize = (event: React.PointerEvent<HTMLButtonElement>, blockId: string, layout: ProfileBlockLayout) => {
+    if (event.button !== 0) return;
+    const element = event.currentTarget.closest<HTMLElement>(".profile-dashboard-tile");
+    if (!element) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    resizeRef.current = {
+      pointerId: event.pointerId,
+      blockId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startWidth: layout.width,
+      startHeight: layout.height,
+      element,
+    };
+    element.style.zIndex = String(topZ + 1);
+  };
+
+  const moveResize = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+    const boardWidth = boardRef.current?.clientWidth || 1_100;
+    const left = Number.parseFloat(resize.element.style.left) || 0;
+    const maxWidth = Math.max(240, Math.min(900, boardWidth - left));
+    const width = Math.max(240, Math.min(maxWidth, resize.startWidth + event.clientX - resize.startClientX));
+    const height = Math.max(180, Math.min(1_200, resize.startHeight + event.clientY - resize.startClientY));
+    resize.element.style.width = `${Math.round(width)}px`;
+    resize.element.style.height = `${Math.round(height)}px`;
+  };
+
+  const finishResize = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const resize = resizeRef.current;
+    if (!resize || resize.pointerId !== event.pointerId) return;
+    resizeRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    updateBlockLayout(resize.blockId, {
+      width: Number.parseFloat(resize.element.style.width) || resize.startWidth,
+      height: Number.parseFloat(resize.element.style.height) || resize.startHeight,
+      zIndex: topZ + 1,
+    });
+  };
+
   const save = async () => {
     setSaving(true);
     setStatus(null);
@@ -226,6 +279,16 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
     onPointerUp={finishDrag}
     onPointerCancel={finishDrag}
   ><Grip size={16} aria-hidden="true" /> {t("dragTile")}</button>;
+  const resizeHandle = (blockId: string, layout: ProfileBlockLayout) => <button
+    type="button"
+    className="profile-dashboard-resize"
+    aria-label={t("resizeTile")}
+    title={t("resizeTile")}
+    onPointerDown={(event) => startResize(event, blockId, layout)}
+    onPointerMove={moveResize}
+    onPointerUp={finishResize}
+    onPointerCancel={finishResize}
+  ><Maximize2 size={14} aria-hidden="true" /></button>;
 
   return <div data-edit-ignore="true" className="profile-builder">
     {isAdminEditing ? <div className="profile-admin-notice"><strong>{t("adminEditing")}</strong> {t("adminEditingText")}</div> : null}
@@ -259,6 +322,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
             <label className="form-field"><strong>{t("officeLocation")}</strong><input value={profile.contact.office} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, office: event.target.value } }))} /></label>
             <label className="form-field"><strong>{t("website")}</strong><input type="url" placeholder="https://" value={profile.contact.website} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, website: event.target.value } }))} /></label>
           </div>
+          {resizeHandle("contact", profile.layout.contact)}
         </section>
 
         <section className="card profile-dashboard-tile publications-editor-tile" style={tileStyle(profile.layout.publications)}>
@@ -274,6 +338,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
             </article>)}
             {!profile.publications.length ? <p className="muted">{t("noPublications")}</p> : null}
           </div>
+          {resizeHandle("publications", profile.layout.publications)}
         </section>
 
         {profile.tiles.map((tile) => <section key={tile.id} className="card profile-dashboard-tile custom-profile-editor-tile" style={tileStyle(tile.layout)}>
@@ -290,6 +355,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
               <label className="form-field">{t("caption")}<textarea rows={3} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label>
             </>}
           </div>
+          {resizeHandle(tile.id, tile.layout)}
         </section>)}
       </div>
     </div>

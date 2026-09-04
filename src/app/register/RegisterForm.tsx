@@ -47,7 +47,7 @@ export default function RegisterForm() {
       });
 
       if (!res.ok) {
-        let msg = `Failed (${res.status})`;
+        let msg = t('requestFailed', {status: res.status});
         try {
           const body = await res.json();
           if (body?.error) msg = body.error;
@@ -58,7 +58,7 @@ export default function RegisterForm() {
       setStatus("done");
     } catch (err: any) {
       setStatus("error");
-      setError(err?.message || "Failed to send request");
+      setError(err?.message || t('failedToSend'));
     }
   }
 
@@ -120,7 +120,7 @@ export default function RegisterForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               style={inputStyle}
-              placeholder="e.g., Lynn Zhang"
+              placeholder={t('namePlaceholder')}
             />
           </div>
 
@@ -149,7 +149,7 @@ export default function RegisterForm() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               style={inputStyle}
-              placeholder="e.g., lynn-zhang"
+              placeholder={t('slugPlaceholder')}
             />
             <div className="muted" style={{ fontSize: "0.75rem" }}>
               {t('slugPreview')}&nbsp;
@@ -174,7 +174,7 @@ export default function RegisterForm() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               style={inputStyle}
-              placeholder="Share your interests or why you're joining…"
+              placeholder={t('notePlaceholder')}
             />
           </div>
 

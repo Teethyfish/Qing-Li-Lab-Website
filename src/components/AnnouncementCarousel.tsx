@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 type Announcement = {
   id: string;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function AnnouncementCarousel({ announcements, locale }: Props) {
+  const t = useTranslations('home');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -195,7 +197,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
               }}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={t('goToSlide', {number: index + 1})}
             />
           ))}
         </div>
@@ -238,7 +240,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               e.currentTarget.style.background = "transparent";
               e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
-            aria-label="Previous slide"
+            aria-label={t('previousSlide')}
           >
             ‹
           </button>
@@ -271,7 +273,7 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
               e.currentTarget.style.background = "transparent";
               e.currentTarget.style.transform = "translateY(-50%) scale(1)";
             }}
-            aria-label="Next slide"
+            aria-label={t('nextSlide')}
           >
             ›
           </button>

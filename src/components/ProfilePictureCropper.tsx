@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { Area, Point } from "react-easy-crop";
+import { useTranslations } from "next-intl";
 
 type Props = {
   imageSrc: string;
@@ -60,6 +61,7 @@ function createImage(url: string): Promise<HTMLImageElement> {
 }
 
 export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }: Props) {
+  const t = useTranslations('editorTools');
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -128,7 +130,7 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
         }}
       >
         <h2 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>
-          Crop Profile Picture
+          {t('cropProfilePicture')}
         </h2>
 
         {/* Cropper area */}
@@ -157,7 +159,7 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
         {/* Zoom slider */}
         <div>
           <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem", fontWeight: 500 }}>
-            Zoom
+            {t('zoom')}
           </label>
           <input
             type="range"
@@ -177,14 +179,14 @@ export default function ProfilePictureCropper({ imageSrc, onComplete, onCancel }
             disabled={saving}
             className="btn btn-muted"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="btn btn-basic"
           >
-            {saving ? "Saving..." : "Save Crop"}
+            {saving ? t('saving') : t('saveCrop')}
           </button>
         </div>
       </div>

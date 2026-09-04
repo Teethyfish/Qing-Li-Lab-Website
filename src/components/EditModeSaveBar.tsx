@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useEditMode } from "@/contexts/EditModeContext";
 import AdminRichTextToolbar from "@/components/AdminRichTextToolbar";
+import { useTranslations } from "next-intl";
 
 export default function EditModeSaveBar() {
+  const t = useTranslations('editorTools');
   const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function EditModeSaveBar() {
 
       const data = await response.json().catch(() => null);
       if (!response.ok || !data?.success) {
-        throw new Error(data?.error || `Save failed (${response.status})`);
+        throw new Error(data?.error || t('saveFailed', {status: response.status}));
       }
 
       setSuccess(true);
@@ -39,14 +41,14 @@ export default function EditModeSaveBar() {
         window.location.reload(); // Reload to show saved content
       }, 1500);
     } catch (err: any) {
-      setError(err.message || "Failed to save changes");
+      setError(err.message || t('failedToSave'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (hasChanges && !confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+    if (hasChanges && !confirm(t('confirmCancel'))) {
       return;
     }
     resetContent();
@@ -75,8 +77,8 @@ export default function EditModeSaveBar() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
         <div style={{ color: "#fff", fontWeight: 600, fontSize: "0.95rem" }}>
           {hasChanges
-            ? `${Object.keys(editedContent).length} change${Object.keys(editedContent).length === 1 ? "" : "s"} pending`
-            : "Edit Mode Active - Click any text to edit"}
+            ? t('changesPending', {count: Object.keys(editedContent).length})
+            : t('editModeActive')}
         </div>
 
         <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -89,7 +91,7 @@ export default function EditModeSaveBar() {
               opacity: !hasChanges || saving ? 0.6 : 1,
             }}
           >
-            {saving ? "Saving..." : success ? "Saved!" : "Save Changes"}
+            {saving ? t('saving') : success ? t('savedShort') : t('saveChanges')}
           </button>
           <button
             onClick={handleCancel}
@@ -97,12 +99,12 @@ export default function EditModeSaveBar() {
             className="btn btn-muted"
             style={{ minWidth: "80px" }}
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
 
         {error && <div style={{ color: "#fff", fontSize: "0.85rem" }}>❌ {error}</div>}
-        {success && <div style={{ color: "#fff", fontSize: "0.85rem" }}>✅ Saved successfully!</div>}
+        {success && <div style={{ color: "#fff", fontSize: "0.85rem" }}>✅ {t('savedSuccessfully')}</div>}
       </div>
     </div>
   );

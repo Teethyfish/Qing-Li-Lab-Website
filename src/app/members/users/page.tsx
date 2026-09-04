@@ -142,7 +142,7 @@ export default async function UsersAdminPage() {
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableSlug')}</th>
                 )}
                 <th style={{ textAlign: "left", padding: "8px" }}>{t('tableRole')}</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>Membership / access</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>{t('membershipAccess')}</th>
                 {cfg.showResetCol !== false && (
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableMustResetPW')}</th>
                 )}
@@ -183,18 +183,18 @@ export default async function UsersAdminPage() {
                         <select
                           name="membershipStatus"
                           defaultValue={u.isActive ? u.membershipStatus : "INACTIVE"}
-                          aria-label={`Membership and account access for ${u.name || u.email}`}
+                          aria-label={t('membershipAccessFor', {name: u.name || u.email})}
                         >
-                          <option value="ACTIVE">Active</option>
-                          <option value="ALUMNI">Alumni</option>
+                          <option value="ACTIVE">{t('active')}</option>
+                          <option value="ALUMNI">{t('alumni')}</option>
                           <option
                             value="INACTIVE"
                             disabled={u.email.toLowerCase() === session?.user?.email?.toLowerCase()}
                           >
-                            Inactive
+                            {t('inactive')}
                           </option>
                         </select>
-                        <button className="btn btn-muted" type="submit">Save</button>
+                        <button className="btn btn-muted" type="submit">{t('save')}</button>
                       </form>
                     </td>
                     {cfg.showResetCol !== false && (
@@ -203,7 +203,7 @@ export default async function UsersAdminPage() {
                     <td style={{ padding: "8px" }}>
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                         <Link className="btn btn-muted" href={`/members/profile/${u.id}`}>
-                          Edit public profile
+                          {t('editPublicProfile')}
                         </Link>
                         {/* Promote / Demote */}
                         <form action={setRole}>
@@ -239,7 +239,7 @@ export default async function UsersAdminPage() {
                           <input
                             name="confirm"
                             placeholder={t('typeDELETE')}
-                            aria-label="Type DELETE to confirm"
+                            aria-label={t('confirmDelete')}
                             style={{
                               width: 120,
                               padding: "0.5rem 0.6rem",
@@ -250,7 +250,7 @@ export default async function UsersAdminPage() {
                               boxSizing: "border-box",
                             }}
                           />
-                          <button className="btn btn-warning" type="submit" title="Delete user">
+                          <button className="btn btn-warning" type="submit" title={t('deleteUser')}>
                             {t('delete')}
                           </button>
                         </form>

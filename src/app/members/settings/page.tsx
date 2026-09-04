@@ -150,12 +150,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 }}
               >
                 {passwordStatus === "updated"
-                  ? "Password updated successfully."
+                  ? t('passwordUpdated')
                   : passwordStatus === "too-short"
-                    ? "The new password must be at least 8 characters."
+                    ? t('passwordTooShort')
                     : passwordStatus === "mismatch"
-                      ? "The new passwords do not match."
-                      : "The current password is incorrect."}
+                      ? t('passwordMismatch')
+                      : t('passwordIncorrect')}
               </p>
             )}
             <div style={{ display: "grid", gap: "0.4rem" }}>

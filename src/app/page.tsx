@@ -2,10 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getTranslations } from "next-intl/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { defaultLocale } from "@/i18n/config";
+import { getLocale, getTranslations } from "next-intl/server";
 import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 import EditableHomeContent from "@/components/EditableHomeContent";
 import { BANNER_ASPECT_RATIO, BANNER_MAX_WIDTH } from "@/lib/banner";
@@ -44,18 +41,8 @@ export default async function HomePage() {
   const t = await getTranslations('home');
   const tc = await getTranslations('common');
 
-  // Get user's locale
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email ?? null;
-  let userLocale: string = defaultLocale;
-
-  if (email) {
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-      select: { locale: true },
-    });
-    userLocale = user?.locale ?? defaultLocale;
-  }
+  // Uses the account preference for members and the language cookie for visitors.
+  const userLocale = await getLocale();
 
   // --- Config-driven content ---
   const pi =
@@ -83,7 +70,7 @@ export default async function HomePage() {
 
   const welcome =
     (await getConfig<string>("home.welcome")) ||
-    t('welcome') + " " + "We are a research lab studying proteomics and molecular biosciences.";
+    t('welcomeDefault');
 
   const labTitle =
     (await getConfig<string>("home.labTitle")) || "Qing X. Li's Lab";
@@ -165,10 +152,12 @@ export default async function HomePage() {
   };
   const personCard: React.CSSProperties = {
     border: "1px solid color-mix(in oklab, var(--color-text) 12%, transparent)",
-    borderRadius: "var(--radius-lg)",
+    borderRadius: "calc(var(--tile-radius, 2) * 1px)",
     padding: "0.75rem",
     textDecoration: "none",
     color: "inherit",
+    background: "var(--color-card)",
+    boxShadow: "0 3px 10px color-mix(in oklab, var(--color-text) calc(var(--tile-shadow-opacity, 14) * 0.7%), transparent)",
   };
 
   return (
@@ -190,7 +179,7 @@ export default async function HomePage() {
         {/* ===== Announcement Carousel ===== */}
         {announcements.length > 0 && (
           <section
-            aria-label="Lab announcements"
+            aria-label={t('announcementsLabel')}
             data-edit-ignore="true"
             style={{
               width: "100%",
@@ -254,7 +243,7 @@ export default async function HomePage() {
 
             <div style={{ minWidth: 0 }}>
               <h2 style={{ fontSize: "1.125rem", fontWeight: 600 }}>
-                {pi.name || "Principal Investigator"}
+                {pi.name || t('principalInvestigator')}
               </h2>
 
               <div style={{ marginTop: 8, fontSize: 14 }}>
@@ -341,7 +330,7 @@ export default async function HomePage() {
                       {m.imageUrl ? (
                         <Image
                           src={m.imageUrl}
-                          alt={m.name || "Member"}
+                          alt={m.name || tc('member')}
                           width={80}
                           height={80}
                           style={{ objectFit: "cover", borderRadius: "9999px" }}
@@ -396,7 +385,7 @@ export default async function HomePage() {
                       {a.imageUrl ? (
                         <Image
                           src={a.imageUrl}
-                          alt={a.name || "Alumni"}
+                          alt={a.name || t('alumni')}
                           width={80}
                           height={80}
                           style={{ objectFit: "cover", borderRadius: "9999px" }}
@@ -406,9 +395,9 @@ export default async function HomePage() {
                       )}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontWeight: 600 }}>{a.name || "Alumni"}</div>
+                      <div style={{ fontWeight: 600 }}>{a.name || t('alumni')}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {a.role || "Alumni"}
+                        {a.role || t('alumni')}
                       </div>
                     </div>
                   </Link>
@@ -463,7 +452,7 @@ export default async function HomePage() {
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontWeight: 600 }}>{c.name}</div>
                       <div className="muted" style={{ fontSize: 12 }}>
-                        {c.role || "Collaborator"}
+                        {c.role || t('collaborator')}
                       </div>
                     </div>
                   </Link>

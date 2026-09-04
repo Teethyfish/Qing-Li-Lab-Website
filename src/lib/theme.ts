@@ -23,6 +23,8 @@ export const DEFAULT_THEME: Theme = {
   "--color-card": "#ffffff",
   "--font-family": SANS_FONT,
   "--font-size": "16px",
+  "--btn-font-family": "var(--font-family)",
+  "--btn-font-size": "14",
   "--radius-sm": "1px",
   "--radius-md": "2px",
   "--radius-lg": "3px",
@@ -105,6 +107,7 @@ export const BUILT_IN_THEMES: ThemePreset[] = [
 export function normalizeLegacyTheme(theme: Theme): Theme {
   const normalized = { ...theme };
   if (!normalized["--font-family"] || normalized["--font-family"] === LEGACY_FONT || normalized["--font-family"] === EDITORIAL_FONT) normalized["--font-family"] = SANS_FONT;
+  if (!normalized["--btn-font-family"]) normalized["--btn-font-family"] = "var(--font-family)";
   if (normalized["--tile-radius"] === "12") normalized["--tile-radius"] = "2";
   if (normalized["--btn-radius"] === "10") normalized["--btn-radius"] = "2";
   if (normalized["--tile-shadow-opacity"] === "8") normalized["--tile-shadow-opacity"] = "14";

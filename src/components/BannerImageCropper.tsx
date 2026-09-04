@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { Area, Point } from "react-easy-crop";
 import { BANNER_ASPECT_RATIO } from "@/lib/banner";
+import { useTranslations } from "next-intl";
 
 type Props = {
   imageSrc: string;
@@ -61,6 +62,7 @@ function createImage(url: string): Promise<HTMLImageElement> {
 }
 
 export default function BannerImageCropper({ imageSrc, onComplete, onCancel }: Props) {
+  const t = useTranslations('editorTools');
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -126,7 +128,7 @@ export default function BannerImageCropper({ imageSrc, onComplete, onCancel }: P
         {/* Zoom slider */}
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <label htmlFor="zoom" style={{ color: "#fff", fontSize: "0.875rem", minWidth: "4rem" }}>
-            Zoom
+            {t('zoom')}
           </label>
           <input
             id="zoom"
@@ -147,19 +149,19 @@ export default function BannerImageCropper({ imageSrc, onComplete, onCancel }: P
             className="btn btn-basic"
             style={{ minWidth: "120px" }}
           >
-            Save
+            {t('save')}
           </button>
           <button
             onClick={onCancel}
             className="btn btn-muted"
             style={{ minWidth: "120px" }}
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
 
         <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.875rem" }}>
-          Drag to reposition • Scroll or pinch to zoom
+          {t('cropInstructions')}
         </div>
       </div>
     </div>,

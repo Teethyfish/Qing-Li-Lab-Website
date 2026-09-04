@@ -90,7 +90,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
   const toggleEditMode = () => {
     if (isEditMode) {
       const hasChanges = Object.keys(editedContent).length > 0;
-      if (hasChanges && !window.confirm("Discard your unsaved page changes?")) return;
+      if (hasChanges && !window.confirm(t('discardChanges'))) return;
       resetContent();
     }
     setIsEditMode(!isEditMode);
@@ -138,7 +138,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
         borderBottom: "1px solid var(--nav-border, #e5e7eb)",
         width: "100vw",
       }}
-      aria-label="Primary"
+      aria-label={t('primaryNavigation')}
     >
       <div
         style={{
@@ -305,7 +305,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                 <div style={{ position: "relative" }}>
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    aria-label={unreadNotificationCount ? `Profile, ${unreadNotificationCount} unread notifications` : "Profile"}
+                    aria-label={unreadNotificationCount ? t('profileUnread', {count: unreadNotificationCount}) : t('profile')}
                     style={{
                       width: 36,
                       height: 36,
@@ -326,7 +326,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                     {userImageUrl ? (
                       <Image
                         src={userImageUrl}
-                        alt={userName || "User"}
+                        alt={userName || t('user')}
                         width={36}
                         height={36}
                         style={{ objectFit: "cover" }}

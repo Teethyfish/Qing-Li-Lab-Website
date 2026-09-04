@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -25,6 +25,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
 
   // Get locale from headers
   const currentLocale = await getLocale();
+  const t = await getTranslations('announcements');
 
   // Parse translations
   const parseTranslations = (jsonString: string) => {
@@ -116,7 +117,7 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
             fontSize: "1rem",
           }}
         >
-          ← Back to home
+          ← {t('backToHome')}
         </Link>
       </div>
     </main>
