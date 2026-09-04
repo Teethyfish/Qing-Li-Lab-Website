@@ -12,8 +12,11 @@ type Props = {
 export default function EditableHomeContent({ labTitle, labSubtitle }: Props) {
   const { isEditMode } = useEditMode();
   const fullTitle = `${labTitle} – ${labSubtitle}`;
-  const [typedLength, setTypedLength] = useState(0);
-  const [animationComplete, setAnimationComplete] = useState(false);
+  // The server-rendered fallback must contain the complete heading. If a
+  // browser cannot hydrate for any reason, visitors still see the lab name
+  // instead of an indefinitely blinking cursor.
+  const [typedLength, setTypedLength] = useState(fullTitle.length);
+  const [animationComplete, setAnimationComplete] = useState(true);
   const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {

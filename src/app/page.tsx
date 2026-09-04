@@ -39,11 +39,11 @@ function initials(name?: string | null) {
 }
 
 export default async function HomePage() {
-  const [t, tc, userLocale] = await Promise.all([
-    getTranslations("home"),
-    getTranslations("common"),
-    getLocale(),
-  ]);
+  // Resolve request-scoped next-intl values sequentially. They share request
+  // context internally and should not be initialized concurrently.
+  const t = await getTranslations("home");
+  const tc = await getTranslations("common");
+  const userLocale = await getLocale();
   type PiConfig = {
       name?: string;
       titleLines?: string[];

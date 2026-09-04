@@ -10,7 +10,11 @@ type Props = {
 
 export default function TranslationsProvider({ locale, messages, children }: Props) {
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider
+      locale={locale}
+      messages={messages}
+      timeZone="Pacific/Honolulu"
+    >
       {children}
     </NextIntlClientProvider>
   );

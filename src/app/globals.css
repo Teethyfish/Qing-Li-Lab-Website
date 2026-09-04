@@ -1465,7 +1465,7 @@ select {
   display: inline-block;
   margin-left: 0.08em;
   font-weight: 400;
-  animation: typewriter-cursor-blink 420ms step-end infinite;
+  animation: typewriter-cursor-blink 420ms step-end 12 forwards;
 }
 
 @keyframes typewriter-cursor-blink {
@@ -1476,6 +1476,7 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .typewriter-cursor {
     animation: none;
+    opacity: 0;
   }
 }
 

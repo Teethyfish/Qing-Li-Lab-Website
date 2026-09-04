@@ -24,6 +24,9 @@ export default getRequestConfig(async () => {
 
   return {
     locale,
+    // Keep date/time formatting deterministic on Vercel and prevent
+    // next-intl's ENVIRONMENT_FALLBACK warning in serverless functions.
+    timeZone: 'Pacific/Honolulu',
     messages: (await import(`./messages/${locale}.json`)).default
   };
 });
