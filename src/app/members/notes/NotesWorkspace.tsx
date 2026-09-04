@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Pencil, RotateCcw, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { CanvasTextBoxData, DrawingStroke, NoteWorkspaceData, RecentlyDeletedItem, ReminderData, StickyNoteData } from "@/lib/note-types";
@@ -86,15 +86,20 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const [penColor, setPenColor] = useState("#111827");
   const [penWidth, setPenWidth] = useState(3);
   const [boardSize, setBoardSize] = useState({ width: 1200, height: 760 });
+  const [boardReady, setBoardReady] = useState(false);
   const [draftStroke, setDraftStroke] = useState<{ targetId: string; stroke: DrawingStroke } | null>(null);
   const selectionRef = useRef<Range | null>(null);
   const selectedTableRef = useRef<HTMLTableElement | null>(null);
   const lastDrawingTargetRef = useRef<string | null>(null);
   const skipFirstSave = useRef(true);
+  const immediateSaveRef = useRef(false);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const latestSaveRequestRef = useRef(0);
   const draftStrokeRef = useRef<{ targetId: string; stroke: DrawingStroke } | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     kind: "note" | "textbox";
+    pageId: string;
     itemId: string;
     startClientX: number;
     startClientY: number;
@@ -127,29 +132,51 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   useLayoutEffect(() => {
     const board = boardRef.current;
     if (!board) return;
-    const measure = () => setBoardSize({ width: board.clientWidth, height: board.clientHeight });
+    const measure = () => {
+      setBoardSize({ width: board.clientWidth, height: board.clientHeight });
+      setBoardReady(true);
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(board);
     return () => observer.disconnect();
   }, []);
 
+  const persistWorkspace = useCallback((snapshot: NoteWorkspaceData) => {
+    const requestId = ++latestSaveRequestRef.current;
+    setSaveState("saving");
+    const save = async () => {
+      const response = await fetch("/api/notes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snapshot),
+      });
+      if (!response.ok) throw new Error("save failed");
+    };
+    const queuedSave = saveQueueRef.current.catch(() => undefined).then(save);
+    saveQueueRef.current = queuedSave;
+    void queuedSave.then(
+      () => { if (requestId === latestSaveRequestRef.current) setSaveState("saved"); },
+      () => { if (requestId === latestSaveRequestRef.current) setSaveState("error"); },
+    );
+    return queuedSave;
+  }, []);
+
+  const saveImmediately = () => {
+    immediateSaveRef.current = true;
+  };
+
   useEffect(() => {
     if (skipFirstSave.current) { skipFirstSave.current = false; return; }
+    if (immediateSaveRef.current) {
+      immediateSaveRef.current = false;
+      void persistWorkspace(workspace);
+      return;
+    }
     setSaveState("saving");
-    const timer = window.setTimeout(async () => {
-      try {
-        const response = await fetch("/api/notes", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(workspace),
-        });
-        if (!response.ok) throw new Error("save failed");
-        setSaveState("saved");
-      } catch { setSaveState("error"); }
-    }, 700);
+    const timer = window.setTimeout(() => { void persistWorkspace(workspace); }, 700);
     return () => window.clearTimeout(timer);
-  }, [workspace]);
+  }, [persistWorkspace, workspace]);
 
   useEffect(() => {
     const rememberSelection = () => {
@@ -169,33 +196,39 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     return () => document.removeEventListener("selectionchange", rememberSelection);
   }, [selectedEditorId]);
 
-  const updatePage = (pageId: string, updater: (page: NoteWorkspaceData["pages"][number]) => NoteWorkspaceData["pages"][number]) => {
+  const updatePage = (pageId: string, updater: (page: NoteWorkspaceData["pages"][number]) => NoteWorkspaceData["pages"][number], immediate = false) => {
+    if (immediate) saveImmediately();
     setWorkspace((current) => ({ ...current, pages: current.pages.map((page) => page.id === pageId ? updater(page) : page) }));
   };
 
-  const updateNote = (noteId: string, values: Partial<StickyNoteData>) => {
-    updatePage(activePage.id, (page) => ({ ...page, notes: page.notes.map((note) => note.id === noteId ? { ...note, ...values } : note) }));
+  const updateItemOnPage = (pageId: string, kind: "note" | "textbox", itemId: string, values: Partial<StickyNoteData> | Partial<CanvasTextBoxData>, immediate = false) => {
+    updatePage(pageId, (page) => kind === "note"
+      ? { ...page, notes: page.notes.map((note) => note.id === itemId ? { ...note, ...values } as StickyNoteData : note) }
+      : { ...page, textBoxes: (page.textBoxes || []).map((box) => box.id === itemId ? { ...box, ...values } as CanvasTextBoxData : box) }, immediate);
   };
 
-  const updateTextBox = (boxId: string, values: Partial<CanvasTextBoxData>) => {
-    updatePage(activePage.id, (page) => ({ ...page, textBoxes: (page.textBoxes || []).map((box) => box.id === boxId ? { ...box, ...values } : box) }));
+  const updateNote = (noteId: string, values: Partial<StickyNoteData>, immediate = false) => {
+    updateItemOnPage(activePage.id, "note", noteId, values, immediate);
+  };
+
+  const updateTextBox = (boxId: string, values: Partial<CanvasTextBoxData>, immediate = false) => {
+    updateItemOnPage(activePage.id, "textbox", boxId, values, immediate);
   };
 
   const restoreNote = (note: StickyNoteData) => {
     const bounds = visibleRect(note);
-    updateNote(note.id, { archived: false, ...bounds, zIndex: topZ + 1 });
+    updateNote(note.id, { archived: false, ...bounds, zIndex: topZ + 1 }, true);
     setSelectedEditorId(note.id);
   };
 
-  const commitItemBounds = (kind: "note" | "textbox", itemId: string, element: HTMLElement) => {
+  const commitItemBounds = (pageId: string, kind: "note" | "textbox", itemId: string, element: HTMLElement) => {
     const bounds = visibleRect({
       x: Number.parseFloat(element.style.left) || 0,
       y: Number.parseFloat(element.style.top) || 0,
       width: element.offsetWidth,
       height: element.offsetHeight,
     });
-    if (kind === "note") updateNote(itemId, bounds);
-    else updateTextBox(itemId, bounds);
+    updateItemOnPage(pageId, kind, itemId, bounds);
   };
 
   const updateEditorHtml = (editorId: string, html: string) => {
@@ -210,7 +243,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
 
   const addNote = () => {
     const note: StickyNoteData = { id: id(), subject: "", html: "", x: 30 + (activePage.notes.length % 6) * 28, y: 30 + (activePage.notes.length % 5) * 28, width: 280, height: 220, color: COLORS[activePage.notes.length % COLORS.length], archived: false, zIndex: topZ + 1, strokes: [] };
-    updatePage(activePage.id, (page) => ({ ...page, notes: [...page.notes, note] }));
+    updatePage(activePage.id, (page) => ({ ...page, notes: [...page.notes, note] }), true);
     setSelectedEditorId(note.id);
   };
 
@@ -219,7 +252,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const height = Math.min(140, boardSize.height);
     const bounds = visibleRect({ x, y, width, height });
     const box: CanvasTextBoxData = { id: id(), html: "", ...bounds, zIndex: topZ + 1 };
-    updatePage(activePage.id, (page) => ({ ...page, textBoxes: [...(page.textBoxes || []), box] }));
+    updatePage(activePage.id, (page) => ({ ...page, textBoxes: [...(page.textBoxes || []), box] }), true);
     setSelectedEditorId(`textbox:${box.id}`);
     window.requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-note-editor="textbox:${CSS.escape(box.id)}"]`)?.focus());
   };
@@ -232,6 +265,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
 
   const deleteNote = (note: StickyNoteData) => {
     const deleted: RecentlyDeletedItem = { id: id(), kind: "note", pageId: activePage.id, deletedAt: new Date().toISOString(), item: note };
+    saveImmediately();
     setWorkspace((current) => ({
       ...current,
       pages: current.pages.map((page) => page.id === activePage.id ? { ...page, notes: page.notes.filter((item) => item.id !== note.id) } : page),
@@ -242,6 +276,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
 
   const deleteTextBox = (box: CanvasTextBoxData) => {
     const deleted: RecentlyDeletedItem = { id: id(), kind: "textbox", pageId: activePage.id, deletedAt: new Date().toISOString(), item: box };
+    saveImmediately();
     setWorkspace((current) => ({
       ...current,
       pages: current.pages.map((page) => page.id === activePage.id ? { ...page, textBoxes: (page.textBoxes || []).filter((item) => item.id !== box.id) } : page),
@@ -253,6 +288,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const restoreDeleted = (deleted: RecentlyDeletedItem) => {
     const targetPageId = workspace.pages.some((page) => page.id === deleted.pageId) ? deleted.pageId : activePage.id;
     const bounds = visibleRect(deleted.item);
+    saveImmediately();
     setWorkspace((current) => ({
       ...current,
       activePageId: targetPageId,
@@ -269,6 +305,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
 
   const addPage = () => {
     const pageId = id();
+    saveImmediately();
     setWorkspace((current) => ({ ...current, activePageId: pageId, pages: [...current.pages, { id: pageId, title: t("page", { number: current.pages.length + 1 }), html: "", strokes: [], notes: [], textBoxes: [] }] }));
     setSelectedEditorId(`page:${pageId}`);
   };
@@ -276,8 +313,15 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
   const removePage = () => {
     if (workspace.pages.length === 1 || !confirm(t("deletePageConfirm", { title: activePage.title }))) return;
     const pages = workspace.pages.filter((page) => page.id !== activePage.id);
+    saveImmediately();
     setWorkspace({ ...workspace, pages, activePageId: pages[Math.max(0, activeIndex - 1)].id });
     setSelectedEditorId(null);
+  };
+
+  const clearRecentlyDeleted = () => {
+    if (!recentlyDeleted.length) return;
+    saveImmediately();
+    setWorkspace((current) => ({ ...current, recentlyDeleted: [] }));
   };
 
   const switchPage = (pageId: string) => {
@@ -403,9 +447,10 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     if (!element) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = { pointerId: event.pointerId, kind, itemId: item.id, startClientX: event.clientX, startClientY: event.clientY, startX: item.x, startY: item.y, element };
+    dragRef.current = { pointerId: event.pointerId, kind, pageId: activePage.id, itemId: item.id, startClientX: event.clientX, startClientY: event.clientY, startX: item.x, startY: item.y, element };
     setSelectedEditorId(kind === "note" ? item.id : `textbox:${item.id}`);
     element.style.zIndex = String(topZ + 1);
+    updateItemOnPage(activePage.id, kind, item.id, { x: item.x, y: item.y, zIndex: topZ + 1 });
   };
 
   const moveItemDrag = (event: React.PointerEvent<HTMLElement>) => {
@@ -414,8 +459,11 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const board = boardRef.current;
     const maxX = Math.max(0, (board?.clientWidth || boardSize.width) - drag.element.offsetWidth);
     const maxY = Math.max(0, (board?.clientHeight || boardSize.height) - drag.element.offsetHeight);
-    drag.element.style.left = `${Math.max(0, Math.min(maxX, drag.startX + event.clientX - drag.startClientX))}px`;
-    drag.element.style.top = `${Math.max(0, Math.min(maxY, drag.startY + event.clientY - drag.startClientY))}px`;
+    const x = Math.max(0, Math.min(maxX, drag.startX + event.clientX - drag.startClientX));
+    const y = Math.max(0, Math.min(maxY, drag.startY + event.clientY - drag.startClientY));
+    drag.element.style.left = `${x}px`;
+    drag.element.style.top = `${y}px`;
+    updateItemOnPage(drag.pageId, drag.kind, drag.itemId, { x, y });
   };
 
   const finishItemDrag = (event: React.PointerEvent<HTMLElement>) => {
@@ -427,8 +475,8 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const y = Number.parseFloat(drag.element.style.top) || 0;
     if (drag.kind === "note") {
       const overBin = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-notes-bin='true']");
-      updateNote(drag.itemId, { x, y, zIndex: topZ + 1, ...(overBin ? { archived: true } : {}) });
-    } else updateTextBox(drag.itemId, { x, y, zIndex: topZ + 1 });
+      updateItemOnPage(drag.pageId, "note", drag.itemId, { x, y, ...(overBin ? { archived: true } : {}) }, Boolean(overBin));
+    } else updateItemOnPage(drag.pageId, "textbox", drag.itemId, { x, y });
   };
 
   const onBoardDrop = (event: React.DragEvent<HTMLDivElement>) => {
@@ -439,7 +487,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
     const note = activePage.notes.find((item) => item.id === noteId);
     const width = Math.min(note?.width || 280, bounds.width);
     const height = Math.min(note?.height || 220, bounds.height);
-    updateNote(noteId, { archived: false, x: Math.max(0, Math.min(bounds.width - width, event.clientX - bounds.left - 40)), y: Math.max(0, Math.min(bounds.height - height, event.clientY - bounds.top - 20)), width, height, zIndex: topZ + 1 });
+    updateNote(noteId, { archived: false, x: Math.max(0, Math.min(bounds.width - width, event.clientX - bounds.left - 40)), y: Math.max(0, Math.min(bounds.height - height, event.clientY - bounds.top - 20)), width, height, zIndex: topZ + 1 }, true);
   };
 
   const pointIn = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -545,6 +593,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
           <button className="btn btn-muted" onClick={() => switchPage(workspace.pages[Math.min(workspace.pages.length - 1, activeIndex + 1)].id)} disabled={activeIndex === workspace.pages.length - 1}>{t("next")}</button>
           <button className="btn btn-basic" onClick={addPage}>{t("newPage")}</button>
           <button className="btn btn-warning" onClick={removePage} disabled={workspace.pages.length === 1}>{t("deletePage")}</button>
+          <button className="btn btn-basic" onClick={() => { void persistWorkspace(workspace); }}>{t("saveNow")}</button>
         </div>
         <span className={`notes-save-state ${saveState}`}>{saveState === "saving" ? t("saving") : saveState === "error" ? t("saveFailed") : t("saved")}</span>
       </div>
@@ -583,34 +632,34 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
           {!(activePage.textBoxes || []).length ? <div className="notes-page-click-hint">{t("pagePlaceholder")}</div> : null}
           {drawingLayer(pageEditorId, activePage.strokes || [])}
 
-          {(activePage.textBoxes || []).map((box) => {
+          {boardReady ? (activePage.textBoxes || []).map((box) => {
             const bounds = visibleRect(box);
-            return <article key={box.id} className={`canvas-text-box${selectedTextBoxId === box.id ? " selected" : ""}`} style={{ ...bounds, zIndex: box.zIndex }} onMouseDown={() => { setSelectedEditorId(`textbox:${box.id}`); if (box.zIndex < topZ) updateTextBox(box.id, { zIndex: topZ + 1 }); }} onPointerUp={(event) => commitItemBounds("textbox", box.id, event.currentTarget)}>
+            return <article key={box.id} className={`canvas-text-box${selectedTextBoxId === box.id ? " selected" : ""}`} style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height, zIndex: box.zIndex }} onMouseDown={() => { setSelectedEditorId(`textbox:${box.id}`); if (box.zIndex < topZ) updateTextBox(box.id, { zIndex: topZ + 1 }); }} onPointerUp={(event) => commitItemBounds(activePage.id, "textbox", box.id, event.currentTarget)}>
               <div className="canvas-text-box-controls">
                 <button className="canvas-text-drag" aria-label={t("dragToMove")} title={t("dragToMove")} onPointerDown={(event) => startItemDrag(event, "textbox", { ...box, ...bounds })} onPointerMove={moveItemDrag} onPointerUp={finishItemDrag} onPointerCancel={finishItemDrag}>⋮⋮</button>
                 <button className="canvas-item-delete" aria-label={t("deleteTextBox")} title={t("deleteTextBox")} onClick={(event) => { event.stopPropagation(); deleteTextBox(box); }}><X size={12} /></button>
               </div>
               <PersistentRichEditor editorId={`textbox:${box.id}`} html={box.html} className="canvas-text-box-content" placeholder={t("textBoxPlaceholder")} onFocus={() => setSelectedEditorId(`textbox:${box.id}`)} onChange={(html) => updateEditorHtml(`textbox:${box.id}`, html)} />
             </article>;
-          })}
+          }) : null}
 
-          {activePage.notes.filter((note) => !note.archived).map((note) => {
+          {boardReady ? activePage.notes.filter((note) => !note.archived).map((note) => {
             const bounds = visibleRect(note);
-            return <article key={note.id} className={`sticky-note${selectedNoteId === note.id ? " selected" : ""}`} style={{ ...bounds, background: note.color, zIndex: note.zIndex }} onMouseDown={() => { setSelectedEditorId(note.id); if (note.zIndex < topZ) updateNote(note.id, { zIndex: topZ + 1 }); }} onPointerUp={(event) => commitItemBounds("note", note.id, event.currentTarget)}>
+            return <article key={note.id} className={`sticky-note${selectedNoteId === note.id ? " selected" : ""}`} style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height, background: note.color, zIndex: note.zIndex }} onMouseDown={() => { setSelectedEditorId(note.id); if (note.zIndex < topZ) updateNote(note.id, { zIndex: topZ + 1 }); }} onPointerUp={(event) => commitItemBounds(activePage.id, "note", note.id, event.currentTarget)}>
               <div className="sticky-note-header">
                 <span className="sticky-drag-handle" title={t("dragToMove")} onPointerDown={(event) => startItemDrag(event, "note", { ...note, ...bounds })} onPointerMove={moveItemDrag} onPointerUp={finishItemDrag} onPointerCancel={finishItemDrag}>⋮⋮</span>
                 <input className="sticky-note-subject" value={note.subject || ""} maxLength={120} placeholder={t("subject")} aria-label={t("subject")} onChange={(event) => updateNote(note.id, { subject: event.target.value })} />
                 <button className="sticky-edit-toggle" aria-label={t("editSticky")} title={t("editSticky")} aria-expanded={openNoteMenuId === note.id} onClick={() => setOpenNoteMenuId((current) => current === note.id ? null : note.id)}><Pencil size={12} /></button>
                 {openNoteMenuId === note.id ? <div className="sticky-note-popover" onMouseDown={(event) => event.stopPropagation()}>
                   <div className="sticky-color-picker">{COLORS.map((color) => <button key={color} aria-label={t("setNoteColor")} title={color} style={{ "--note-swatch": color } as React.CSSProperties} onClick={() => updateNote(note.id, { color })} />)}</div>
-                  <button className="note-control" onClick={() => { updateNote(note.id, { archived: true }); setOpenNoteMenuId(null); }}>{t("storeInBin")}</button>
+                  <button className="note-control" onClick={() => { updateNote(note.id, { archived: true }, true); setOpenNoteMenuId(null); }}>{t("storeInBin")}</button>
                   <button className="note-control danger" onClick={() => { deleteNote(note); setOpenNoteMenuId(null); }}>{t("delete")}</button>
                 </div> : null}
               </div>
               <PersistentRichEditor editorId={note.id} html={note.html === "Start typing…" ? "" : note.html} className="sticky-note-content" placeholder={t("notePlaceholder")} onFocus={() => setSelectedEditorId(note.id)} onChange={(html) => updateEditorHtml(note.id, html)} />
               {drawingLayer(note.id, note.strokes || [])}
             </article>;
-          })}
+          }) : null}
         </div>
       </div>
     </section>
@@ -622,7 +671,7 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
         {query ? <div className="notes-search-results">{matches.map((match) => <button key={`${match.pageId}-${match.editorId}`} className="notes-search-result" onClick={() => { switchPage(match.pageId); setSelectedEditorId(match.editorId); }}><strong>{match.pageTitle}</strong><span>{match.excerpt}</span></button>)}{!matches.length ? <p className="muted">{t("noMatches")}</p> : null}</div> : null}
       </section>
 
-      <section data-notes-bin="true" className="card notes-bin" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const noteId = event.dataTransfer.getData("application/x-lab-note"); if (noteId) updateNote(noteId, { archived: true }); }}>
+      <section data-notes-bin="true" className="card notes-bin" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const noteId = event.dataTransfer.getData("application/x-lab-note"); if (noteId) updateNote(noteId, { archived: true }, true); }}>
         <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>{t("bin")}</h2>
         <p className="muted" style={{ fontSize: ".85rem" }}>{t("binHelp")}</p>
         <div className="archived-notes-grid">{archived.map((note) => <div key={note.id} className="archived-note" style={{ background: note.color }} draggable onDragStart={(event) => event.dataTransfer.setData("application/x-lab-note", note.id)}>
@@ -636,7 +685,10 @@ export default function NotesWorkspace({ initialWorkspace, initialReminders }: {
       </section>
 
       <section className="card recently-deleted">
-        <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>{t("recentlyDeleted")}</h2>
+        <div className="recently-deleted-header">
+          <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{t("recentlyDeleted")}</h2>
+          <button className="note-control danger" onClick={clearRecentlyDeleted} disabled={!recentlyDeleted.length}>{t("clearHistory")}</button>
+        </div>
         <p className="muted" style={{ fontSize: ".85rem" }}>{t("recentlyDeletedHelp")}</p>
         <div className="recently-deleted-list">{recentlyDeleted.map((deleted) => {
           const label = deleted.kind === "note"

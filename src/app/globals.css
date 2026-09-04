@@ -654,6 +654,22 @@ button.canvas-text-drag:active {
   gap: .4rem;
 }
 
+.recently-deleted-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.recently-deleted-header .note-control {
+  font-size: .7rem !important;
+}
+
+.recently-deleted-header .note-control:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
 .recently-deleted-item {
   display: flex;
   align-items: center;
