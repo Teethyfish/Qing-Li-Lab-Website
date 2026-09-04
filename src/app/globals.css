@@ -1004,6 +1004,85 @@ button.note-control.danger { color: #991b1b !important; }
   backdrop-filter: blur(8px);
 }
 
+.profile-dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-card);
+  border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) 8%, transparent);
+}
+
+.profile-dashboard-toolbar > div { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.profile-dashboard-toolbar > div:first-child { align-items: flex-start; flex-direction: column; gap: .2rem; }
+.profile-dashboard-scroll, .public-profile-dashboard-scroll { overflow-x: auto; padding-bottom: .4rem; }
+
+.profile-dashboard-canvas,
+.public-profile-dashboard {
+  position: relative;
+  min-width: 1100px;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--color-content-bg) 95%, var(--color-text) 5%);
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-text) 5%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent);
+  box-shadow: inset 0 0 24px color-mix(in oklab, var(--color-text) 5%, transparent);
+}
+
+.profile-dashboard-tile,
+.public-profile-dashboard-tile {
+  position: absolute;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 0;
+  box-shadow: 0 7px 18px color-mix(in oklab, var(--color-text) 13%, transparent);
+}
+
+.profile-dashboard-tile-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  min-height: 42px;
+  padding: .55rem .75rem;
+  background: color-mix(in oklab, var(--color-card) 94%, var(--color-text) 6%);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-text) 13%, transparent);
+}
+
+.profile-dashboard-tile-heading h2 { margin: 0; font-size: 1rem; }
+.profile-dashboard-tile-heading.fixed span { color: var(--color-muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.profile-dashboard-heading-actions { display: flex; align-items: center; gap: .4rem; }
+.profile-dashboard-tile-body { display: grid; gap: .75rem; padding: .85rem; }
+
+button.profile-dashboard-drag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .25rem !important;
+  min-width: 0 !important;
+  padding: .3rem .45rem !important;
+  color: var(--color-text) !important;
+  background: transparent !important;
+  border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent) !important;
+  cursor: grab !important;
+  touch-action: none;
+  font-size: .72rem !important;
+}
+
+button.profile-dashboard-drag:active { cursor: grabbing !important; }
+button.profile-remove-icon { display: grid !important; width: 28px !important; height: 28px !important; min-width: 28px !important; padding: 0 !important; place-items: center !important; color: #b91c1c !important; background: transparent !important; border-color: color-mix(in oklab, #b91c1c 35%, transparent) !important; }
+
+.publication-editor-list { align-content: start; }
+.publication-editor-card { display: grid; gap: .65rem; padding: .75rem; background: color-mix(in oklab, var(--color-card) 94%, var(--color-text) 6%); border: 1px solid color-mix(in oklab, var(--color-text) 13%, transparent); }
+.publication-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.profile-publication-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, .65fr); gap: .65rem; }
+
 .public-profile {
   display: grid;
   gap: 1.25rem;
@@ -1051,6 +1130,22 @@ button.note-control.danger { color: #991b1b !important; }
 .profile-contact-list dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .profile-publications { display: grid; gap: 1rem; padding-left: 1.4rem; }
 .profile-publications p { margin: .25rem 0 0; color: var(--color-muted); }
+.public-profile-dashboard { min-height: 760px; }
+.public-profile-dashboard-tile { padding: 1.15rem; background: var(--color-card); }
+.public-profile-dashboard .public-profile-header { display: grid; align-content: start; gap: 1.1rem; }
+.public-profile-identity { display: flex; align-items: center; gap: 1rem; }
+.public-profile-identity .public-profile-photo { width: 92px; height: 92px; flex-basis: 92px; }
+.public-profile-about { padding-top: 1rem; border-top: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
+.public-profile-about h2 { margin: 0 0 .65rem; font-size: 1.05rem; }
+.public-profile-about p { margin: 0; }
+.scholar-publications { gap: 1.15rem; }
+.scholar-publications li { padding-bottom: 1rem; border-bottom: 1px solid color-mix(in oklab, var(--color-text) 11%, transparent); }
+.scholar-publications li:last-child { padding-bottom: 0; border-bottom: 0; }
+.scholar-publications strong { display: block; line-height: 1.35; }
+.scholar-publications .scholar-authors { color: var(--color-text); }
+.scholar-publications .scholar-source { color: var(--color-muted); font-style: italic; }
+.scholar-publications .scholar-description { color: var(--color-text); line-height: 1.55; }
+.scholar-doi { display: inline-block; margin-top: .35rem; font-size: .82rem; overflow-wrap: anywhere; }
 
 /* Top-navigation notice bell */
 .notice-menu { position: relative; }
@@ -1134,6 +1229,15 @@ button.notification-bell-button {
   .public-profile-header { align-items: flex-start; flex-direction: column; }
   .public-profile-grid { grid-template-columns: 1fr; }
   .profile-grid-standard, .profile-grid-wide, .profile-grid-large { grid-column: span 1; grid-row: span 1; }
+  .profile-dashboard-toolbar { align-items: stretch; flex-direction: column; }
+  .profile-dashboard-canvas,
+  .public-profile-dashboard { display: grid; min-width: 0; height: auto !important; gap: 1rem; padding: 1rem; overflow: visible; }
+  .profile-dashboard-tile,
+  .public-profile-dashboard-tile { position: static; width: auto !important; height: auto !important; max-height: none; overflow: visible; }
+  .profile-dashboard-tile { min-height: 280px; }
+  .profile-header-editor { order: -10; }
+  .public-profile-dashboard .public-profile-header { align-items: stretch; flex-direction: initial; }
+  .profile-publication-grid { grid-template-columns: 1fr; }
 }
 
 

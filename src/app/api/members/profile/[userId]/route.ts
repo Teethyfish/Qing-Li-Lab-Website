@@ -2,8 +2,8 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/document-access";
-import type { ProfilePublication, ProfileTile, PublicProfileContent } from "@/lib/public-profile";
-import { emptyPublicProfile } from "@/lib/public-profile";
+import type { ProfileBlockLayout, ProfilePublication, ProfileTile, PublicProfileContent } from "@/lib/public-profile";
+import { DEFAULT_CONTACT_LAYOUT, DEFAULT_PUBLICATIONS_LAYOUT, defaultProfileTileLayout, emptyPublicProfile } from "@/lib/public-profile";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ userId: string }> };
@@ -24,10 +24,26 @@ function safeImage(value: unknown) {
   return /^data:image\/(?:jpeg|png|webp);base64,/i.test(value) ? value : "";
 }
 
+function cleanLayout(value: unknown, fallback: ProfileBlockLayout): ProfileBlockLayout {
+  const layout = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return {
+    x: clampNumber(layout.x, 0, 2_000, fallback.x),
+    y: clampNumber(layout.y, 0, 3_000, fallback.y),
+    width: clampNumber(layout.width, 240, 900, fallback.width),
+    height: clampNumber(layout.height, 180, 1_200, fallback.height),
+    zIndex: Math.round(clampNumber(layout.zIndex, 1, 10_000, fallback.zIndex)),
+  };
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
+}
+
 function cleanProfile(value: unknown, fallbackEmail: string): PublicProfileContent {
   if (!value || typeof value !== "object") return emptyPublicProfile(fallbackEmail);
   const profile = value as Record<string, unknown>;
   const contactValue = profile.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {};
+  const layoutValue = profile.layout && typeof profile.layout === "object" ? profile.layout as Record<string, unknown> : {};
   const publications = Array.isArray(profile.publications)
     ? profile.publications.slice(0, 100).flatMap((value): ProfilePublication[] => {
         if (!value || typeof value !== "object") return [];
@@ -35,11 +51,20 @@ function cleanProfile(value: unknown, fallbackEmail: string): PublicProfileConte
         const id = text(item.id, 100);
         const title = text(item.title, 500);
         if (!id || !title) return [];
-        return [{ id, title, citation: text(item.citation, 3_000), url: safeUrl(item.url) }];
+        return [{
+          id,
+          title,
+          authors: text(item.authors, 2_000),
+          description: text(item.description, 5_000) || text(item.citation, 3_000),
+          journal: text(item.journal, 1_000),
+          publishDate: /^\d{4}-\d{2}-\d{2}$/.test(text(item.publishDate, 10)) ? text(item.publishDate, 10) : "",
+          doi: text(item.doi, 500).replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, ""),
+          url: safeUrl(item.url),
+        }];
       })
     : [];
   const tiles = Array.isArray(profile.tiles)
-    ? profile.tiles.slice(0, 30).flatMap((value): ProfileTile[] => {
+    ? profile.tiles.slice(0, 30).flatMap((value, index): ProfileTile[] => {
         if (!value || typeof value !== "object") return [];
         const item = value as Record<string, unknown>;
         const id = text(item.id, 100);
@@ -48,7 +73,15 @@ function cleanProfile(value: unknown, fallbackEmail: string): PublicProfileConte
         const title = text(item.title, 300);
         const imageUrl = type === "photo" ? safeImage(item.imageUrl) : "";
         if (!id || (type === "photo" && !imageUrl)) return [];
-        return [{ id, type, size, title, content: text(item.content, 10_000), imageUrl }];
+        return [{
+          id,
+          type,
+          size,
+          title,
+          content: text(item.content, 10_000),
+          imageUrl,
+          layout: cleanLayout(item.layout, defaultProfileTileLayout(index, size)),
+        }];
       })
     : [];
   const requestedEmail = text(contactValue.publicEmail, 320).toLowerCase();
@@ -64,6 +97,10 @@ function cleanProfile(value: unknown, fallbackEmail: string): PublicProfileConte
     },
     publications,
     tiles,
+    layout: {
+      contact: cleanLayout(layoutValue.contact, DEFAULT_CONTACT_LAYOUT),
+      publications: cleanLayout(layoutValue.publications, DEFAULT_PUBLICATIONS_LAYOUT),
+    },
   };
 }
 
