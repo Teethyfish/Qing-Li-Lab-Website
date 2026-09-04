@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
             userId: recipient.id,
             title: emailSubject,
             message: description,
-            href: `/database#document-${documentId}`,
+            href: `/documents/${documentId}`,
           })),
         },
       },
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
           subject: emailSubject,
           html: `<p>Hello ${escapeHtml(recipient.name || "lab member")},</p>` +
             `<p>${escapeHtml(description).replaceAll("\n", "<br>")}</p>` +
-            `<p><a href="${siteUrl}/database#document-${document.id}">Open the lab document database</a> to view and download <strong>${escapeHtml(title)}</strong>.</p>`,
+            `<p><a href="${siteUrl}/documents/${document.id}">View ${escapeHtml(title)} on the lab website</a> or download the original file from the document page.</p>`,
         });
         return recipient.id;
       })

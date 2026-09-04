@@ -148,6 +148,7 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
                 </form>
               </details>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "1rem" }}>
+                <a className="btn btn-basic" href={`/documents/${document.id}`}>View</a>
                 <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>Download</a>
                 <form action={deleteDocument} style={{ display: "flex", gap: 6 }}>
                   <input type="hidden" name="id" value={document.id} />

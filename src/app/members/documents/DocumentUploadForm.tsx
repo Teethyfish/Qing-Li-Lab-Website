@@ -14,6 +14,21 @@ type Props = { users: UserOption[] };
 export default function DocumentUploadForm({ users }: Props) {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [title, setTitle] = useState("");
+  const [autoTitle, setAutoTitle] = useState("");
+
+  function titleFromFileName(fileName: string) {
+    const withoutExtension = fileName.replace(/\.[^.]+$/, "");
+    return withoutExtension.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const nextAutoTitle = titleFromFileName(file.name);
+    setTitle((current) => (!current.trim() || current === autoTitle ? nextAutoTitle : current));
+    setAutoTitle(nextAutoTitle);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,6 +107,8 @@ export default function DocumentUploadForm({ users }: Props) {
         : " Email and website notifications were sent.";
       setStatus(`Published to ${completed.recipientCount} recipient(s).${emailNote}`);
       form.reset();
+      setTitle("");
+      setAutoTitle("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -112,18 +129,26 @@ export default function DocumentUploadForm({ users }: Props) {
     <form onSubmit={submit} className="tile" style={{ display: "grid", gap: "1rem" }}>
       <label style={{ display: "grid", gap: 6 }}>
         <strong>Document</strong>
-        <input name="file" type="file" required style={inputStyle} />
+        <input name="file" type="file" required onChange={handleFileChange} style={inputStyle} />
         <small className="muted">Any file type. The browser uploads it directly to Google Drive.</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Database title</strong>
-        <input name="title" required style={inputStyle} />
+        <strong>Document Title</strong>
+        <input
+          name="title"
+          required
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          style={inputStyle}
+        />
+        <small className="muted">Filled from the filename automatically; edit it if needed.</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <strong>Why recipients should read it</strong>
+        <strong>Document summary and relevance</strong>
         <textarea name="description" rows={4} required style={inputStyle} />
+        <small className="muted">Briefly describe the document and explain its relevance to recipients.</small>
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
@@ -146,17 +171,33 @@ export default function DocumentUploadForm({ users }: Props) {
         </div>
       </fieldset>
 
-      <label style={{ display: "grid", gap: 6 }}>
-        <strong>Additional individual recipients</strong>
-        <select name="userIds" multiple size={Math.min(8, Math.max(3, users.length))} style={inputStyle}>
-          {users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name || user.email} — {user.membershipStatus.toLowerCase()}
-            </option>
-          ))}
-        </select>
-        <small className="muted">Use Ctrl/Command-click to select several people.</small>
-      </label>
+      <fieldset style={{ border: "1px solid color-mix(in oklab, var(--color-text) 18%, transparent)", padding: "1rem" }}>
+        <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>Additional individual recipients</legend>
+        {users.length ? (
+          <div
+            style={{
+              display: "grid",
+              gap: "0.6rem",
+              maxHeight: 240,
+              overflowY: "auto",
+              padding: "0.25rem",
+            }}
+          >
+            {users.map((user) => (
+              <label key={user.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <input type="checkbox" name="userIds" value={user.id} />
+                <span>
+                  <strong>{user.name || user.email}</strong>
+                  {user.name ? <span className="muted"> — {user.email}</span> : null}
+                  <span className="muted"> ({user.membershipStatus.toLowerCase()})</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="muted" style={{ margin: 0 }}>No user accounts are available.</p>
+        )}
+      </fieldset>
 
       <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input type="checkbox" name="isPublic" />

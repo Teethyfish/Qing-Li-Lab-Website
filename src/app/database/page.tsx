@@ -52,8 +52,9 @@ export default async function DocumentDatabasePage() {
                     {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? "Public" : "Private"} · {document.createdAt.toLocaleDateString()}
                   </p>
                 </div>
-                <div>
-                  <a className="btn btn-basic" href={`/api/documents/${document.id}/download`}>Download</a>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <Link className="btn btn-basic" href={`/documents/${document.id}`}>View</Link>
+                  <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>Download</a>
                 </div>
               </div>
               {isAdmin && recipients.length ? (

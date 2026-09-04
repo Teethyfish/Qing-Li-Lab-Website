@@ -94,24 +94,18 @@ export default async function UsersAdminPage() {
 
   async function setMembershipStatus(formData: FormData) {
     "use server";
-    await requireAdminUser();
+    const admin = await requireAdminUser();
     const id = String(formData.get("id") || "");
     const membershipStatus = String(formData.get("membershipStatus") || "");
     if (!id || !["ACTIVE", "ALUMNI", "INACTIVE"].includes(membershipStatus)) return;
+    if (id === admin.id && membershipStatus === "INACTIVE") return;
     await prisma.user.update({
       where: { id },
-      data: { membershipStatus: membershipStatus as "ACTIVE" | "ALUMNI" | "INACTIVE" },
+      data: {
+        membershipStatus: membershipStatus as "ACTIVE" | "ALUMNI" | "INACTIVE",
+        isActive: membershipStatus !== "INACTIVE",
+      },
     });
-    revalidatePath("/members/users");
-  }
-
-  async function setAccountActive(formData: FormData) {
-    "use server";
-    const admin = await requireAdminUser();
-    const id = String(formData.get("id") || "");
-    const isActive = String(formData.get("isActive") || "") === "true";
-    if (!id || id === admin.id) return;
-    await prisma.user.update({ where: { id }, data: { isActive } });
     revalidatePath("/members/users");
   }
 
@@ -147,8 +141,7 @@ export default async function UsersAdminPage() {
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableSlug')}</th>
                 )}
                 <th style={{ textAlign: "left", padding: "8px" }}>{t('tableRole')}</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>{t('tableAccount')}</th>
-                <th style={{ textAlign: "left", padding: "8px" }}>Membership</th>
+                <th style={{ textAlign: "left", padding: "8px" }}>Membership / access</th>
                 {cfg.showResetCol !== false && (
                   <th style={{ textAlign: "left", padding: "8px" }}>{t('tableMustResetPW')}</th>
                 )}
@@ -158,13 +151,25 @@ export default async function UsersAdminPage() {
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="muted" style={{ padding: "10px" }}>
+                  <td
+                    colSpan={5 + Number(cfg.showSlugCol !== false) + Number(cfg.showResetCol !== false)}
+                    className="muted"
+                    style={{ padding: "10px" }}
+                  >
                     {t('noUsers')}
                   </td>
                 </tr>
               ) : (
-                users.map((u) => (
-                  <tr key={u.id} style={{ borderTop: "1px solid #e5e7eb55" }}>
+                users.map((u, index) => (
+                  <tr
+                    key={u.id}
+                    style={{
+                      borderTop: "1px solid color-mix(in oklab, var(--color-text) 10%, transparent)",
+                      background: index % 2 === 0
+                        ? "var(--color-card)"
+                        : "color-mix(in oklab, var(--color-card) 94%, var(--color-text) 6%)",
+                    }}
+                  >
                     <td style={{ padding: "8px" }}>{u.email}</td>
                     <td style={{ padding: "8px" }}>{u.name ?? <em className="muted">—</em>}</td>
                     {cfg.showSlugCol !== false && (
@@ -172,36 +177,21 @@ export default async function UsersAdminPage() {
                     )}
                     <td style={{ padding: "8px" }}>{u.role}</td>
                     <td style={{ padding: "8px" }}>
-                      <div style={{ display: "grid", gap: 6, justifyItems: "start" }}>
-                        <span
-                          style={{
-                            fontWeight: 700,
-                            color: u.isActive ? "#166534" : "#b91c1c",
-                          }}
-                        >
-                          {u.isActive ? t('accountActive') : t('accountInactive')}
-                        </span>
-                        {u.email.toLowerCase() !== session?.user?.email?.toLowerCase() && (
-                          <form action={setAccountActive}>
-                            <input type="hidden" name="id" value={u.id} />
-                            <input type="hidden" name="isActive" value={String(!u.isActive)} />
-                            <button
-                              className={u.isActive ? "btn btn-warning" : "btn btn-basic"}
-                              type="submit"
-                            >
-                              {u.isActive ? t('deactivateAccount') : t('activateAccount')}
-                            </button>
-                          </form>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ padding: "8px" }}>
                       <form action={setMembershipStatus} style={{ display: "flex", gap: 6 }}>
                         <input type="hidden" name="id" value={u.id} />
-                        <select name="membershipStatus" defaultValue={u.membershipStatus}>
+                        <select
+                          name="membershipStatus"
+                          defaultValue={u.isActive ? u.membershipStatus : "INACTIVE"}
+                          aria-label={`Membership and account access for ${u.name || u.email}`}
+                        >
                           <option value="ACTIVE">Active</option>
                           <option value="ALUMNI">Alumni</option>
-                          <option value="INACTIVE">Inactive</option>
+                          <option
+                            value="INACTIVE"
+                            disabled={u.email.toLowerCase() === session?.user?.email?.toLowerCase()}
+                          >
+                            Inactive
+                          </option>
                         </select>
                         <button className="btn btn-muted" type="submit">Save</button>
                       </form>

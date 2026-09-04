@@ -222,11 +222,13 @@ export async function deleteDriveDocument(fileId: string) {
   }
 }
 
-export async function downloadDriveDocument(fileId: string) {
+export async function downloadDriveDocument(fileId: string, range?: string | null) {
   const accessToken = await getGoogleAccessToken();
+  const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+  if (range) headers.Range = range;
   return fetch(
     `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
-    { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" }
+    { headers, cache: "no-store" }
   );
 }
 
