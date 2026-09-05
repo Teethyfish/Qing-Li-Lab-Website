@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { publicMediaUrl } from "@/lib/media-url";
+import { getCurrentUser } from "@/lib/document-access";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -14,7 +15,7 @@ function initials(name: string | null) {
 export default async function ResearchProjectPage({ params }: Props) {
   const { slug } = await params;
   const t = await getTranslations("sitePages.project");
-  const project = await prisma.researchProject.findFirst({
+  const [project, viewer] = await Promise.all([prisma.researchProject.findFirst({
     where: { slug, isPublished: true },
     include: {
       participants: {
@@ -22,16 +23,22 @@ export default async function ResearchProjectPage({ params }: Props) {
         orderBy: { user: { name: "asc" } },
       },
     },
-  });
+  }), getCurrentUser()]);
   if (!project) notFound();
   const supportingImages = Array.isArray(project.supportingImages)
     ? project.supportingImages.flatMap((image, index) => typeof image === "string" ? [index] : [])
     : [];
   const current = project.participants.filter((participant) => participant.isCurrent);
   const past = project.participants.filter((participant) => !participant.isCurrent);
+  const canEditProject = Boolean(viewer?.isActive && (
+    viewer.role === "ADMIN" || project.participants.some((participant) => participant.userId === viewer.id)
+  ));
 
   return <main className="research-project-page">
-    <Link href="/#current-projects" className="btn btn-muted">{t("back")}</Link>
+    <div className="research-project-actions">
+      <Link href="/#current-projects" className="btn btn-muted">{t("back")}</Link>
+      {canEditProject ? <Link href={`/projects/${project.slug}/edit`} className="btn btn-basic">{t("editProject")}</Link> : null}
+    </div>
 
     <article className="research-project-shell">
       <div className={`research-project-hero${project.mainImageUrl ? " has-image" : ""}`}>

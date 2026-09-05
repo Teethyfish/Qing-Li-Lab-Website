@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { requireAdminUser } from "@/lib/document-access";
+import { getCurrentUser, requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import { projectImage, projectParticipants, projectSlug, projectText } from "@/lib/research-project";
 
@@ -10,19 +10,35 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: Props) {
   try {
-    await requireAdminUser();
+    const editor = await getCurrentUser();
+    if (!editor?.isActive) throw new Error("Forbidden");
     const { id } = await params;
     const body = await request.json() as Record<string, unknown>;
     const title = projectText(body.title, 200);
-    const slug = projectSlug(body.slug || title);
     const caption = projectText(body.caption, 500);
     const projectBody = projectText(body.body, 30_000);
-    if (!title || !slug || !caption || !projectBody) {
-      return NextResponse.json({ error: "Title, URL slug, caption, and body are required." }, { status: 400 });
+    if (!title || !caption || !projectBody) {
+      return NextResponse.json({ error: "Title, caption, and body are required." }, { status: 400 });
     }
-    const participants = projectParticipants(body.participants);
-    const existing = await prisma.researchProject.findUnique({ where: { id }, select: { tileImageUrl: true, mainImageUrl: true, supportingImages: true } });
+    const existing = await prisma.researchProject.findUnique({
+      where: { id },
+      select: {
+        slug: true,
+        isPublished: true,
+        tileImageUrl: true,
+        mainImageUrl: true,
+        supportingImages: true,
+        participants: { select: { userId: true, isCurrent: true } },
+      },
+    });
     if (!existing) return NextResponse.json({ error: "Project not found." }, { status: 404 });
+    const isAdmin = editor.role === "ADMIN";
+    const isParticipant = existing.participants.some((participant) => participant.userId === editor.id);
+    if (!isAdmin && !isParticipant) throw new Error("Forbidden");
+    const canManageProject = isAdmin && body.contentOnly !== true;
+    const slug = canManageProject ? projectSlug(body.slug || existing.slug) : existing.slug;
+    if (!slug) return NextResponse.json({ error: "A valid URL slug is required." }, { status: 400 });
+    const participants = canManageProject ? projectParticipants(body.participants) : existing.participants;
     const existingSupporting = Array.isArray(existing.supportingImages) ? existing.supportingImages : [];
     const preserveOrReadImage = (value: unknown, slot: "tile" | "main") => {
       if (typeof value === "string" && value.includes(`/api/media/project/${encodeURIComponent(id)}/${slot}`)) {
@@ -41,11 +57,15 @@ export async function PATCH(request: NextRequest, { params }: Props) {
       const image = projectImage(value);
       return image ? [image] : [];
     }) : [];
-    const validUsers = participants.length
-      ? new Set((await prisma.user.findMany({ where: { id: { in: participants.map((item) => item.userId) } }, select: { id: true } })).map((user) => user.id))
-      : new Set<string>();
-    const participantData = participants.filter((item) => validUsers.has(item.userId)).map((item) => ({ projectId: id, ...item }));
-    await prisma.$transaction([
+    let participantData: Array<{ projectId: string; userId: string; isCurrent: boolean }> = [];
+    if (canManageProject && participants.length) {
+      const validUsers = new Set((await prisma.user.findMany({
+        where: { id: { in: participants.map((item) => item.userId) } },
+        select: { id: true },
+      })).map((user) => user.id));
+      participantData = participants.filter((item) => validUsers.has(item.userId)).map((item) => ({ projectId: id, ...item }));
+    }
+    const operations: Prisma.PrismaPromise<unknown>[] = [
       prisma.researchProject.update({
         where: { id },
         data: {
@@ -56,12 +76,15 @@ export async function PATCH(request: NextRequest, { params }: Props) {
           tileImageUrl: preserveOrReadImage(body.tileImageUrl, "tile"),
           mainImageUrl: preserveOrReadImage(body.mainImageUrl, "main"),
           supportingImages: nextSupporting as Prisma.InputJsonValue,
-          isPublished: body.isPublished !== false,
+          isPublished: canManageProject ? body.isPublished !== false : existing.isPublished,
         },
       }),
-      prisma.researchProjectParticipant.deleteMany({ where: { projectId: id } }),
-      ...(participantData.length ? [prisma.researchProjectParticipant.createMany({ data: participantData })] : []),
-    ]);
+    ];
+    if (canManageProject) {
+      operations.push(prisma.researchProjectParticipant.deleteMany({ where: { projectId: id } }));
+      if (participantData.length) operations.push(prisma.researchProjectParticipant.createMany({ data: participantData }));
+    }
+    await prisma.$transaction(operations);
     revalidatePath("/");
     revalidatePath(`/projects/${slug}`);
     revalidatePath("/members/projects");

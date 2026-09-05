@@ -42,22 +42,22 @@ export default function ForgotPasswordPage() {
     font: "inherit",
   };
 
-  return <main style={{ minHeight: "calc(100vh - 7rem)", display: "grid", placeItems: "center", padding: "2rem 1rem", boxSizing: "border-box" }}>
-    <section className="tile" style={{ width: "100%", maxWidth: 440, padding: "2rem", boxSizing: "border-box" }}>
-      <header style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+  return <main className="auth-page">
+    <section className="tile auth-card">
+      <header className="auth-header">
         <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{t("heading")}</h1>
         <p className="muted" style={{ margin: ".5rem 0 0", lineHeight: 1.55 }}>{complete ? t("sent") : t("intro")}</p>
       </header>
       {complete ? <div style={{ display: "grid", gap: "1rem", textAlign: "center" }}>
         <p style={{ margin: 0, lineHeight: 1.6 }}>{t("checkEmail")}</p>
         <Link className="btn btn-basic" href="/login" style={{ justifyContent: "center" }}>{t("backToLogin")}</Link>
-      </div> : <form onSubmit={submit} style={{ display: "grid", gap: "1rem" }}>
-        <label style={{ display: "grid", gap: ".4rem", fontSize: ".875rem", fontWeight: 600 }}>
+      </div> : <form onSubmit={submit} className="auth-form">
+        <label className="auth-field">
           {t("email")}
           <input type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle} placeholder="you@hawaii.edu" />
         </label>
-        {error ? <p role="alert" style={{ margin: 0, color: "#b91c1c", fontSize: ".875rem" }}>{error}</p> : null}
-        <button type="submit" className="btn btn-basic" disabled={busy} style={{ justifyContent: "center" }}>{busy ? t("sending") : t("send")}</button>
+        {error ? <p role="alert" className="auth-error">{error}</p> : null}
+        <button type="submit" className="btn btn-basic auth-submit" disabled={busy}>{busy ? t("sending") : t("send")}</button>
         <Link href="/login" style={{ textAlign: "center", fontSize: ".875rem" }}>{t("backToLogin")}</Link>
       </form>}
     </section>

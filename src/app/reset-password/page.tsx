@@ -78,36 +78,34 @@ export default function ResetPasswordPage() {
     boxSizing: "border-box",
     font: "inherit",
   };
-  const labelStyle: React.CSSProperties = { display: "grid", gap: ".4rem", fontSize: ".875rem", fontWeight: 600 };
+  if (!queryReady) return <main className="auth-page" />;
 
-  if (!queryReady) return <main style={{ minHeight: "calc(100vh - 7rem)" }} />;
-
-  return <main style={{ minHeight: "calc(100vh - 7rem)", display: "grid", placeItems: "center", padding: "2rem 1rem", boxSizing: "border-box" }}>
-    <section className="tile" style={{ width: "100%", maxWidth: 480, padding: "2rem", boxSizing: "border-box" }}>
-      <header style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+  return <main className="auth-page">
+    <section className="tile auth-card auth-card-wide">
+      <header className="auth-header">
         <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{token ? t("linkHeading") : t("heading")}</h1>
         <p className="muted" style={{ margin: ".5rem 0 0", lineHeight: 1.55 }}>{complete ? t("success") : token ? t("linkIntro") : t("intro")}</p>
       </header>
 
       {complete ? <div style={{ display: "grid", gap: "1rem", textAlign: "center" }}>
         <Link className="btn btn-basic" href="/login" style={{ justifyContent: "center" }}>{t("goToLogin")}</Link>
-      </div> : <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
+      </div> : <form onSubmit={onSubmit} className="auth-form">
         {!token ? <>
-          <label style={labelStyle}>{t("email")}
+          <label className="auth-field">{t("email")}
             <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle} required autoComplete="email" />
           </label>
-          <label style={labelStyle}>{t("currentPassword")}
+          <label className="auth-field">{t("currentPassword")}
             <input type="password" value={current} onChange={(event) => setCurrent(event.target.value)} style={inputStyle} required autoComplete="current-password" />
           </label>
         </> : null}
-        <label style={labelStyle}>{t("newPassword")}
+        <label className="auth-field">{t("newPassword")}
           <input type="password" value={next} onChange={(event) => setNext(event.target.value)} style={inputStyle} required minLength={8} autoComplete="new-password" />
         </label>
-        <label style={labelStyle}>{t("confirmNewPassword")}
+        <label className="auth-field">{t("confirmNewPassword")}
           <input type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} style={inputStyle} required minLength={8} autoComplete="new-password" />
         </label>
-        {error ? <p role="alert" style={{ margin: 0, color: "#b91c1c", fontSize: ".875rem" }}>{error}</p> : null}
-        <button type="submit" disabled={status === "saving"} className="btn btn-basic" style={{ justifyContent: "center" }}>
+        {error ? <p role="alert" className="auth-error">{error}</p> : null}
+        <button type="submit" disabled={status === "saving"} className="btn btn-basic auth-submit">
           {status === "saving" ? t("saving") : t("saveNewPassword")}
         </button>
         {token ? <Link href="/forgot-password" style={{ textAlign: "center", fontSize: ".875rem" }}>{t("requestAnother")}</Link> : null}

@@ -45,15 +45,15 @@ export default function LoginForm() {
   };
 
   return (
-    <main style={{ minHeight: "calc(100vh - 7rem)", display: "grid", placeItems: "center", padding: "2rem 1rem", boxSizing: "border-box" }}>
-      <section className="tile" style={{ width: "100%", maxWidth: 440, padding: "2rem", boxSizing: "border-box" }}>
-      <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
+    <main className="auth-page">
+      <section className="tile auth-card">
+      <div className="auth-header">
         <h1 style={{ fontSize: "1.5rem", fontWeight: 600, marginBottom: "0.25rem" }}>{t('login')}</h1>
         <p className="muted">{t('loginSubtitle')}</p>
       </div>
 
-        <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
-          <div style={{ display: "grid", gap: "0.4rem" }}>
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="auth-field">
             <label style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('email')}</label>
             <input
               type="email"
@@ -65,7 +65,7 @@ export default function LoginForm() {
             />
           </div>
 
-          <div style={{ display: "grid", gap: "0.4rem" }}>
+          <div className="auth-field">
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "1rem" }}>
               <label htmlFor="login-password" style={{ fontSize: "0.875rem", fontWeight: 500 }}>{t('password')}</label>
               <Link href="/forgot-password" style={{ fontSize: "0.82rem", fontWeight: 600 }}>{t('forgotPassword')}</Link>
@@ -82,26 +82,16 @@ export default function LoginForm() {
           </div>
 
           {status === "error" && (
-            <div
-              style={{
-                padding: "0.75rem",
-                borderRadius: "2px",
-                border: "1px solid #fecaca",
-                background: "#fef2f2",
-                color: "#b91c1c",
-                fontSize: "0.875rem",
-              }}
-            >
+            <div className="auth-error" role="alert">
               {error}
             </div>
           )}
 
-          <div style={{ paddingTop: "0.5rem", display: "grid" }}>
+          <div className="auth-actions">
             <button
               type="submit"
               disabled={status === "loading"}
-              className="btn btn-basic"
-              style={{ justifyContent: "center" }}
+              className="btn btn-basic auth-submit"
             >
               {status === "loading" ? t('signingIn') : t('signIn')}
             </button>

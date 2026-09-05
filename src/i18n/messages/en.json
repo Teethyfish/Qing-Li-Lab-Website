@@ -627,7 +627,13 @@
     },
     "project": {
       "back": "Back to current projects", "mainPhotoPlaceholder": "Main project photo", "supportingPhotos": "Supporting project photos", "supportingPhotoAlt": "Supporting project photo {number}", "supportingPhotoPlaceholder": "Supporting photos can be added here.",
-      "currentResearch": "Current research", "team": "Lab members involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved", "noCurrentMembers": "No current members have been assigned.", "noPastMembers": "No previous members have been assigned."
+      "currentResearch": "Current research", "editProject": "Edit Project", "team": "Lab members involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved", "noCurrentMembers": "No current members have been assigned.", "noPastMembers": "No previous members have been assigned."
+    },
+    "projectEditor": {
+      "kicker": "Project contributor editor", "heading": "Edit {title}", "permissions": "You can update this project's written content and photos. Participant assignments, publishing, page URL, and deletion remain admin-only.", "back": "Back to project",
+      "title": "Project title", "caption": "Short homepage caption", "body": "Main project text", "tilePhoto": "Homepage tile photo", "mainPhoto": "Main page photo", "supportingPhotos": "Supporting photos", "supportingHelp": "Add up to four smaller photos for the project page.",
+      "removePhoto": "Remove photo", "recrop": "Click to adjust crop", "cropPhoto": "Crop project photo", "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.",
+      "save": "Save project content", "saving": "Saving…", "saved": "Project content saved.", "saveError": "Could not save the project content.", "cancel": "Cancel"
     },
     "cipdb": {
       "title": "Cation and π Interaction in Protein Data Bank", "comingSoon": "Coming soon.", "back": "Back to home"

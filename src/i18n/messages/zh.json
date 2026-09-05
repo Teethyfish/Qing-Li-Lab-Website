@@ -627,7 +627,13 @@
     },
     "project": {
       "back": "返回当前项目", "mainPhotoPlaceholder": "项目主图片", "supportingPhotos": "项目辅助图片", "supportingPhotoAlt": "项目辅助图片 {number}", "supportingPhotoPlaceholder": "可在这里添加辅助图片。",
-      "currentResearch": "当前研究", "team": "参与的实验室成员", "currentlyInvolved": "目前参与", "previouslyInvolved": "曾经参与", "noCurrentMembers": "尚未指定当前参与成员。", "noPastMembers": "尚未指定曾经参与的成员。"
+      "currentResearch": "当前研究", "editProject": "编辑项目", "team": "参与的实验室成员", "currentlyInvolved": "目前参与", "previouslyInvolved": "曾经参与", "noCurrentMembers": "尚未指定当前参与成员。", "noPastMembers": "尚未指定曾经参与的成员。"
+    },
+    "projectEditor": {
+      "kicker": "项目贡献者编辑器", "heading": "编辑 {title}", "permissions": "您可以更新该项目的文字内容和图片。参与人员、发布状态、页面网址和删除功能仍仅限管理员使用。", "back": "返回项目",
+      "title": "项目标题", "caption": "主页短说明", "body": "项目正文", "tilePhoto": "主页图块图片", "mainPhoto": "页面主图片", "supportingPhotos": "辅助图片", "supportingHelp": "最多添加四张项目页面辅助图片。",
+      "removePhoto": "移除图片", "recrop": "点击调整裁剪", "cropPhoto": "裁剪项目图片", "imageError": "无法处理该图片。请使用几 MB 以内的 JPG、PNG 或 WebP 图片。",
+      "save": "保存项目内容", "saving": "保存中…", "saved": "项目内容已保存。", "saveError": "无法保存项目内容。", "cancel": "取消"
     },
     "cipdb": {
       "title": "蛋白质数据库中的阳离子与 π 相互作用", "comingSoon": "即将推出。", "back": "返回主页"

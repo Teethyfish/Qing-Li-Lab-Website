@@ -627,7 +627,13 @@
     },
     "project": {
       "back": "현재 프로젝트로 돌아가기", "mainPhotoPlaceholder": "프로젝트 대표 사진", "supportingPhotos": "프로젝트 보조 사진", "supportingPhotoAlt": "프로젝트 보조 사진 {number}", "supportingPhotoPlaceholder": "여기에 보조 사진을 추가할 수 있습니다.",
-      "currentResearch": "현재 연구", "team": "참여 연구실 멤버", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여", "noCurrentMembers": "지정된 현재 참여 멤버가 없습니다.", "noPastMembers": "지정된 과거 참여 멤버가 없습니다."
+      "currentResearch": "현재 연구", "editProject": "프로젝트 편집", "team": "참여 연구실 멤버", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여", "noCurrentMembers": "지정된 현재 참여 멤버가 없습니다.", "noPastMembers": "지정된 과거 참여 멤버가 없습니다."
+    },
+    "projectEditor": {
+      "kicker": "프로젝트 기여자 편집기", "heading": "{title} 편집", "permissions": "프로젝트의 글과 사진을 수정할 수 있습니다. 참여자 지정, 게시 상태, 페이지 URL 및 삭제는 관리자만 변경할 수 있습니다.", "back": "프로젝트로 돌아가기",
+      "title": "프로젝트 제목", "caption": "홈페이지 짧은 설명", "body": "프로젝트 본문", "tilePhoto": "홈페이지 타일 사진", "mainPhoto": "페이지 대표 사진", "supportingPhotos": "보조 사진", "supportingHelp": "프로젝트 페이지에 보조 사진을 최대 4장 추가합니다.",
+      "removePhoto": "사진 제거", "recrop": "클릭하여 자르기 조정", "cropPhoto": "프로젝트 사진 자르기", "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.",
+      "save": "프로젝트 내용 저장", "saving": "저장 중…", "saved": "프로젝트 내용을 저장했습니다.", "saveError": "프로젝트 내용을 저장하지 못했습니다.", "cancel": "취소"
     },
     "cipdb": {
       "title": "단백질 데이터 뱅크의 양이온 및 π 상호작용", "comingSoon": "곧 공개됩니다.", "back": "홈으로 돌아가기"
