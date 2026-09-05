@@ -503,6 +503,8 @@
       "photo": "Photo",
       "caption": "Caption",
       "choosePhoto": "Choose a photo",
+      "cropTilePhoto": "Crop Tile Photo",
+      "clickToRecrop": "Click photo to adjust crop",
       "removeTile": "Remove Tile",
       "noTiles": "No custom tiles added.",
       "saving": "Saving…",

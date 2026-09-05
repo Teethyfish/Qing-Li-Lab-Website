@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Grip, Maximize2, Plus, Trash2 } from "lucide-react";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
+import ProjectImageCropper from "@/components/ProjectImageCropper";
 import {
   PROFILE_HEADER_LAYOUT,
   defaultProfileTileLayout,
@@ -45,31 +46,27 @@ type ResizeState = {
   element: HTMLElement;
 };
 
+type TilePhotoCrop = {
+  tileId: string;
+  source: string;
+  aspect: number;
+};
+
 const newId = () => crypto.randomUUID();
 
-function resizePhoto(file: File) {
+function readPhoto(file: File) {
   return new Promise<string>((resolve, reject) => {
     if (!file.type.startsWith("image/")) return reject(new Error("Choose an image file."));
     if (file.size > 12 * 1024 * 1024) return reject(new Error("Choose an image smaller than 12 MB."));
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("Could not read that image."));
-    reader.onload = () => {
-      const image = new Image();
-      image.onerror = () => reject(new Error("Could not open that image."));
-      image.onload = () => {
-        const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(image.width * scale));
-        canvas.height = Math.max(1, Math.round(image.height * scale));
-        canvas.getContext("2d")?.drawImage(image, 0, 0, canvas.width, canvas.height);
-        const value = canvas.toDataURL("image/jpeg", .82);
-        if (value.length > 1_600_000) return reject(new Error("The compressed image is still too large. Choose a smaller photo."));
-        resolve(value);
-      };
-      image.src = String(reader.result);
-    };
+    reader.onload = () => resolve(String(reader.result));
     reader.readAsDataURL(file);
   });
+}
+
+function tilePhotoAspect(tile: ProfileTile) {
+  return Math.max(.6, Math.min(2.5, tile.layout.width / tile.layout.height));
 }
 
 function compressProfilePhoto(source: string) {
@@ -98,6 +95,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
   const [profile, setProfile] = useState(user.profileContent);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [tilePhotoCrop, setTilePhotoCrop] = useState<TilePhotoCrop | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const resizeRef = useRef<ResizeState | null>(null);
@@ -367,8 +365,21 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
               updateTile(tile.id, { size, layout: { ...tile.layout, ...profileTileSize(size) } });
             }}><option value="standard">{t("standard")}</option><option value="wide">{t("wide")}</option><option value="large">{t("large")}</option></select></label>
             {tile.type === "text" ? <label className="form-field">{t("text")}<textarea rows={7} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label> : <>
-              <label className="form-field">{t("photo")}<input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { updateTile(tile.id, { imageUrl: await resizePhoto(file) }); setStatus(null); } catch (error) { setStatus(error instanceof Error ? error.message : "Could not process photo."); } }} /></label>
-              {tile.imageUrl ? <img src={tile.imageUrl} alt={t("photo")} className="profile-tile-preview" /> : <div className="profile-photo-placeholder">{t("choosePhoto")}</div>}
+              <label className="form-field">{t("photo")}<input type="file" accept="image/*" onChange={async (event) => {
+                const file = event.target.files?.[0];
+                event.currentTarget.value = "";
+                if (!file) return;
+                try {
+                  setTilePhotoCrop({ tileId: tile.id, source: await readPhoto(file), aspect: tilePhotoAspect(tile) });
+                  setStatus(null);
+                } catch (error) {
+                  setStatus(error instanceof Error ? error.message : "Could not process photo.");
+                }
+              }} /></label>
+              {tile.imageUrl ? <button type="button" className="profile-tile-crop-preview" onClick={() => setTilePhotoCrop({ tileId: tile.id, source: tile.imageUrl, aspect: tilePhotoAspect(tile) })} aria-label={t("clickToRecrop")} title={t("clickToRecrop")}>
+                <img src={tile.imageUrl} alt={t("photo")} className="profile-tile-preview" />
+                <span className="profile-tile-crop-overlay">{t("clickToRecrop")}</span>
+              </button> : <div className="profile-photo-placeholder">{t("choosePhoto")}</div>}
               <label className="form-field">{t("caption")}<textarea rows={3} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label>
             </>}
           </div>
@@ -382,5 +393,16 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
       {user.slug ? <Link className="btn btn-muted" href={`/people/${user.slug}`} target="_blank">{t("previewProfile")}</Link> : null}
       {status ? <span role="status">{status}</span> : null}
     </div>
+    {tilePhotoCrop ? <ProjectImageCropper
+      imageSrc={tilePhotoCrop.source}
+      aspect={tilePhotoCrop.aspect}
+      title={t("cropTilePhoto")}
+      onComplete={(imageUrl) => {
+        updateTile(tilePhotoCrop.tileId, { imageUrl });
+        setTilePhotoCrop(null);
+        setStatus(null);
+      }}
+      onCancel={() => setTilePhotoCrop(null)}
+    /> : null}
   </div>;
 }

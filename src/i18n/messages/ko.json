@@ -503,6 +503,8 @@
       "photo": "사진",
       "caption": "설명",
       "choosePhoto": "사진 선택",
+      "cropTilePhoto": "타일 사진 자르기",
+      "clickToRecrop": "사진을 클릭하여 자르기 조정",
       "removeTile": "타일 제거",
       "noTiles": "추가된 사용자 지정 타일이 없습니다.",
       "saving": "저장 중…",

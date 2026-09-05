@@ -503,6 +503,8 @@
       "photo": "照片",
       "caption": "说明",
       "choosePhoto": "选择照片",
+      "cropTilePhoto": "裁剪卡片照片",
+      "clickToRecrop": "点击照片以调整裁剪",
       "removeTile": "删除卡片",
       "noTiles": "尚未添加自定义卡片。",
       "saving": "保存中…",
