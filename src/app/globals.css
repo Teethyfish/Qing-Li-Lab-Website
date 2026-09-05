@@ -1162,7 +1162,15 @@ button.profile-tile-crop-preview:focus-visible .profile-tile-crop-overlay {
 .profile-dashboard-tile-heading h2 { margin: 0; font-size: 1rem; }
 .profile-dashboard-tile-heading.fixed span { color: var(--color-muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
 .profile-dashboard-heading-actions { display: flex; align-items: center; gap: .4rem; }
-.profile-dashboard-tile-body { display: grid; gap: .75rem; max-height: calc(100% - 42px); overflow: auto; box-sizing: border-box; padding: .85rem .85rem 2.75rem; }
+.profile-dashboard-tile-body { display: grid; min-width: 0; gap: .75rem; max-height: calc(100% - 42px); overflow-x: hidden; overflow-y: auto; box-sizing: border-box; padding: .85rem .85rem 2.75rem; }
+.profile-dashboard-tile-body > * { min-width: 0; }
+.profile-photo-editor-tile .profile-dashboard-tile-body {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+.profile-photo-editor-tile .profile-tile-crop-preview,
+.profile-photo-editor-tile .profile-photo-placeholder { min-height: 0; height: 100%; }
+.profile-photo-editor-tile .profile-tile-preview { height: 100%; max-height: none; }
 
 button.profile-dashboard-drag {
   display: inline-flex !important;
@@ -1253,6 +1261,8 @@ button.profile-remove-icon { display: grid !important; width: 28px !important; h
 .profile-publications p { margin: .25rem 0 0; color: var(--color-muted); }
 .public-profile-dashboard { min-height: 760px; }
 .public-profile-dashboard-tile { padding: 1.15rem; background: var(--color-card); }
+.public-profile-photo-tile { display: flex; min-width: 0; flex-direction: column; overflow: hidden; }
+.public-profile-photo-tile .public-profile-tile-image { min-height: 0; flex: 1 1 auto; max-height: none; }
 .public-profile-dashboard .public-profile-header { display: grid; align-content: start; gap: 1.1rem; }
 .public-profile-identity { display: flex; align-items: center; gap: 1rem; }
 .public-profile-identity .public-profile-photo { width: 92px; height: 92px; flex-basis: 92px; }

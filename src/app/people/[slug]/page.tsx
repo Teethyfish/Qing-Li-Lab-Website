@@ -90,7 +90,7 @@ export default async function PersonPage({ params }: Props) {
         </li>})}</ol>
       </section> : null}
 
-      {visibleTiles.map((tile) => <section key={tile.id} className="card public-profile-dashboard-tile" style={tileStyle(tile.layout)}>
+      {visibleTiles.map((tile) => <section key={tile.id} className={`card public-profile-dashboard-tile${tile.type === "photo" ? " public-profile-photo-tile" : ""}`} style={tileStyle(tile.layout)}>
         {tile.type === "photo" ? <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="public-profile-tile-image" src={publicMediaUrl("user", user.id, `profile-${tile.id}`, user.updatedAt)} alt={tile.title || tile.content || "Profile photo"} />

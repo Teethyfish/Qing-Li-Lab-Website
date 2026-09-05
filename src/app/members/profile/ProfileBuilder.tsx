@@ -8,7 +8,6 @@ import ProjectImageCropper from "@/components/ProjectImageCropper";
 import {
   PROFILE_HEADER_LAYOUT,
   defaultProfileTileLayout,
-  profileTileSize,
   type ProfileBlockLayout,
   type ProfilePublication,
   type ProfileTile,
@@ -356,14 +355,10 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
           {resizeHandle("publications", profile.layout.publications)}
         </section>
 
-        {profile.tiles.map((tile) => <section key={tile.id} className="card profile-dashboard-tile custom-profile-editor-tile" style={tileStyle(tile.layout)}>
+        {profile.tiles.map((tile) => <section key={tile.id} className={`card profile-dashboard-tile custom-profile-editor-tile${tile.type === "photo" ? " profile-photo-editor-tile" : ""}`} style={tileStyle(tile.layout)}>
           <div className="profile-dashboard-tile-heading"><h2>{tile.title || (tile.type === "photo" ? t("photo") : t("newSection"))}</h2><div className="profile-dashboard-heading-actions">{dragHandle(tile.id, tile.layout)}<button type="button" className="profile-remove-icon" aria-label={t("removeTile")} title={t("removeTile")} onClick={() => setProfile((current) => ({ ...current, tiles: current.tiles.filter((item) => item.id !== tile.id) }))}><Trash2 size={14} /></button></div></div>
           <div className="profile-dashboard-tile-body">
             <label className="form-field">{t("tileTitle")}<input value={tile.title} onChange={(event) => updateTile(tile.id, { title: event.target.value })} /></label>
-            <label className="form-field">{t("tileSize")}<select value={tile.size} onChange={(event) => {
-              const size = event.target.value as ProfileTile["size"];
-              updateTile(tile.id, { size, layout: { ...tile.layout, ...profileTileSize(size) } });
-            }}><option value="standard">{t("standard")}</option><option value="wide">{t("wide")}</option><option value="large">{t("large")}</option></select></label>
             {tile.type === "text" ? <label className="form-field">{t("text")}<textarea rows={7} value={tile.content} onChange={(event) => updateTile(tile.id, { content: event.target.value })} /></label> : <>
               <label className="form-field">{t("photo")}<input type="file" accept="image/*" onChange={async (event) => {
                 const file = event.target.files?.[0];
