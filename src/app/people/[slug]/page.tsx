@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { PROFILE_HEADER_LAYOUT, publicProfileFromUnknown, type ProfileBlockLayout } from "@/lib/public-profile";
+import { publicProfileFromUnknown, type ProfileBlockLayout } from "@/lib/public-profile";
 import { getTranslations } from "next-intl/server";
 import { publicMediaUrl } from "@/lib/media-url";
 
@@ -31,7 +31,7 @@ export default async function PersonPage({ params }: Props) {
   const hasContact = Boolean(contact.publicEmail || contact.title || contact.department || contact.phone || contact.office || contact.website);
   const visibleTiles = profile.tiles.filter((tile) => tile.type !== "photo" || tile.imageUrl);
   const visibleLayouts = [
-    PROFILE_HEADER_LAYOUT,
+    profile.layout.header,
     ...(hasContact ? [profile.layout.contact] : []),
     ...(profile.publications.length ? [profile.layout.publications] : []),
     ...visibleTiles.map((tile) => tile.layout),
@@ -48,7 +48,7 @@ export default async function PersonPage({ params }: Props) {
   return <main className="public-profile" data-edit-ignore="true">
     <div className="public-profile-dashboard-scroll">
       <div className="public-profile-dashboard" style={{ height: dashboardHeight }}>
-      <section className="card public-profile-header public-profile-dashboard-tile" style={tileStyle(PROFILE_HEADER_LAYOUT)}>
+      <section className="card public-profile-header public-profile-dashboard-tile" style={tileStyle(profile.layout.header)}>
         <div className="public-profile-identity">
           <div className="public-profile-photo">
             {user.imageUrl ? <Image src={publicMediaUrl("user", user.id, "image", user.updatedAt)} alt={user.name || "Profile"} width={160} height={160} unoptimized style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials(user.name)}
@@ -68,6 +68,8 @@ export default async function PersonPage({ params }: Props) {
       {hasContact ? <section className="card public-profile-dashboard-tile" style={tileStyle(profile.layout.contact)}>
         <h2>{t("contact")}</h2>
         <dl className="profile-contact-list">
+          {contact.title ? <><dt>{t("professionalTitle")}</dt><dd>{contact.title}</dd></> : null}
+          {contact.department ? <><dt>{t("department")}</dt><dd>{contact.department}</dd></> : null}
           {contact.publicEmail ? <><dt>{t("email")}</dt><dd><a href={`mailto:${contact.publicEmail}`}>{contact.publicEmail}</a></dd></> : null}
           {contact.phone ? <><dt>{t("phone")}</dt><dd>{contact.phone}</dd></> : null}
           {contact.office ? <><dt>{t("office")}</dt><dd>{contact.office}</dd></> : null}

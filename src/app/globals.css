@@ -1104,14 +1104,14 @@ button.note-control.danger { color: #991b1b !important; }
 .public-profile-dashboard-tile {
   position: absolute;
   box-sizing: border-box;
-  overflow: auto;
   padding: 0;
   box-shadow: 0 7px 18px color-mix(in oklab, var(--color-text) 13%, transparent);
 }
+.profile-dashboard-tile { overflow: hidden; }
+.public-profile-dashboard-tile { overflow: auto; }
 
 .profile-dashboard-tile-heading {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1126,7 +1126,7 @@ button.note-control.danger { color: #991b1b !important; }
 .profile-dashboard-tile-heading h2 { margin: 0; font-size: 1rem; }
 .profile-dashboard-tile-heading.fixed span { color: var(--color-muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
 .profile-dashboard-heading-actions { display: flex; align-items: center; gap: .4rem; }
-.profile-dashboard-tile-body { display: grid; gap: .75rem; padding: .85rem; }
+.profile-dashboard-tile-body { display: grid; gap: .75rem; max-height: calc(100% - 42px); overflow: auto; box-sizing: border-box; padding: .85rem .85rem 2.75rem; }
 
 button.profile-dashboard-drag {
   display: inline-flex !important;
@@ -1212,6 +1212,7 @@ button.profile-remove-icon { display: grid !important; width: 28px !important; h
 .profile-contact-list { display: grid; grid-template-columns: auto 1fr; gap: .45rem .8rem; margin: 0; }
 .profile-contact-list dt { color: var(--color-muted); font-weight: 700; }
 .profile-contact-list dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.public-profile-dashboard-tile > .profile-contact-list { align-content: start; line-height: 1.45; }
 .profile-publications { display: grid; gap: 1rem; padding-left: 1.4rem; }
 .profile-publications p { margin: .25rem 0 0; color: var(--color-muted); }
 .public-profile-dashboard { min-height: 760px; }

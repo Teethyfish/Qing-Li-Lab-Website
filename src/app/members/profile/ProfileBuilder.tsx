@@ -103,6 +103,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
   const resizeRef = useRef<ResizeState | null>(null);
 
   const topZ = Math.max(
+    profile.layout.header.zIndex,
     profile.layout.contact.zIndex,
     profile.layout.publications.zIndex,
     ...profile.tiles.map((tile) => tile.layout.zIndex),
@@ -110,7 +111,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
   );
   const dashboardHeight = useMemo(() => Math.max(
     1_050,
-    PROFILE_HEADER_LAYOUT.y + PROFILE_HEADER_LAYOUT.height + 30,
+    profile.layout.header.y + profile.layout.header.height + 30,
     profile.layout.contact.y + profile.layout.contact.height + 30,
     profile.layout.publications.y + profile.layout.publications.height + 30,
     ...profile.tiles.map((tile) => tile.layout.y + tile.layout.height + 30),
@@ -125,6 +126,21 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
     tiles: current.tiles.map((tile) => tile.id === id ? { ...tile, ...values } : tile),
   }));
   const updateBlockLayout = (blockId: string, values: Partial<ProfileBlockLayout>) => setProfile((current) => {
+    if (blockId === "header") {
+      return {
+        ...current,
+        layout: {
+          ...current.layout,
+          header: {
+            ...current.layout.header,
+            ...values,
+            x: PROFILE_HEADER_LAYOUT.x,
+            y: PROFILE_HEADER_LAYOUT.y,
+            zIndex: PROFILE_HEADER_LAYOUT.zIndex,
+          },
+        },
+      };
+    }
     if (blockId === "contact" || blockId === "publications") {
       return { ...current, layout: { ...current.layout, [blockId]: { ...current.layout[blockId], ...values } } };
     }
@@ -300,7 +316,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
 
     <div className="profile-dashboard-scroll">
       <div ref={boardRef} className="profile-dashboard-canvas" style={{ height: dashboardHeight }}>
-        <section className="card profile-dashboard-tile profile-header-editor" style={tileStyle(PROFILE_HEADER_LAYOUT)}>
+        <section className="card profile-dashboard-tile profile-header-editor" style={tileStyle(profile.layout.header)}>
           <div className="profile-dashboard-tile-heading fixed"><h2>{t("profileHeader")}</h2><span>{t("fixedPosition")}</span></div>
           <div className="profile-dashboard-tile-body">
             <ProfilePictureUpload key={profileImage ? "with-image" : "without-image"} currentImageUrl={profileImage} userName={name} onImageCropped={(image) => {
@@ -310,6 +326,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
             <label className="form-field"><strong>{t("displayName")}</strong><input value={name} maxLength={160} onChange={(event) => setName(event.target.value)} /></label>
             <label className="form-field"><strong>{t("about")}</strong><textarea value={about} rows={7} maxLength={12000} onChange={(event) => setAbout(event.target.value)} /></label>
           </div>
+          {resizeHandle("header", profile.layout.header)}
         </section>
 
         <section className="card profile-dashboard-tile" style={tileStyle(profile.layout.contact)}>
@@ -320,7 +337,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
             <label className="form-field"><strong>{t("department")}</strong><input value={profile.contact.department} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, department: event.target.value } }))} /></label>
             <label className="form-field"><strong>{t("phone")}</strong><input value={profile.contact.phone} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, phone: event.target.value } }))} /></label>
             <label className="form-field"><strong>{t("officeLocation")}</strong><input value={profile.contact.office} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, office: event.target.value } }))} /></label>
-            <label className="form-field"><strong>{t("website")}</strong><input type="url" placeholder="https://" value={profile.contact.website} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, website: event.target.value } }))} /></label>
+            <label className="form-field"><strong>{t("website")}</strong><input type="text" inputMode="url" autoComplete="url" placeholder="https://example.com" value={profile.contact.website} onChange={(event) => setProfile((current) => ({ ...current, contact: { ...current.contact, website: event.target.value } }))} /></label>
           </div>
           {resizeHandle("contact", profile.layout.contact)}
         </section>

@@ -3,15 +3,16 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/document-access";
 import type { ProfileBlockLayout, ProfilePublication, ProfileTile, PublicProfileContent } from "@/lib/public-profile";
-import { DEFAULT_CONTACT_LAYOUT, DEFAULT_PUBLICATIONS_LAYOUT, defaultProfileTileLayout, emptyPublicProfile } from "@/lib/public-profile";
+import { DEFAULT_CONTACT_LAYOUT, DEFAULT_PUBLICATIONS_LAYOUT, PROFILE_HEADER_LAYOUT, defaultProfileTileLayout, emptyPublicProfile } from "@/lib/public-profile";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ userId: string }> };
 const text = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 function safeUrl(value: unknown) {
-  const candidate = text(value, 1_000);
+  let candidate = text(value, 1_000);
   if (!candidate) return "";
+  if (!/^[a-z][a-z\d+.-]*:\/\//i.test(candidate)) candidate = `https://${candidate}`;
   try {
     const url = new URL(candidate);
     return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : "";
@@ -98,6 +99,12 @@ function cleanProfile(value: unknown, fallbackEmail: string): PublicProfileConte
     publications,
     tiles,
     layout: {
+      header: {
+        ...cleanLayout(layoutValue.header, PROFILE_HEADER_LAYOUT),
+        x: PROFILE_HEADER_LAYOUT.x,
+        y: PROFILE_HEADER_LAYOUT.y,
+        zIndex: PROFILE_HEADER_LAYOUT.zIndex,
+      },
       contact: cleanLayout(layoutValue.contact, DEFAULT_CONTACT_LAYOUT),
       publications: cleanLayout(layoutValue.publications, DEFAULT_PUBLICATIONS_LAYOUT),
     },

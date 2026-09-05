@@ -42,6 +42,7 @@ export type PublicProfileContent = {
   publications: ProfilePublication[];
   tiles: ProfileTile[];
   layout: {
+    header: ProfileBlockLayout;
     contact: ProfileBlockLayout;
     publications: ProfileBlockLayout;
   };
@@ -71,6 +72,17 @@ function numberValue(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
+function publicWebsite(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(value.trim()) ? value.trim() : `https://${value.trim()}`;
+  try {
+    const url = new URL(candidate);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 function layoutFromUnknown(value: unknown, fallback: ProfileBlockLayout): ProfileBlockLayout {
   const source = value && typeof value === "object" ? value as Partial<ProfileBlockLayout> : {};
   return {
@@ -89,6 +101,7 @@ export function emptyPublicProfile(email = ""): PublicProfileContent {
     publications: [],
     tiles: [],
     layout: {
+      header: { ...PROFILE_HEADER_LAYOUT },
       contact: { ...DEFAULT_CONTACT_LAYOUT },
       publications: { ...DEFAULT_PUBLICATIONS_LAYOUT },
     },
@@ -139,11 +152,16 @@ export function publicProfileFromUnknown(value: unknown, email = ""): PublicProf
       department: typeof contact.department === "string" ? contact.department : "",
       phone: typeof contact.phone === "string" ? contact.phone : "",
       office: typeof contact.office === "string" ? contact.office : "",
-      website: typeof contact.website === "string" ? contact.website : "",
+      website: publicWebsite(contact.website),
     },
     publications,
     tiles,
     layout: {
+      header: {
+        ...layoutFromUnknown(layout.header, PROFILE_HEADER_LAYOUT),
+        x: PROFILE_HEADER_LAYOUT.x,
+        y: PROFILE_HEADER_LAYOUT.y,
+      },
       contact: layoutFromUnknown(layout.contact, DEFAULT_CONTACT_LAYOUT),
       publications: layoutFromUnknown(layout.publications, DEFAULT_PUBLICATIONS_LAYOUT),
     },
