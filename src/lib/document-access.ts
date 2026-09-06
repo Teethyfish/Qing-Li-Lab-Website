@@ -12,6 +12,7 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       name: true,
+      createdAt: true,
       role: true,
       isActive: true,
       membershipStatus: true,

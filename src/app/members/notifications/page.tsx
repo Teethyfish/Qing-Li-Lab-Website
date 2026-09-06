@@ -2,41 +2,96 @@ export const runtime = "nodejs";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+
+function localizedAnnouncementText(value: string, locale: string) {
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    const localized = parsed[locale] ?? parsed.en ?? Object.values(parsed)[0];
+    return typeof localized === "string" ? localized : value;
+  } catch {
+    return value;
+  }
+}
+
+function noticeDate(date: Date, locale: string) {
+  const dateLocale = locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US";
+  return new Intl.DateTimeFormat(dateLocale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Pacific/Honolulu",
+  }).format(date);
+}
 
 export default async function NotificationsPage() {
   const user = await getCurrentUser();
   const t = await getTranslations("sitePages.notifications");
+  const locale = await getLocale();
   if (!user) redirect("/login");
-  const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  async function openNotification(formData: FormData) {
-    "use server";
-    const currentUser = await getCurrentUser();
-    if (!currentUser) redirect("/login");
-    const id = String(formData.get("id") || "");
-    const notification = await prisma.notification.findFirst({
-      where: { id, userId: currentUser.id },
-    });
-    if (!notification) return;
-    await prisma.notification.update({ where: { id }, data: { readAt: new Date() } });
-    redirect(notification.href.startsWith("/") ? notification.href : "/members/notifications");
-  }
+  const [notifications, announcements] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.announcement.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        text: true,
+        createdAt: true,
+        reads: { where: { userId: user.id }, select: { readAt: true }, take: 1 },
+      },
+    }),
+  ]);
+  const notices = [
+    ...notifications.map((notification) => ({
+      id: notification.id,
+      kind: "notification" as const,
+      title: notification.title,
+      message: notification.message,
+      createdAt: notification.createdAt,
+      unread: !notification.readAt,
+    })),
+    ...announcements.map((announcement) => ({
+      id: announcement.id,
+      kind: "announcement" as const,
+      title: localizedAnnouncementText(announcement.title, locale),
+      message: localizedAnnouncementText(announcement.text, locale),
+      createdAt: announcement.createdAt,
+      unread: announcement.reads.length === 0 && announcement.createdAt >= user.createdAt,
+    })),
+  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   async function markAllRead() {
     "use server";
     const currentUser = await getCurrentUser();
     if (!currentUser) redirect("/login");
-    await prisma.notification.updateMany({
-      where: { userId: currentUser.id, readAt: null },
-      data: { readAt: new Date() },
+    const activeAnnouncements = await prisma.announcement.findMany({
+      where: { status: "ACTIVE" },
+      select: { id: true },
+    });
+    await prisma.$transaction(async (database) => {
+      await database.notification.updateMany({
+        where: { userId: currentUser.id, readAt: null },
+        data: { readAt: new Date() },
+      });
+      if (activeAnnouncements.length) {
+        await database.announcementRead.createMany({
+          data: activeAnnouncements.map((announcement) => ({
+            userId: currentUser.id,
+            announcementId: announcement.id,
+          })),
+          skipDuplicates: true,
+        });
+      }
     });
     revalidatePath("/members/notifications");
+    revalidatePath("/", "layout");
   }
 
   return (
@@ -46,26 +101,24 @@ export default async function NotificationsPage() {
           <h1>{t("title")}</h1>
           <p className="muted">{t("subtitle")}</p>
         </div>
-        {notifications.some((notification) => !notification.readAt) ? (
+        {notices.some((notice) => notice.unread) ? (
           <form action={markAllRead}><button className="btn btn-muted">{t("markAllRead")}</button></form>
         ) : null}
       </header>
 
       <section style={{ display: "grid", gap: "1rem" }}>
-        {notifications.length === 0 ? <p className="muted">{t("empty")}</p> : null}
-        {notifications.map((notification) => (
+        {notices.length === 0 ? <p className="muted">{t("empty")}</p> : null}
+        {notices.map((notice) => (
           <article
-            key={notification.id}
+            key={`${notice.kind}-${notice.id}`}
             className="tile"
-            style={{ borderLeft: notification.readAt ? undefined : "4px solid var(--color-text)" }}
+            style={{ borderLeft: notice.unread ? "4px solid var(--color-text)" : undefined }}
           >
-            <h2 style={{ marginTop: 0 }}>{notification.title}</h2>
-            <p style={{ whiteSpace: "pre-wrap" }}>{notification.message}</p>
-            <p className="muted">{notification.createdAt.toLocaleString()}</p>
-            <form action={openNotification}>
-              <input type="hidden" name="id" value={notification.id} />
-              <button className="btn btn-basic" type="submit">{t("open")}</button>
-            </form>
+            <p className="notice-kind" style={{ marginTop: 0 }}>{notice.kind === "announcement" ? t("announcement") : t("notification")}</p>
+            <h2>{notice.title}</h2>
+            <p style={{ whiteSpace: "pre-wrap" }}>{notice.message}</p>
+            <p className="muted">{noticeDate(notice.createdAt, locale)}</p>
+            <Link className="btn btn-basic" href={`/api/notices/open?kind=${notice.kind}&id=${encodeURIComponent(notice.id)}`}>{t("open")}</Link>
           </article>
         ))}
       </section>

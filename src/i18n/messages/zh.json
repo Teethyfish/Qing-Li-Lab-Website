@@ -348,6 +348,8 @@
       "subtitle": "发送到您实验室账户的文档和更新。",
       "markAllRead": "全部标为已读",
       "empty": "您没有通知。",
+      "announcement": "公告",
+      "notification": "通知",
       "open": "打开"
     },
     "notes": {

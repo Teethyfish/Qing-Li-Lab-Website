@@ -348,6 +348,8 @@
       "subtitle": "연구실 계정으로 전송된 문서와 업데이트입니다.",
       "markAllRead": "모두 읽음으로 표시",
       "empty": "알림이 없습니다.",
+      "announcement": "공지사항",
+      "notification": "알림",
       "open": "열기"
     },
     "notes": {
