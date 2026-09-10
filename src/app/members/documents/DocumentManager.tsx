@@ -13,6 +13,8 @@ type DocumentRecord = {
   description: string;
   emailSubject: string;
   isPublic: boolean;
+  createdAt: string;
+  uploadDate: string;
   categoryId: string | null;
   category: { id: string; name: string } | null;
   recipients: Array<{ name: string | null; email: string }>;
@@ -29,6 +31,7 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
   const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [deleteConfirmations, setDeleteConfirmations] = useState<Record<string, string>>({});
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     setCategories(initialCategories);
@@ -88,6 +91,7 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
       setDocuments((current) => current.map((document) => document.categoryId === category.id ? { ...document, categoryId: null, category: null } : document));
       setSelectedCategories((current) => Object.fromEntries(Object.entries(current).map(([id, value]) => [id, value === category.id ? "" : value])));
       setStatuses((current) => ({ ...current, categories: t("categoryDeleted") }));
+      setSelectedCategoryId((current) => current === category.id ? null : current);
       router.refresh();
     } catch (error) {
       setStatuses((current) => ({ ...current, categories: error instanceof Error ? error.message : t("saveFailed") }));
@@ -148,78 +152,106 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
     } finally { setBusyKey(null); }
   };
 
+  const selectedCategoryName = selectedCategoryId === ""
+    ? t("uncategorized")
+    : categories.find((category) => category.id === selectedCategoryId)?.name;
+  const visibleDocuments = selectedCategoryId === null
+    ? []
+    : documents.filter((document) => (document.categoryId || "") === selectedCategoryId);
+  const categoryDocumentCount = (categoryId: string) => documents.filter((document) => (document.categoryId || "") === categoryId).length;
+
   return <div className="document-management-workspace" data-edit-ignore="true">
-    <section className="tile document-management-panel">
-      <header className="document-panel-header"><div><h2>{t("manageCategories")}</h2><p className="muted">{t("categoriesHelp")}</p></div></header>
-      <form className="document-category-create" onSubmit={addCategory}>
-        <label><span>{t("newCategoryName")}</span><input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} required maxLength={100} /></label>
-        <button className="btn btn-basic" type="submit" disabled={busyKey === "category-new"}>{t("createCategory")}</button>
-      </form>
-      <div className="document-category-grid">
-        {categories.map((category) => <div className="document-category-row" key={category.id}>
-          <input aria-label={t("categoryName")} value={categoryNames[category.id] ?? category.name} onChange={(event) => setCategoryNames((current) => ({ ...current, [category.id]: event.target.value }))} />
-          <button className="btn btn-muted" type="button" disabled={busyKey === `category-${category.id}`} onClick={() => renameCategory(category.id)}>{t("renameCategory")}</button>
-          <button className="btn btn-warning" type="button" disabled={busyKey === `category-${category.id}`} onClick={() => removeCategory(category)}>{t("deleteCategory")}</button>
-        </div>)}
-        {!categories.length ? <p className="muted">{t("noCategories")}</p> : null}
-      </div>
-      {statuses.categories ? <p className="document-save-status" role="status">{statuses.categories}</p> : null}
-    </section>
+    <div className="document-admin-columns">
+      {uploadForm ? <section className="tile document-upload-section">
+        <header className="document-panel-header"><div><h2>{t("uploadHeading")}</h2><p className="muted">{t("uploadCategoryPrompt")}</p></div></header>
+        {uploadForm}
+      </section> : <section className="tile document-upload-section"><p className="muted">{t("connectPrompt")}</p></section>}
 
-    {uploadForm ? <section className="document-upload-section">
-      <header className="document-panel-header"><div><h2>{t("uploadHeading")}</h2><p className="muted">{t("uploadCategoryPrompt")}</p></div></header>
-      {uploadForm}
-    </section> : null}
+      <div className="document-admin-management-column">
+        <section className="tile document-management-panel">
+        <header className="document-panel-header"><div><h2>{t("manageCategories")}</h2><p className="muted">{t("categoriesHelp")}</p></div></header>
+        <label className="document-category-picker"><span>{t("documentsToManage")}</span><select value={selectedCategoryId ?? "__none"} onChange={(event) => setSelectedCategoryId(event.target.value === "__none" ? null : event.target.value)}>
+          <option value="__none">{t("chooseCategory")}</option>
+          <option value="">{t("uncategorized")} ({categoryDocumentCount("")})</option>
+          {categories.map((category) => <option key={category.id} value={category.id}>{category.name} ({categoryDocumentCount(category.id)})</option>)}
+        </select></label>
+        <form className="document-category-create" onSubmit={addCategory}>
+          <label><span>{t("newCategoryName")}</span><input value={newCategory} onChange={(event) => setNewCategory(event.target.value)} required maxLength={100} /></label>
+          <button className="btn btn-basic" type="submit" disabled={busyKey === "category-new"}>{t("createCategory")}</button>
+        </form>
+        <div className="document-category-grid">
+          {categories.map((category) => <div className="document-category-row" key={category.id}>
+            <input aria-label={t("categoryName")} value={categoryNames[category.id] ?? category.name} onChange={(event) => setCategoryNames((current) => ({ ...current, [category.id]: event.target.value }))} />
+            <button className="btn btn-muted" type="button" disabled={busyKey === `category-${category.id}`} onClick={() => renameCategory(category.id)}>{t("renameCategory")}</button>
+            <button className="btn btn-warning" type="button" disabled={busyKey === `category-${category.id}`} onClick={() => removeCategory(category)}>{t("deleteCategory")}</button>
+          </div>)}
+          {!categories.length ? <p className="muted">{t("noCategories")}</p> : null}
+        </div>
+        {statuses.categories ? <p className="document-save-status" role="status">{statuses.categories}</p> : null}
+        </section>
 
-    <section className="document-list-section">
-      <header className="document-panel-header"><div><h2>{t("uploadedHeading")}</h2><p className="muted">{t("documentManagementHelp")}</p></div></header>
-      <div className="document-admin-grid">
-        {documents.map((document) => <article key={document.id} className="tile document-management-card">
-          <header className="document-card-header">
-            <div><h3>{document.title}</h3><p>{document.description || t("noDescription")}</p></div>
-            <span className={`status-label ${document.isPublic ? "available" : "unavailable"}`}>{document.isPublic ? t("public") : t("private")}</span>
-          </header>
+        {selectedCategoryId !== null ? <section className="tile document-list-section">
+      <header className="document-panel-header"><div><h2>{selectedCategoryName}</h2><p className="muted">{t("documentManagementHelp")}</p></div></header>
+      <div className="document-compact-list">
+        {visibleDocuments.map((document) => <details key={document.id} className="document-compact-item">
+          <summary><strong>{document.title}</strong><time dateTime={document.createdAt}>{document.uploadDate}</time></summary>
+          <div className="document-compact-body">
+            <div className="document-card-header">
+              <p>{document.description || t("noDescription")}</p>
+              <span className={`status-label ${document.isPublic ? "available" : "unavailable"}`}>{document.isPublic ? t("public") : t("private")}</span>
+            </div>
+            <div className="document-primary-actions">
+              <Link className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</Link>
+              <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
+            </div>
 
-          <div className="document-category-assignment">
-            <label><span>{t("category")}</span><select value={selectedCategories[document.id] ?? ""} onChange={(event) => setSelectedCategories((current) => ({ ...current, [document.id]: event.target.value }))}>
-              <option value="">{t("uncategorized")}</option>
-              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </select></label>
-            <button type="button" className="btn btn-basic" disabled={busyKey === `document-${document.id}` || (selectedCategories[document.id] ?? "") === (document.categoryId || "")} onClick={() => saveCategoryAssignment(document)}>{t("saveCategory")}</button>
+            <section className="document-option-group">
+              <h3>{t("category")}</h3>
+              <div className="document-category-assignment">
+                <label><select aria-label={t("category")} value={selectedCategories[document.id] ?? ""} onChange={(event) => setSelectedCategories((current) => ({ ...current, [document.id]: event.target.value }))}>
+                  <option value="">{t("uncategorized")}</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </select></label>
+                <button type="button" className="btn btn-basic" disabled={busyKey === `document-${document.id}` || (selectedCategories[document.id] ?? "") === (document.categoryId || "")} onClick={() => saveCategoryAssignment(document)}>{t("saveCategory")}</button>
+              </div>
+            </section>
+
+            <section className="document-option-group">
+              <h3>{t("editListing")}</h3>
+              <form className="document-settings-form" onSubmit={(event) => saveListing(event, document)}>
+                <label><span>{t("titleField")}</span><input name="title" defaultValue={document.title} required /></label>
+                <label><span>{t("description")}</span><textarea name="description" defaultValue={document.description} rows={3} /></label>
+                <label><span>{t("emailRecord")}</span><input name="emailSubject" defaultValue={document.emailSubject} /></label>
+                <label className="document-checkbox"><input name="isPublic" type="checkbox" defaultChecked={document.isPublic} /><span>{t("publicDatabase")}</span></label>
+                <button className="btn btn-basic" type="submit" disabled={busyKey === `document-${document.id}`}>{t("saveListing")}</button>
+              </form>
+            </section>
+
+            <section className="document-option-group">
+              <h3>{t("replaceFile")}</h3>
+              <ReplaceDocumentFileForm documentId={document.id} labels={{ file: t("replacementFile"), replace: t("replaceButton"), replacing: t("replacing"), success: t("replaceSuccess"), chooseFile: t("chooseReplacement"), failed: t("replaceFailed") }} />
+            </section>
+
+            <section className="document-option-group">
+              <h3>{t("recipients", { count: document.recipients.length })}</h3>
+              {document.recipients.length ? <ul>{document.recipients.map((user) => <li key={user.email}>{user.name || user.email}{user.name ? ` (${user.email})` : ""}</li>)}</ul> : <p className="muted">{t("noRecipients")}</p>}
+            </section>
+
+            <section className="document-option-group danger">
+              <h3>{t("deleteDocument")}</h3>
+              <div className="document-delete-controls">
+                <p className="muted">{t("deleteDocumentHelp")}</p>
+                <input value={deleteConfirmations[document.id] || ""} onChange={(event) => setDeleteConfirmations((current) => ({ ...current, [document.id]: event.target.value }))} placeholder={t("typeDelete")} aria-label={t("typeDelete")} />
+                <button className="btn btn-warning" type="button" disabled={busyKey === `document-${document.id}` || deleteConfirmations[document.id] !== "DELETE"} onClick={() => deleteDocument(document)}>{t("deleteDrive")}</button>
+              </div>
+            </section>
+            {statuses[document.id] ? <p className="document-save-status" role="status">{statuses[document.id]}</p> : null}
           </div>
-          {statuses[document.id] ? <p className="document-save-status" role="status">{statuses[document.id]}</p> : null}
-
-          <div className="document-primary-actions">
-            <Link className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</Link>
-            <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
-          </div>
-
-          <details className="document-admin-disclosure"><summary>{t("editListing")}</summary>
-            <form className="document-settings-form" onSubmit={(event) => saveListing(event, document)}>
-              <label><span>{t("titleField")}</span><input name="title" defaultValue={document.title} required /></label>
-              <label><span>{t("description")}</span><textarea name="description" defaultValue={document.description} rows={3} /></label>
-              <label><span>{t("emailRecord")}</span><input name="emailSubject" defaultValue={document.emailSubject} /></label>
-              <label className="document-checkbox"><input name="isPublic" type="checkbox" defaultChecked={document.isPublic} /><span>{t("publicDatabase")}</span></label>
-              <button className="btn btn-basic" type="submit" disabled={busyKey === `document-${document.id}`}>{t("saveListing")}</button>
-            </form>
-          </details>
-
-          <details className="document-admin-disclosure"><summary>{t("replaceFile")}</summary><div className="document-disclosure-body">
-            <ReplaceDocumentFileForm documentId={document.id} labels={{ file: t("replacementFile"), replace: t("replaceButton"), replacing: t("replacing"), success: t("replaceSuccess"), chooseFile: t("chooseReplacement"), failed: t("replaceFailed") }} />
-          </div></details>
-
-          <details className="document-admin-disclosure"><summary>{t("recipients", { count: document.recipients.length })}</summary><div className="document-disclosure-body">
-            {document.recipients.length ? <ul>{document.recipients.map((user) => <li key={user.email}>{user.name || user.email}{user.name ? ` (${user.email})` : ""}</li>)}</ul> : <p className="muted">{t("noRecipients")}</p>}
-          </div></details>
-
-          <details className="document-admin-disclosure danger"><summary>{t("deleteDocument")}</summary><div className="document-delete-controls">
-            <p className="muted">{t("deleteDocumentHelp")}</p>
-            <input value={deleteConfirmations[document.id] || ""} onChange={(event) => setDeleteConfirmations((current) => ({ ...current, [document.id]: event.target.value }))} placeholder={t("typeDelete")} aria-label={t("typeDelete")} />
-            <button className="btn btn-warning" type="button" disabled={busyKey === `document-${document.id}` || deleteConfirmations[document.id] !== "DELETE"} onClick={() => deleteDocument(document)}>{t("deleteDrive")}</button>
-          </div></details>
-        </article>)}
-        {!documents.length ? <p className="muted">{t("noDocuments")}</p> : null}
+        </details>)}
+        {!visibleDocuments.length ? <p className="muted">{t("noDocumentsInCategory")}</p> : null}
       </div>
-    </section>
+        </section> : null}
+      </div>
+    </div>
   </div>;
 }

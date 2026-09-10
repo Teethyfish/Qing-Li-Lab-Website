@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import DocumentManager from "./DocumentManager";
@@ -12,6 +12,7 @@ type Props = { searchParams: Promise<{ google?: string }> };
 export default async function AdminDocumentsPage({ searchParams }: Props) {
   await requireAdminUser().catch(() => redirect("/"));
   const t = await getTranslations("sitePages.documentsAdmin");
+  const locale = await getLocale();
   const params = await searchParams;
   const googleOAuthConfigured = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && (process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_SITE_URL));
   const [connection, users, categories, documents] = await Promise.all([
@@ -49,6 +50,11 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
         description: document.description,
         emailSubject: document.emailSubject,
         isPublic: document.isPublic,
+        createdAt: document.createdAt.toISOString(),
+        uploadDate: new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", {
+          dateStyle: "medium",
+          timeZone: "Pacific/Honolulu",
+        }).format(document.createdAt),
         categoryId: document.categoryId,
         category: document.category ? { id: document.category.id, name: document.category.name } : null,
         recipients: document.recipients.map(({ user }) => ({ name: user.name, email: user.email })),

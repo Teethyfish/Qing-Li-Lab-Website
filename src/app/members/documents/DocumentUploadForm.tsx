@@ -149,7 +149,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
   };
 
   return (
-    <form onSubmit={submit} className="tile" style={{ display: "grid", gap: "1rem" }}>
+    <form onSubmit={submit} className="document-upload-form">
       <label style={{ display: "grid", gap: 6 }}>
         <strong>{t("document")}</strong>
         <input name="file" type="file" required onChange={handleFileChange} style={inputStyle} />

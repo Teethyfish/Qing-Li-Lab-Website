@@ -148,47 +148,63 @@ a:hover { text-decoration: underline; }
 .document-listing-title { margin: 0 0 .25rem; font-size: 1rem; color: var(--color-text); }
 .document-listing p, .document-admin-listing p { line-height: 1.45; }
 
-.document-admin-page, .document-management-workspace { display: grid; gap: 1.5rem; }
+.document-admin-page, .document-management-workspace, .document-admin-management-column { display: grid; gap: 1.5rem; }
 .document-admin-title h1, .document-admin-title p, .document-connection-panel h2, .document-connection-panel p { margin: 0; }
 .document-admin-title p, .document-connection-panel p { margin-top: .4rem; }
-.document-management-panel, .document-management-card, .document-upload-section > form { overflow: visible; }
+.document-admin-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.document-management-panel, .document-upload-section, .document-list-section { min-width: 0; overflow: visible; }
+.document-upload-section, .document-management-panel, .document-list-section { display: grid; align-content: start; gap: 1rem; }
 .document-panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
 .document-panel-header h2, .document-panel-header p { margin: 0; }
 .document-panel-header p { margin-top: .35rem; }
+.document-upload-form { display: grid; gap: 1rem; }
+.document-category-picker { display: grid; gap: .4rem; padding: .8rem; background: color-mix(in oklab, var(--color-card) 94%, var(--color-text) 6%); border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
+.document-category-picker > span { font-weight: 700; }
 .document-category-create { display: flex; align-items: end; gap: .75rem; margin-top: 1rem; }
 .document-category-create label { display: grid; flex: 1; gap: .4rem; }
-.document-category-create input, .document-category-row input, .document-category-assignment select, .document-settings-form input:not([type="checkbox"]), .document-settings-form textarea, .document-delete-controls input { box-sizing: border-box; width: 100%; padding: .65rem .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent); background: var(--color-card); color: var(--color-text); font: inherit; }
+.document-category-picker select, .document-category-create input, .document-category-row input, .document-category-assignment select, .document-settings-form input:not([type="checkbox"]), .document-settings-form textarea, .document-delete-controls input { box-sizing: border-box; width: 100%; padding: .65rem .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent); background: var(--color-card); color: var(--color-text); font: inherit; }
 .document-category-grid { display: grid; gap: .65rem; margin-top: 1rem; }
 .document-category-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .6rem; padding: .7rem; align-items: center; border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent); background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
-.document-upload-section, .document-list-section { display: grid; gap: .8rem; }
-.document-upload-section > form { margin: 0; }
-.document-admin-grid { display: grid; gap: 1rem; }
-.document-management-card { display: grid; gap: .85rem; padding: 1rem; }
+.document-compact-list { display: grid; gap: .5rem; }
+.document-compact-item { min-width: 0; background: var(--color-card); border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
+.document-compact-item > summary { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: .75rem .85rem .75rem 2.1rem; cursor: pointer; list-style: none; }
+.document-compact-item > summary::-webkit-details-marker { display: none; }
+.document-compact-item > summary::before { position: absolute; left: .8rem; content: "+"; color: var(--color-muted); font-size: 1rem; font-weight: 800; }
+.document-compact-item[open] > summary::before { content: "−"; }
+.document-compact-item > summary strong { min-width: 0; overflow: hidden; color: var(--color-text); font-size: .94rem; text-overflow: ellipsis; white-space: nowrap; }
+.document-compact-item > summary time { color: var(--color-muted); font-size: .78rem; white-space: nowrap; }
+.document-compact-item[open] > summary { background: color-mix(in oklab, var(--color-card) 93%, var(--color-text) 7%); border-bottom: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
+.document-compact-body { display: grid; gap: 1rem; padding: 1rem; }
 .document-card-header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
 .document-card-header h3, .document-card-header p { margin: 0; }
 .document-card-header h3 { font-size: 1rem; }
 .document-card-header p { margin-top: .35rem; color: var(--color-muted); line-height: 1.45; }
 .document-card-header .status-label { flex: 0 0 auto; }
-.document-category-assignment { display: grid; grid-template-columns: minmax(190px, 1fr) auto; align-items: end; gap: .75rem; padding: .8rem 0; }
+.document-category-assignment { display: grid; grid-template-columns: minmax(190px, 1fr) auto; align-items: end; gap: .75rem; }
 .document-category-assignment label, .document-settings-form label { display: grid; gap: .4rem; }
 .document-primary-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
-.document-admin-disclosure { border-top: 1px solid color-mix(in oklab, var(--color-text) 11%, transparent); }
-.document-admin-disclosure > summary { padding: .8rem .2rem; font-weight: 650; cursor: pointer; }
-.document-admin-disclosure[open] > summary { color: var(--color-primary); }
-.document-settings-form, .document-disclosure-body, .document-delete-controls { display: grid; gap: .75rem; padding: .35rem .2rem .85rem; }
+.document-option-group { display: grid; gap: .75rem; padding-top: 1rem; border-top: 1px solid color-mix(in oklab, var(--color-text) 11%, transparent); }
+.document-option-group h3 { margin: 0; font-size: .95rem; }
+.document-option-group ul { margin: 0; padding-left: 1.25rem; }
+.document-option-group > p { margin: 0; }
+.document-option-group.danger h3 { color: #991b1b; }
+.document-settings-form, .document-delete-controls { display: grid; gap: .75rem; }
 .document-settings-form .btn, .document-delete-controls .btn { justify-self: start; }
 .document-checkbox { display: flex !important; flex-direction: row; align-items: center; gap: .5rem !important; }
-.document-disclosure-body ul { margin: 0; padding-left: 1.25rem; }
 .document-delete-controls p { margin: 0; }
-.document-admin-disclosure.danger > summary { color: #991b1b; }
 .document-save-status { margin: 0; color: var(--color-accent); font-size: .86rem; font-weight: 650; }
 .document-error { color: #991b1b; }
+
+@media (max-width: 900px) {
+  .document-admin-columns { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 640px) {
   .document-category-create, .document-category-row, .document-category-assignment { grid-template-columns: 1fr; align-items: stretch; }
   .document-category-create { display: grid; }
   .document-card-header { display: grid; }
   .document-card-header .status-label { justify-self: start; }
+  .document-compact-item > summary { grid-template-columns: 1fr; gap: .25rem; }
 }
 
 .instrument-card {
