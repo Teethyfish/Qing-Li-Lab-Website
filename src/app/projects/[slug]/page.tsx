@@ -36,7 +36,7 @@ export default async function ResearchProjectPage({ params }: Props) {
 
   return <main className="research-project-page">
     <div className="research-project-actions">
-      <Link href="/#current-projects" className="btn btn-muted">{t("back")}</Link>
+      <Link href={project.isCollaboration ? "/#collaborations" : "/#current-projects"} className="btn btn-muted">{project.isCollaboration ? t("backCollaborations") : t("back")}</Link>
       {canEditProject ? <Link href={`/projects/${project.slug}/edit`} className="btn btn-basic">{t("editProject")}</Link> : null}
     </div>
 
@@ -55,7 +55,7 @@ export default async function ResearchProjectPage({ params }: Props) {
           {!supportingImages.length ? <div className="research-project-gallery-empty">{t("supportingPhotoPlaceholder")}</div> : null}
         </aside>
         <section className="research-project-copy">
-          <p className="research-project-kicker">{t("currentResearch")}</p>
+          <p className="research-project-kicker">{project.isCollaboration ? t("collaboration") : t("currentResearch")}</p>
           <h1>{project.title}</h1>
           <p className="research-project-caption">{project.caption}</p>
           <div className="research-project-body">{project.body}</div>

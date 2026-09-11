@@ -17,6 +17,7 @@ type Project = {
   mainImageUrl: string | null;
   supportingImages: string[];
   isPublished: boolean;
+  isCollaboration: boolean;
   participants: Participant[];
 };
 type UserOption = { id: string; name: string | null; email: string; membershipStatus: string };
@@ -28,7 +29,8 @@ type CropTarget = {
   index?: number;
 };
 
-const emptyDraft: Draft = {
+function emptyDraft(isCollaboration = false): Draft {
+  return {
   slug: "",
   title: "",
   caption: "",
@@ -37,8 +39,10 @@ const emptyDraft: Draft = {
   mainImageUrl: null,
   supportingImages: [],
   isPublished: true,
+  isCollaboration,
   participants: [],
-};
+  };
+}
 
 function slugify(value: string) {
   return value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
@@ -59,12 +63,12 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
   const router = useRouter();
   const [projects, setProjects] = useState(initialProjects);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft());
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
 
-  const beginNew = () => { setEditingId(null); setDraft(emptyDraft); setMessage(""); };
+  const beginNew = (isCollaboration = false) => { setEditingId(null); setDraft(emptyDraft(isCollaboration)); setMessage(""); };
   const beginEdit = (project: Project) => {
     setEditingId(project.id);
     setDraft({
@@ -76,6 +80,7 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
       mainImageUrl: project.mainImageUrl,
       supportingImages: [...project.supportingImages],
       isPublished: project.isPublished,
+      isCollaboration: project.isCollaboration,
       participants: project.participants.map((participant) => ({ ...participant })),
     });
     setMessage("");
@@ -164,34 +169,48 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
     setBusy(false);
   };
 
+  const researchProjects = projects.filter((project) => !project.isCollaboration);
+  const collaborationProjects = projects.filter((project) => project.isCollaboration);
+  const projectGrid = (items: Project[], emptyLabel: string) => <div className="project-admin-grid">
+    {items.map((project) => <article key={project.id} className="project-admin-card">
+      <div className="project-admin-thumb" style={project.tileImageUrl ? { backgroundImage: `url(${project.tileImageUrl})` } : undefined}>
+        {!project.tileImageUrl ? <span>{t("photoPlaceholder")}</span> : null}
+      </div>
+      <div className="project-admin-card-body">
+        <strong>{project.title}</strong>
+        <small className="muted">/{project.slug} · {project.isPublished ? t("published") : t("draft")}</small>
+        <p>{project.caption}</p>
+        <div className="project-card-actions">
+          <button type="button" className="btn btn-muted" onClick={() => beginEdit(project)}>{t("edit")}</button>
+          <Link className="btn btn-muted" href={`/projects/${project.slug}`} target="_blank">{t("preview")}</Link>
+          <button type="button" className="btn btn-warning" disabled={busy} onClick={() => remove(project)}>{t("delete")}</button>
+        </div>
+      </div>
+    </article>)}
+    {!items.length ? <p className="muted">{emptyLabel}</p> : null}
+  </div>;
+
   return <div className="project-manager">
     <section className="tile project-list-panel">
       <div className="project-panel-heading">
         <div><h2>{t("existingProjects")}</h2><p className="muted">{t("existingHelp")}</p></div>
-        <button type="button" className="btn btn-basic" onClick={beginNew}>{t("addProject")}</button>
+        <button type="button" className="btn btn-basic" onClick={() => beginNew(false)}>{t("addProject")}</button>
       </div>
-      <div className="project-admin-grid">
-        {projects.map((project) => <article key={project.id} className="project-admin-card">
-          <div className="project-admin-thumb" style={project.tileImageUrl ? { backgroundImage: `url(${project.tileImageUrl})` } : undefined}>
-            {!project.tileImageUrl ? <span>{t("photoPlaceholder")}</span> : null}
-          </div>
-          <div className="project-admin-card-body">
-            <strong>{project.title}</strong>
-            <small className="muted">/{project.slug} · {project.isPublished ? t("published") : t("draft")}</small>
-            <p>{project.caption}</p>
-            <div className="project-card-actions">
-              <button type="button" className="btn btn-muted" onClick={() => beginEdit(project)}>{t("edit")}</button>
-              <Link className="btn btn-muted" href={`/projects/${project.slug}`} target="_blank">{t("preview")}</Link>
-              <button type="button" className="btn btn-warning" disabled={busy} onClick={() => remove(project)}>{t("delete")}</button>
-            </div>
-          </div>
-        </article>)}
-        {!projects.length ? <p className="muted">{t("none")}</p> : null}
+      {projectGrid(researchProjects, t("none"))}
+    </section>
+
+    <section className="tile project-list-panel">
+      <div className="project-panel-heading">
+        <div><h2>{t("existingCollaborations")}</h2><p className="muted">{t("collaborationsHelp")}</p></div>
+        <button type="button" className="btn btn-basic" onClick={() => beginNew(true)}>{t("addCollaboration")}</button>
       </div>
+      {projectGrid(collaborationProjects, t("noneCollaborations"))}
     </section>
 
     <form id="project-editor" className="tile project-editor" onSubmit={submit}>
-      <h2>{editingId ? t("editProject") : t("newProject")}</h2>
+      <h2>{editingId
+        ? draft.isCollaboration ? t("editCollaboration") : t("editProject")
+        : draft.isCollaboration ? t("newCollaboration") : t("newProject")}</h2>
       <div className="project-form-grid">
         <label><span>{t("titleField")}</span><input required maxLength={200} value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value, slug: current.slug ? current.slug : slugify(event.target.value) }))} /></label>
         <label><span>{t("slug")}</span><input required pattern="[a-z0-9-]+" maxLength={80} value={draft.slug} onChange={(event) => setDraft((current) => ({ ...current, slug: slugify(event.target.value) }))} /></label>
@@ -234,11 +253,11 @@ export default function ProjectManager({ initialProjects, users }: { initialProj
         </div>
       </fieldset>
 
-      <label className="project-publish-toggle"><input type="checkbox" checked={draft.isPublished} onChange={(event) => setDraft((current) => ({ ...current, isPublished: event.target.checked }))} /> <span>{t("publish")}</span></label>
+      <label className="project-publish-toggle"><input type="checkbox" checked={draft.isPublished} onChange={(event) => setDraft((current) => ({ ...current, isPublished: event.target.checked }))} /> <span>{draft.isCollaboration ? t("publishCollaboration") : t("publish")}</span></label>
       {message ? <p className="project-manager-message" role="status">{message}</p> : null}
       <div className="project-editor-actions">
         <button type="submit" className="btn btn-basic" disabled={busy}>{busy ? t("saving") : t("save")}</button>
-        {editingId ? <button type="button" className="btn btn-muted" onClick={beginNew}>{t("cancel")}</button> : null}
+        {editingId ? <button type="button" className="btn btn-muted" onClick={() => beginNew(draft.isCollaboration)}>{t("cancel")}</button> : null}
       </div>
       {cropTarget ? <ProjectImageCropper imageSrc={cropTarget.source} aspect={cropTarget.aspect} title={t("cropPhoto")} onComplete={completeCrop} onCancel={() => setCropTarget(null)} /> : null}
     </form>

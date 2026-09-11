@@ -69,7 +69,7 @@ export default async function HomePage() {
     prisma.user.findMany({
       where: { membershipStatus: "ACTIVE", role: { in: ["MEMBER", "PI", "ADMIN"] as any[] } },
       select: { id: true, name: true, slug: true, imageUrl: true, role: true, updatedAt: true },
-      orderBy: { name: "asc" },
+      orderBy: [{ role: "asc" }, { name: "asc" }],
     }),
     prisma.user.findMany({
       where: { membershipStatus: "ALUMNI" },
@@ -84,7 +84,7 @@ export default async function HomePage() {
     prisma.researchProject.findMany({
       where: { isPublished: true },
       orderBy: { createdAt: "asc" },
-      select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true, updatedAt: true },
+      select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true, isCollaboration: true, updatedAt: true },
     }),
     getPublications({ page: 1, perPage: 5 }),
   ]);
@@ -103,8 +103,11 @@ export default async function HomePage() {
   const welcome = welcomeConfig || t("welcomeDefault");
   const labTitle = titleConfig || t("defaultLabTitle");
   const labSubtitle = subtitleConfig || t("defaultLabSubtitle");
+  const piImageUrl = pi.imageUrl || "/Qingl.png";
   const configuredAlumni = configuredAlumniValue || [];
   const collaborators = collaboratorsValue || [];
+  const currentProjects = researchProjects.filter((project) => !project.isCollaboration);
+  const collaborationProjects = researchProjects.filter((project) => project.isCollaboration);
 
   const alumni = [
     ...accountAlumni,
@@ -197,7 +200,7 @@ export default async function HomePage() {
           <div className="card" style={cardPad}>
           <div style={{ display: "flex", gap: "1rem" }}>
             <div style={{ flexShrink: 0 }}>
-              {pi.imageUrl ? (
+              {piImageUrl ? (
                 <div
                   style={{
                     position: "relative",
@@ -209,7 +212,7 @@ export default async function HomePage() {
                   }}
                 >
                   <Image
-                    src={pi.imageUrl}
+                    src={piImageUrl}
                     alt={pi.name || t("piPhotoAlt")}
                     fill
                     sizes="96px"
@@ -319,7 +322,7 @@ export default async function HomePage() {
           <section id="current-projects" className="home-projects-section" data-edit-ignore="true">
             <h3 style={sectionTitle}>{t("currentProjects")}</h3>
             <div className="home-project-grid">
-              {researchProjects.map((project) => <Link key={project.id} href={`/projects/${project.slug}`} className="tile home-project-tile">
+              {currentProjects.map((project) => <Link key={project.id} href={`/projects/${project.slug}`} className="tile home-project-tile">
                 <div className="home-project-image">
                   {project.tileImageUrl
                     ? <Image src={publicMediaUrl("project", project.id, "tile", project.updatedAt)} alt="" fill sizes="(max-width: 720px) 100vw, 390px" unoptimized style={{ objectFit: "cover" }} />
@@ -330,7 +333,25 @@ export default async function HomePage() {
                   <p>{project.caption}</p>
                 </div>
               </Link>)}
-              {!researchProjects.length ? <p className="muted">{t("noCurrentProjects")}</p> : null}
+              {!currentProjects.length ? <p className="muted">{t("noCurrentProjects")}</p> : null}
+            </div>
+          </section>
+
+          <section id="collaborations" className="home-projects-section" data-edit-ignore="true">
+            <h3 style={sectionTitle}>{t("collaborations")}</h3>
+            <div className="home-project-grid">
+              {collaborationProjects.map((project) => <Link key={project.id} href={`/projects/${project.slug}`} className="tile home-project-tile">
+                <div className="home-project-image">
+                  {project.tileImageUrl
+                    ? <Image src={publicMediaUrl("project", project.id, "tile", project.updatedAt)} alt="" fill sizes="(max-width: 720px) 100vw, 390px" unoptimized style={{ objectFit: "cover" }} />
+                    : <span>{t("projectPhotoPlaceholder")}</span>}
+                </div>
+                <div className="home-project-copy">
+                  <h3>{project.title}</h3>
+                  <p>{project.caption}</p>
+                </div>
+              </Link>)}
+              {!collaborationProjects.length ? <p className="muted">{t("noCollaborations")}</p> : null}
             </div>
           </section>
 

@@ -39,6 +39,7 @@ export default async function ProjectAdminPage() {
           ? project.supportingImages.flatMap((image, index) => typeof image === "string" ? [publicMediaUrl("project", project.id, `supporting-${index}`, project.updatedAt)] : [])
           : [],
         isPublished: project.isPublished,
+        isCollaboration: project.isCollaboration,
         participants: project.participants.map(({ userId, isCurrent }) => ({ userId, isCurrent })),
       }))}
       users={users}

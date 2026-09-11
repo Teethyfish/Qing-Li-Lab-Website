@@ -25,6 +25,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
       select: {
         slug: true,
         isPublished: true,
+        isCollaboration: true,
         tileImageUrl: true,
         mainImageUrl: true,
         supportingImages: true,
@@ -77,6 +78,7 @@ export async function PATCH(request: NextRequest, { params }: Props) {
           mainImageUrl: preserveOrReadImage(body.mainImageUrl, "main"),
           supportingImages: nextSupporting as Prisma.InputJsonValue,
           isPublished: canManageProject ? body.isPublished !== false : existing.isPublished,
+          isCollaboration: canManageProject ? body.isCollaboration === true : existing.isCollaboration,
         },
       }),
     ];

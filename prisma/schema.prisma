@@ -162,11 +162,13 @@ model ResearchProject {
   mainImageUrl     String?
   supportingImages Json?
   isPublished      Boolean                      @default(true)
+  isCollaboration  Boolean                      @default(false)
   participants     ResearchProjectParticipant[]
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
 
   @@index([isPublished, createdAt])
+  @@index([isCollaboration, isPublished, createdAt])
 }
 
 model ResearchProjectParticipant {

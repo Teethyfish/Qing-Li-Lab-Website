@@ -263,8 +263,8 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
               }}>
                 <div className="nav-segmented" aria-label={t('languageSwitch')}>
                   <button type="button" className={`nav-pref-button${currentLocale === "en" ? " active" : ""}`} aria-pressed={currentLocale === "en"} onClick={() => updatePreference({ locale: "en" })}>EN</button>
-                  <button type="button" className={`nav-pref-button${currentLocale.startsWith("zh") ? " active" : ""}`} aria-expanded={chineseMenuOpen} aria-label={t("chineseOptions")} title={t("chineseOptions")} onClick={() => setChineseMenuOpen((open) => !open)}>CN</button>
-                  <button type="button" className={`nav-pref-button${currentLocale === "ko" ? " active" : ""}`} aria-pressed={currentLocale === "ko"} onClick={() => updatePreference({ locale: "ko" })}>KR</button>
+                  <button type="button" className={`nav-pref-button${currentLocale.startsWith("zh") ? " active" : ""}`} aria-expanded={chineseMenuOpen} aria-label={t("chineseOptions")} title={t("chineseOptions")} onClick={() => setChineseMenuOpen((open) => !open)}>中</button>
+                  <button type="button" className={`nav-pref-button${currentLocale === "ko" ? " active" : ""}`} aria-pressed={currentLocale === "ko"} onClick={() => updatePreference({ locale: "ko" })}>한</button>
                 </div>
                 <div className={`nav-chinese-options${chineseMenuOpen ? " open" : ""}`} aria-hidden={!chineseMenuOpen}>
                   <button type="button" className={`nav-pref-button${currentLocale === "zh" ? " active" : ""}`} aria-label={t("simplifiedChinese")} title={t("simplifiedChinese")} tabIndex={chineseMenuOpen ? 0 : -1} onClick={() => updatePreference({ locale: "zh" })}>简</button>

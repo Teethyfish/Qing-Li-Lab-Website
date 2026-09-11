@@ -144,9 +144,11 @@ a:hover { text-decoration: underline; }
 .document-category-section { display: grid; gap: .65rem; }
 .document-category-section > h2 { margin: 0; font-size: 1.05rem; }
 .document-category-list { display: grid; gap: .65rem; }
-.document-listing, .document-admin-listing { padding: .8rem 1rem; }
-.document-listing-title { margin: 0 0 .25rem; font-size: 1rem; color: var(--color-text); }
-.document-listing p, .document-admin-listing p { line-height: 1.45; }
+.tile.document-listing { padding: .45rem .75rem; }
+.document-admin-listing { padding: .8rem 1rem; }
+.tile.document-listing .document-listing-title { margin: 0 0 .15rem; font-size: 1rem; color: var(--color-text); }
+.tile.document-listing p { margin: .15rem 0 0; line-height: 1.35; }
+.document-admin-listing p { line-height: 1.45; }
 
 .document-admin-page, .document-management-workspace, .document-admin-management-column { display: grid; gap: 1.5rem; }
 .document-admin-title h1, .document-admin-title p, .document-connection-panel h2, .document-connection-panel p { margin: 0; }

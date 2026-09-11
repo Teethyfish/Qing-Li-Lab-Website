@@ -26,7 +26,7 @@ export default async function ProjectEditPage({ params }: Props) {
   return <main className="project-participant-edit-page">
     <header className="project-edit-heading">
       <div>
-        <p className="research-project-kicker">{t("kicker")}</p>
+        <p className="research-project-kicker">{project.isCollaboration ? t("collaborationKicker") : t("kicker")}</p>
         <h1>{t("heading", { title: project.title })}</h1>
         <p className="muted">{t("permissions")}</p>
       </div>

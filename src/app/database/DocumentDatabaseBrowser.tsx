@@ -95,7 +95,7 @@ export default function DocumentDatabaseBrowser({ groups, isAdmin, labels }: { g
                 /> : null}
               </div>
             </div>
-            {isAdmin && document.recipients.length ? <details style={{ marginTop: "1rem" }}>
+            {isAdmin && document.recipients.length ? <details style={{ marginTop: ".4rem" }}>
               <summary>{labels.visibleTo.replace("{count}", String(document.recipients.length))}</summary>
               <ul>{document.recipients.map((recipient) => <li key={recipient.email}>{recipient.name || recipient.email} ({recipient.email})</li>)}</ul>
             </details> : null}

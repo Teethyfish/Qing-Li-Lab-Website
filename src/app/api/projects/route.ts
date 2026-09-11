@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         mainImageUrl: projectImage(body.mainImageUrl),
         supportingImages: supportingProjectImages(body.supportingImages) as Prisma.InputJsonValue,
         isPublished: body.isPublished !== false,
+        isCollaboration: body.isCollaboration === true,
         participants: { create: participants.filter((item) => validUsers.has(item.userId)) },
       },
     });

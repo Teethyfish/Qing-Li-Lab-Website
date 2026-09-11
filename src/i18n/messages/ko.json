@@ -121,6 +121,8 @@
     "hiringText": "연구실 참여 또는 협력 기회를 확인하세요.",
     "currentProjects": "현재 프로젝트",
     "noCurrentProjects": "아직 게시된 현재 프로젝트가 없습니다.",
+    "collaborations": "연구 협력",
+    "noCollaborations": "아직 게시된 연구 협력이 없습니다.",
     "projectPhotoPlaceholder": "프로젝트 사진",
     "cipdbName": "단백질 데이터 뱅크의 양이온 및 π 상호작용",
     "comingSoon": "곧 공개됩니다",
@@ -687,22 +689,23 @@
       "imagePreviewAlt": "장비 이미지 미리보기"
     },
     "projectsAdmin": {
-      "title": "현재 프로젝트 관리", "subtitle": "홈 페이지의 현재 프로젝트 영역에 표시할 연구 페이지를 만듭니다.",
+      "title": "프로젝트 및 연구 협력 관리", "subtitle": "홈 페이지의 현재 프로젝트와 연구 협력 영역에 표시할 페이지를 만듭니다.",
       "existingProjects": "연구 프로젝트", "existingHelp": "게시된 프로젝트는 홈에 표시되고 초안은 여기에 보관됩니다.", "addProject": "프로젝트 추가",
+      "existingCollaborations": "연구 협력", "collaborationsHelp": "게시된 연구 협력은 현재 프로젝트 아래에 표시되고 초안은 여기에 보관됩니다.", "addCollaboration": "연구 협력 추가", "noneCollaborations": "생성된 연구 협력이 없습니다.",
       "photoPlaceholder": "프로젝트 사진", "published": "게시됨", "draft": "초안", "edit": "편집", "preview": "미리보기", "delete": "삭제", "none": "생성된 프로젝트가 없습니다.",
-      "editProject": "연구 프로젝트 편집", "newProject": "새 연구 프로젝트", "titleField": "프로젝트 제목", "slug": "페이지 URL", "caption": "홈페이지 짧은 설명", "body": "프로젝트 본문",
+      "editProject": "연구 프로젝트 편집", "newProject": "새 연구 프로젝트", "editCollaboration": "연구 협력 편집", "newCollaboration": "새 연구 협력", "titleField": "프로젝트 제목", "slug": "페이지 URL", "caption": "홈페이지 짧은 설명", "body": "프로젝트 본문",
       "tilePhoto": "홈페이지 타일 사진", "mainPhoto": "페이지 대표 사진", "removePhoto": "사진 제거", "supportingPhotos": "보조 사진", "supportingHelp": "프로젝트 페이지 왼쪽에 작은 사진을 최대 4장 추가합니다.",
       "participants": "참여 연구실 멤버", "participantsHelp": "이 연구에 현재 또는 과거에 참여한 멤버를 표시합니다.", "notInvolved": "참여하지 않음", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여",
-      "publish": "공개 사이트에 이 프로젝트 게시", "saved": "프로젝트를 저장했습니다.", "saving": "저장 중…", "save": "프로젝트 저장", "cancel": "편집 취소", "saveError": "프로젝트를 저장하지 못했습니다.",
+      "publish": "공개 사이트에 이 프로젝트 게시", "publishCollaboration": "공개 사이트에 이 연구 협력 게시", "saved": "프로젝트를 저장했습니다.", "saving": "저장 중…", "save": "프로젝트 저장", "cancel": "편집 취소", "saveError": "프로젝트를 저장하지 못했습니다.",
       "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.", "deleteConfirm": "{title}을(를) 삭제할까요? 공개 페이지도 함께 삭제됩니다.", "deleteError": "프로젝트를 삭제하지 못했습니다.",
       "cropPhoto": "프로젝트 사진 자르기", "clickToRecrop": "클릭하여 자르기 조정", "recropSupporting": "보조 사진 {number} 조정"
     },
     "project": {
-      "back": "현재 프로젝트로 돌아가기", "mainPhotoPlaceholder": "프로젝트 대표 사진", "supportingPhotos": "프로젝트 보조 사진", "supportingPhotoAlt": "프로젝트 보조 사진 {number}", "supportingPhotoPlaceholder": "여기에 보조 사진을 추가할 수 있습니다.",
-      "currentResearch": "현재 연구", "editProject": "프로젝트 편집", "team": "참여 연구실 멤버", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여", "noCurrentMembers": "지정된 현재 참여 멤버가 없습니다.", "noPastMembers": "지정된 과거 참여 멤버가 없습니다."
+      "back": "현재 프로젝트로 돌아가기", "backCollaborations": "연구 협력으로 돌아가기", "mainPhotoPlaceholder": "프로젝트 대표 사진", "supportingPhotos": "프로젝트 보조 사진", "supportingPhotoAlt": "프로젝트 보조 사진 {number}", "supportingPhotoPlaceholder": "여기에 보조 사진을 추가할 수 있습니다.",
+      "currentResearch": "현재 연구", "collaboration": "연구 협력", "editProject": "프로젝트 편집", "team": "참여 연구실 멤버", "currentlyInvolved": "현재 참여", "previouslyInvolved": "과거 참여", "noCurrentMembers": "지정된 현재 참여 멤버가 없습니다.", "noPastMembers": "지정된 과거 참여 멤버가 없습니다."
     },
     "projectEditor": {
-      "kicker": "프로젝트 기여자 편집기", "heading": "{title} 편집", "permissions": "프로젝트의 글과 사진을 수정할 수 있습니다. 참여자 지정, 게시 상태, 페이지 URL 및 삭제는 관리자만 변경할 수 있습니다.", "back": "프로젝트로 돌아가기",
+      "kicker": "프로젝트 기여자 편집기", "collaborationKicker": "연구 협력 기여자 편집기", "heading": "{title} 편집", "permissions": "프로젝트의 글과 사진을 수정할 수 있습니다. 참여자 지정, 게시 상태, 페이지 URL 및 삭제는 관리자만 변경할 수 있습니다.", "back": "프로젝트로 돌아가기",
       "title": "프로젝트 제목", "caption": "홈페이지 짧은 설명", "body": "프로젝트 본문", "tilePhoto": "홈페이지 타일 사진", "mainPhoto": "페이지 대표 사진", "supportingPhotos": "보조 사진", "supportingHelp": "프로젝트 페이지에 보조 사진을 최대 4장 추가합니다.",
       "removePhoto": "사진 제거", "recrop": "클릭하여 자르기 조정", "cropPhoto": "프로젝트 사진 자르기", "imageError": "이미지를 처리할 수 없습니다. 몇 MB 이하의 JPG, PNG 또는 WebP 이미지를 사용하세요.",
       "save": "프로젝트 내용 저장", "saving": "저장 중…", "saved": "프로젝트 내용을 저장했습니다.", "saveError": "프로젝트 내용을 저장하지 못했습니다.", "cancel": "취소"

@@ -121,6 +121,8 @@
     "hiringText": "View current opportunities to join or collaborate with the lab.",
     "currentProjects": "Current Projects",
     "noCurrentProjects": "No current projects have been published yet.",
+    "collaborations": "Collaborations",
+    "noCollaborations": "No collaborations have been published yet.",
     "projectPhotoPlaceholder": "Project photo",
     "cipdbName": "Cation and π Interaction in Protein Data Bank",
     "comingSoon": "Coming soon",
@@ -687,22 +689,23 @@
       "imagePreviewAlt": "Instrument preview"
     },
     "projectsAdmin": {
-      "title": "Manage Current Projects", "subtitle": "Create the research pages shown in the Current Projects section of the home page.",
+      "title": "Manage Projects and Collaborations", "subtitle": "Create the pages shown in the Current Projects and Collaborations sections of the home page.",
       "existingProjects": "Research projects", "existingHelp": "Published projects appear on the home page; drafts remain available here.", "addProject": "Add project",
+      "existingCollaborations": "Collaborations", "collaborationsHelp": "Published collaborations appear beneath Current Projects; drafts remain available here.", "addCollaboration": "Add collaboration", "noneCollaborations": "No collaborations have been created.",
       "photoPlaceholder": "Project photo", "published": "Published", "draft": "Draft", "edit": "Edit", "preview": "Preview", "delete": "Delete", "none": "No projects have been created.",
-      "editProject": "Edit research project", "newProject": "New research project", "titleField": "Project title", "slug": "Page URL", "caption": "Short homepage caption", "body": "Main project text",
+      "editProject": "Edit research project", "newProject": "New research project", "editCollaboration": "Edit collaboration", "newCollaboration": "New collaboration", "titleField": "Project title", "slug": "Page URL", "caption": "Short homepage caption", "body": "Main project text",
       "tilePhoto": "Homepage tile photo", "mainPhoto": "Main page photo", "removePhoto": "Remove photo", "supportingPhotos": "Supporting photos", "supportingHelp": "Add up to four smaller photos for the left side of the project page.",
       "participants": "Lab members involved", "participantsHelp": "Mark members as currently or previously involved in this research.", "notInvolved": "Not involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved",
-      "publish": "Publish this project on the public site", "saved": "Project saved.", "saving": "Saving…", "save": "Save project", "cancel": "Cancel editing", "saveError": "Could not save the project.",
+      "publish": "Publish this project on the public site", "publishCollaboration": "Publish this collaboration on the public site", "saved": "Project saved.", "saving": "Saving…", "save": "Save project", "cancel": "Cancel editing", "saveError": "Could not save the project.",
       "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.", "deleteConfirm": "Delete {title}? This also removes its public page.", "deleteError": "Could not delete the project.",
       "cropPhoto": "Crop project photo", "clickToRecrop": "Click to adjust crop", "recropSupporting": "Adjust supporting photo {number}"
     },
     "project": {
-      "back": "Back to current projects", "mainPhotoPlaceholder": "Main project photo", "supportingPhotos": "Supporting project photos", "supportingPhotoAlt": "Supporting project photo {number}", "supportingPhotoPlaceholder": "Supporting photos can be added here.",
-      "currentResearch": "Current research", "editProject": "Edit Project", "team": "Lab members involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved", "noCurrentMembers": "No current members have been assigned.", "noPastMembers": "No previous members have been assigned."
+      "back": "Back to current projects", "backCollaborations": "Back to collaborations", "mainPhotoPlaceholder": "Main project photo", "supportingPhotos": "Supporting project photos", "supportingPhotoAlt": "Supporting project photo {number}", "supportingPhotoPlaceholder": "Supporting photos can be added here.",
+      "currentResearch": "Current research", "collaboration": "Collaboration", "editProject": "Edit Project", "team": "Lab members involved", "currentlyInvolved": "Currently involved", "previouslyInvolved": "Previously involved", "noCurrentMembers": "No current members have been assigned.", "noPastMembers": "No previous members have been assigned."
     },
     "projectEditor": {
-      "kicker": "Project contributor editor", "heading": "Edit {title}", "permissions": "You can update this project's written content and photos. Participant assignments, publishing, page URL, and deletion remain admin-only.", "back": "Back to project",
+      "kicker": "Project contributor editor", "collaborationKicker": "Collaboration contributor editor", "heading": "Edit {title}", "permissions": "You can update this project's written content and photos. Participant assignments, publishing, page URL, and deletion remain admin-only.", "back": "Back to project",
       "title": "Project title", "caption": "Short homepage caption", "body": "Main project text", "tilePhoto": "Homepage tile photo", "mainPhoto": "Main page photo", "supportingPhotos": "Supporting photos", "supportingHelp": "Add up to four smaller photos for the project page.",
       "removePhoto": "Remove photo", "recrop": "Click to adjust crop", "cropPhoto": "Crop project photo", "imageError": "That image could not be prepared. Use a JPG, PNG, or WebP image under a few megabytes.",
       "save": "Save project content", "saving": "Saving…", "saved": "Project content saved.", "saveError": "Could not save the project content.", "cancel": "Cancel"
