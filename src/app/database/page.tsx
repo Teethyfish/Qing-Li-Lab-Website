@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import Link from "next/link";
-import AdminDeleteDocumentButton from "./AdminDeleteDocumentButton";
+import DocumentDatabaseBrowser from "./DocumentDatabaseBrowser";
 import { getCurrentUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
@@ -42,50 +42,26 @@ export default async function DocumentDatabasePage() {
         </p>
       ) : null}
 
-      <section style={{ display: "grid", gap: "1.5rem" }}>
-        {documents.length === 0 ? <p className="muted">{t("empty")}</p> : null}
-        {documentGroups.map((group) => <section key={group.id} className="document-category-section">
-          <h2>{group.name}</h2>
-          <div className="document-category-list">
-          {group.documents.map((document) => {
-          const recipients = document.recipients;
-          return (
-            <article id={`document-${document.id}`} key={document.id} className="tile document-listing" style={{ scrollMarginTop: 90 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
-                <div style={{ flex: "1 1 420px", minWidth: 0 }}>
-                  <p className="document-listing-title"><strong>{document.title}</strong></p>
-                  <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
-                </div>
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", flex: "0 0 auto", alignSelf: "flex-start" }}>
-                  <Link className="btn btn-basic" href={`/documents/${document.id}`}>{t("view")}</Link>
-                  <a className="btn btn-muted" href={`/api/documents/${document.id}/download`}>{t("download")}</a>
-                  {isAdmin ? (
-                    <AdminDeleteDocumentButton
-                      documentId={document.id}
-                      documentTitle={document.title}
-                      label={t("deleteEntry")}
-                      deletingLabel={t("deleting")}
-                      confirmMessage={t("deleteConfirm", { title: "{title}" })}
-                    />
-                  ) : null}
-                </div>
-              </div>
-              {isAdmin && recipients.length ? (
-                <details style={{ marginTop: "1rem" }}>
-                  <summary>{t("visibleTo", { count: recipients.length })}</summary>
-                  <ul>
-                    {recipients.map(({ user: recipient }) => (
-                      <li key={recipient.email}>{recipient.name || recipient.email} ({recipient.email})</li>
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-            </article>
-          );
-          })}
-          </div>
-        </section>)}
-      </section>
+      {documents.length === 0 ? <p className="muted">{t("empty")}</p> : <DocumentDatabaseBrowser
+        isAdmin={isAdmin}
+        groups={documentGroups.map((group) => ({
+          id: group.id,
+          name: group.name,
+          documents: group.documents.map((document) => ({
+            id: document.id,
+            title: document.title,
+            description: document.description,
+            createdAt: document.createdAt.toISOString(),
+            recipients: document.recipients.map(({ user: recipient }) => ({ name: recipient.name, email: recipient.email })),
+          })),
+        }))}
+        labels={{
+          allCategories: t("allCategories"), category: t("category"), searchDocuments: t("searchDocuments"), searchPlaceholder: t("searchPlaceholder"),
+          sortBy: t("sortBy"), uploadDate: t("uploadDate"), documentTitle: t("documentTitle"), sortOrder: t("sortOrder"), descending: t("descending"), ascending: t("ascending"),
+          noMatchingDocuments: t("noMatchingDocuments"), view: t("view"), download: t("download"), deleteEntry: t("deleteEntry"), deleting: t("deleting"),
+          deleteConfirm: t("deleteConfirm", { title: "{title}" }), visibleTo: t("visibleTo", { count: "{count}" }),
+        }}
+      />}
     </main>
   );
 }

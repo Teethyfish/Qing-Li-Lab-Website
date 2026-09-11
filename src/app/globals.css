@@ -165,6 +165,15 @@ a:hover { text-decoration: underline; }
 .document-category-picker select, .document-category-create input, .document-category-row input, .document-category-assignment select, .document-settings-form input:not([type="checkbox"]), .document-settings-form textarea, .document-delete-controls input { box-sizing: border-box; width: 100%; padding: .65rem .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent); background: var(--color-card); color: var(--color-text); font: inherit; }
 .document-category-grid { display: grid; gap: .65rem; margin-top: 1rem; }
 .document-category-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .6rem; padding: .7rem; align-items: center; border: 1px solid color-mix(in oklab, var(--color-text) 10%, transparent); background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.document-filter-controls { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(105px, .65fr) minmax(105px, .65fr); gap: .65rem; padding: .75rem; border: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); background: color-mix(in oklab, var(--color-card) 95%, var(--color-text) 5%); }
+.document-filter-controls label { display: grid; min-width: 0; gap: .35rem; }
+.document-filter-controls label > span { font-size: .78rem; font-weight: 700; }
+.document-filter-controls input, .document-filter-controls select { box-sizing: border-box; width: 100%; min-width: 0; padding: .6rem .65rem; border: 1px solid color-mix(in oklab, var(--color-text) 20%, transparent); background: var(--color-card); color: var(--color-text); font: inherit; }
+.document-database-filters { grid-template-columns: minmax(145px, .8fr) minmax(220px, 1.4fr) minmax(130px, .7fr) minmax(115px, .6fr); }
+.document-database-results { display: grid; gap: 1.5rem; }
+.document-database-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.document-database-copy { flex: 1 1 420px; min-width: 0; }
+.document-database-actions { display: flex; flex: 0 0 auto; align-self: flex-start; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .document-compact-list { display: grid; gap: .5rem; }
 .document-compact-item { min-width: 0; background: var(--color-card); border: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
 .document-compact-item > summary { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: .75rem .85rem .75rem 2.1rem; cursor: pointer; list-style: none; }
@@ -197,11 +206,13 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 900px) {
   .document-admin-columns { grid-template-columns: 1fr; }
+  .document-database-filters { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px) {
   .document-category-create, .document-category-row, .document-category-assignment { grid-template-columns: 1fr; align-items: stretch; }
   .document-category-create { display: grid; }
+  .document-filter-controls, .document-database-filters { grid-template-columns: 1fr; }
   .document-card-header { display: grid; }
   .document-card-header .status-label { justify-self: start; }
   .document-compact-item > summary { grid-template-columns: 1fr; gap: .25rem; }
@@ -1699,6 +1710,47 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .home-cipdb-tile h2 { font-size: 1rem; justify-self: start; }
 .home-cipdb-logo, .cipdb-logo-placeholder { display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 1px dashed color-mix(in oklab, var(--color-text) 30%, transparent); color: var(--color-muted); font-family: Georgia, serif; font-size: 2.2rem; }
 .home-coming-soon { font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .2rem .5rem; background: color-mix(in oklab, var(--color-accent) 18%, var(--color-card)); }
+.home-publications { display: grid; gap: .85rem; padding: 1rem; }
+.home-publications-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; }
+.home-publications-heading h2 { margin: 0; font-size: 1rem; }
+.home-publications-heading span { color: var(--color-muted); font-size: .74rem; font-weight: 700; white-space: nowrap; }
+.home-publications-all { justify-self: stretch; text-align: center; }
+
+.publication-list { display: grid; gap: .8rem; }
+.publication-entry { display: grid; gap: .45rem; padding: 1rem; background: var(--color-card); border: 1px solid color-mix(in oklab, var(--color-text) 13%, transparent); box-shadow: 0 3px 9px color-mix(in oklab, var(--color-text) 7%, transparent); }
+.publication-title { color: var(--color-text); font-size: 1rem; font-weight: 750; line-height: 1.4; text-decoration: none; }
+.publication-title:hover { color: var(--color-primary); text-decoration: underline; }
+.publication-authors { margin: 0; color: var(--color-muted); font-size: .86rem; line-height: 1.45; }
+.publication-meta { display: flex; gap: .35rem .75rem; flex-wrap: wrap; color: var(--color-muted); font-size: .78rem; }
+.publication-meta > *:not(:last-child)::after { margin-left: .75rem; content: "·"; }
+.publication-actions { display: flex; gap: .65rem; flex-wrap: wrap; margin-top: .35rem; }
+.publication-list-compact { gap: .55rem; }
+.publication-list-compact .publication-entry { gap: .3rem; padding: .7rem; box-shadow: none; background: color-mix(in oklab, var(--color-card) 96%, var(--color-text) 4%); }
+.publication-list-compact .publication-title { display: -webkit-box; overflow: hidden; font-size: .84rem; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.publication-list-compact .publication-authors { display: -webkit-box; overflow: hidden; font-size: .72rem; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.publication-list-compact .publication-meta { display: grid; gap: .15rem; font-size: .7rem; }
+.publication-list-compact .publication-meta > *::after { display: none; }
+
+.publications-page { display: grid; gap: 1.5rem; padding-bottom: 3rem; }
+.publications-heading h1 { margin: .25rem 0 .45rem; }
+.publications-heading p { margin-bottom: 0; }
+.publications-layout { display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.publication-profile { position: sticky; top: 88px; display: grid; gap: .75rem; padding: 1.1rem; }
+.publication-profile-monogram { display: grid; place-items: center; width: 74px; aspect-ratio: 1; background: color-mix(in oklab, var(--color-primary) 14%, var(--color-card)); border: 1px solid color-mix(in oklab, var(--color-primary) 32%, transparent); color: var(--color-primary); font-size: 1.25rem; font-weight: 800; }
+.publication-profile h2, .publication-profile p { margin: 0; }
+.publication-profile p { color: var(--color-muted); font-size: .86rem; line-height: 1.45; }
+.publication-stats { display: grid; grid-template-columns: 1fr 1fr; margin: .25rem 0 0; border-top: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); border-left: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
+.publication-stats div { display: grid; gap: .15rem; padding: .55rem; border-right: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); border-bottom: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
+.publication-stats dt { color: var(--color-muted); font-size: .7rem; }
+.publication-stats dd { margin: 0; font-size: 1rem; font-weight: 750; }
+.publication-profile-links { display: flex; gap: .4rem .75rem; flex-wrap: wrap; font-size: .8rem; }
+.publication-results { display: grid; gap: 1rem; min-width: 0; }
+.publication-results-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
+.publication-results-heading h2, .publication-results-heading p, .publication-page-count { margin: 0; }
+.publication-page-count { color: var(--color-muted); font-size: .82rem; white-space: nowrap; }
+.publication-message { margin: 0; }
+.publication-pagination { display: flex; justify-content: space-between; gap: 1rem; padding-top: .5rem; }
+.publication-source-note { margin: 0; font-size: .78rem; }
 
 .research-project-page { display: grid; gap: 1rem; }
 .research-project-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
@@ -1774,6 +1826,9 @@ button.project-photo-remove { position: absolute; top: 4px; right: 4px; width: 2
 
 @media (max-width: 720px) {
   .home-project-grid, .project-form-grid, .project-image-fields, .research-project-content { grid-template-columns: 1fr; }
+  .publications-layout { grid-template-columns: 1fr; }
+  .publication-profile { position: static; }
+  .publication-results-heading { align-items: start; }
   .research-project-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-supporting-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-admin-grid { grid-template-columns: 1fr; }

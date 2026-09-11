@@ -7,6 +7,8 @@ import AnnouncementCarousel from "@/components/AnnouncementCarousel";
 import EditableHomeContent from "@/components/EditableHomeContent";
 import { BANNER_ASPECT_RATIO, BANNER_MAX_WIDTH } from "@/lib/banner";
 import { publicMediaUrl } from "@/lib/media-url";
+import PublicationList from "@/components/PublicationList";
+import { getPublications } from "@/lib/publications";
 
 /**
  * Config keys this page reads:
@@ -57,7 +59,7 @@ export default async function HomePage() {
 
   // All independent Supabase reads run together; this avoids a long chain of
   // network round trips on every dynamic homepage request.
-  const [piConfig, welcomeConfig, titleConfig, subtitleConfig, configuredAlumniValue, collaboratorsValue, members, accountAlumni, announcements, researchProjects] = await Promise.all([
+  const [piConfig, welcomeConfig, titleConfig, subtitleConfig, configuredAlumniValue, collaboratorsValue, members, accountAlumni, announcements, researchProjects, recentPublicationResult] = await Promise.all([
     getConfig<PiConfig>("pi"),
     getConfig<string>("home.welcome"),
     getConfig<string>("home.labTitle"),
@@ -84,6 +86,7 @@ export default async function HomePage() {
       orderBy: { createdAt: "asc" },
       select: { id: true, slug: true, title: true, caption: true, tileImageUrl: true, updatedAt: true },
     }),
+    getPublications({ page: 1, perPage: 5 }),
   ]);
 
   const pi = piConfig || ({
@@ -285,6 +288,25 @@ export default async function HomePage() {
             <p>{t("cipdbName")}</p>
             <span className="home-coming-soon">{t("comingSoon")}</span>
           </Link>
+
+          <section className="tile home-publications" data-edit-ignore="true">
+            <div className="home-publications-heading">
+              <h2>{t("recentPublications")}</h2>
+              <span>{t("qingLi")}</span>
+            </div>
+            {recentPublicationResult.publications.length ? <PublicationList
+              publications={recentPublicationResult.publications}
+              locale={userLocale}
+              compact
+              labels={{
+                journalUnavailable: t("journalUnavailable"),
+                openPaper: t("openPaper"),
+                openAccess: t("openAccess"),
+                citedBy: t("citedBy", { count: "{count}" }),
+              }}
+            /> : <p className="muted">{recentPublicationResult.available ? t("noPublications") : t("publicationsUnavailable")}</p>}
+            <Link className="btn btn-basic home-publications-all" href="/publications">{t("seeAllPublications")}</Link>
+          </section>
         </aside>
 
         {/* Main column */}

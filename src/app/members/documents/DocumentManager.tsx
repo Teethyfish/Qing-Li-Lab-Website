@@ -32,6 +32,9 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [deleteConfirmations, setDeleteConfirmations] = useState<Record<string, string>>({});
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [documentSearch, setDocumentSearch] = useState("");
+  const [documentSort, setDocumentSort] = useState<"date" | "title">("date");
+  const [documentOrder, setDocumentOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     setCategories(initialCategories);
@@ -155,9 +158,18 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
   const selectedCategoryName = selectedCategoryId === ""
     ? t("uncategorized")
     : categories.find((category) => category.id === selectedCategoryId)?.name;
-  const visibleDocuments = selectedCategoryId === null
+  const categoryDocuments = selectedCategoryId === null
     ? []
     : documents.filter((document) => (document.categoryId || "") === selectedCategoryId);
+  const normalizedSearch = documentSearch.trim().toLocaleLowerCase();
+  const visibleDocuments = categoryDocuments
+    .filter((document) => !normalizedSearch || document.title.toLocaleLowerCase().includes(normalizedSearch))
+    .sort((left, right) => {
+      const comparison = documentSort === "title"
+        ? left.title.localeCompare(right.title, undefined, { sensitivity: "base" })
+        : new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+      return documentOrder === "asc" ? comparison : -comparison;
+    });
   const categoryDocumentCount = (categoryId: string) => documents.filter((document) => (document.categoryId || "") === categoryId).length;
 
   return <div className="document-management-workspace" data-edit-ignore="true">
@@ -192,6 +204,11 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
 
         {selectedCategoryId !== null ? <section className="tile document-list-section">
       <header className="document-panel-header"><div><h2>{selectedCategoryName}</h2><p className="muted">{t("documentManagementHelp")}</p></div></header>
+      <div className="document-filter-controls">
+        <label className="document-filter-search"><span>{t("searchDocuments")}</span><input type="search" value={documentSearch} onChange={(event) => setDocumentSearch(event.target.value)} placeholder={t("searchPlaceholder")} /></label>
+        <label><span>{t("sortBy")}</span><select value={documentSort} onChange={(event) => setDocumentSort(event.target.value as "date" | "title")}><option value="date">{t("uploadDate")}</option><option value="title">{t("titleField")}</option></select></label>
+        <label><span>{t("sortOrder")}</span><select value={documentOrder} onChange={(event) => setDocumentOrder(event.target.value as "asc" | "desc")}><option value="desc">{t("descending")}</option><option value="asc">{t("ascending")}</option></select></label>
+      </div>
       <div className="document-compact-list">
         {visibleDocuments.map((document) => <details key={document.id} className="document-compact-item">
           <summary><strong>{document.title}</strong><time dateTime={document.createdAt}>{document.uploadDate}</time></summary>
@@ -248,7 +265,7 @@ export default function DocumentManager({ initialCategories, initialDocuments, u
             {statuses[document.id] ? <p className="document-save-status" role="status">{statuses[document.id]}</p> : null}
           </div>
         </details>)}
-        {!visibleDocuments.length ? <p className="muted">{t("noDocumentsInCategory")}</p> : null}
+        {!visibleDocuments.length ? <p className="muted">{categoryDocuments.length ? t("noMatchingDocuments") : t("noDocumentsInCategory")}</p> : null}
       </div>
         </section> : null}
       </div>
