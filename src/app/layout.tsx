@@ -13,6 +13,7 @@ import { getTheme, themeToCss } from "@/lib/theme";
 import { prisma } from "@/lib/prisma";
 import { defaultLocale, locales } from "@/i18n/config";
 import { publicMediaUrl } from "@/lib/media-url";
+import { localizedContent } from "@/lib/localized-content";
 
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -20,14 +21,6 @@ export const metadata: Metadata = {
   title: "Qing Li Lab — Internal",
   description: "Lab website",
 };
-
-function localizedNoticeText(value: string, locale: string) {
-  try {
-    const parsed = JSON.parse(value) as Record<string, unknown>;
-    const localized = parsed[locale] ?? parsed.en ?? Object.values(parsed)[0];
-    return typeof localized === "string" ? localized : value;
-  } catch { return value; }
-}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Get session to derive navbar props
@@ -61,7 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     userImageUrl = user?.imageUrl && user.id ? publicMediaUrl("user", user.id, "image", user.updatedAt) : null;
     userName = user?.name ?? null;
     userCreatedAt = user?.createdAt ?? null;
-    userLocale = user?.locale ?? defaultLocale;
+    if (user?.locale && locales.includes(user.locale as (typeof locales)[number])) userLocale = user.locale;
     userThemePreference = user?.themePreference ?? "light";
   }
 
@@ -110,8 +103,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ...announcementNotices.map((notice) => ({
       id: notice.id,
       kind: "announcement" as const,
-      title: localizedNoticeText(notice.title, userLocale),
-      message: localizedNoticeText(notice.text, userLocale),
+      title: localizedContent(notice.title, userLocale),
+      message: localizedContent(notice.text, userLocale),
       unread: notice.reads.length === 0 && (!userCreatedAt || notice.createdAt >= userCreatedAt),
       createdAt: notice.createdAt.toISOString(),
     })),

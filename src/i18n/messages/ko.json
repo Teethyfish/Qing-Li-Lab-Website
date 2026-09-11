@@ -22,6 +22,9 @@
     "lightTheme": "라이트 테마 사용",
     "darkTheme": "다크 테마 사용",
     "languageSwitch": "언어",
+    "chineseOptions": "중국어 문자",
+    "simplifiedChinese": "중국어 간체",
+    "traditionalChinese": "중국어 번체",
     "newNotices": "새 알림 있음",
     "recentNotices": "최근 알림",
     "latestThree": "최근 3개",
@@ -129,7 +132,12 @@
     "citedBy": "{count}회 인용",
     "noPublications": "등록된 논문이 없습니다.",
     "publicationsUnavailable": "논문 업데이트를 일시적으로 불러올 수 없습니다.",
-    "seeAllPublications": "모든 논문 보기"
+    "seeAllPublications": "모든 논문 보기",
+    "defaultPiTitle": "대학원 과정 위원장",
+    "defaultPiIntroduction": "우리 연구실은 단백질체학과 환경 및 생물학적 시스템의 분자적 기반을 연구합니다.",
+    "defaultLabTitle": "Qing X. Li 연구실",
+    "defaultLabSubtitle": "단백질체학 핵심 시설",
+    "piPhotoAlt": "책임연구자"
   },
   "auth": {
     "login": "로그인",
@@ -358,7 +366,6 @@
     "publications": {
       "kicker": "연구 프로필",
       "title": "{name} — 논문",
-      "subtitle": "Google Scholar에 직접 접속하지 않아도 읽을 수 있도록 연구실 웹사이트에서 표시하는 논문 목록입니다.",
       "publicationList": "논문",
       "resultCount": "색인된 연구 성과 {count}건",
       "pageCount": "{page} / {total} 페이지",
@@ -552,7 +559,10 @@
       "saveProfile": "공개 프로필 저장",
       "previewProfile": "공개 프로필 미리보기",
       "saved": "프로필이 저장되었습니다.",
-      "newSection": "새 섹션"
+      "newSection": "새 섹션",
+      "saveError": "프로필을 저장하지 못했습니다.",
+      "imageProcessingError": "사진을 처리하지 못했습니다.",
+      "profilePhotoAlt": "프로필 사진"
     },
     "documentsAdmin": {
       "title": "문서 배포",
@@ -636,7 +646,8 @@
       "uploadCategoryPrompt": "업로드할 때 문서 분류를 선택하세요. 필요하면 나중에 변경할 수 있습니다.", "uploadCategoryHelp": "문서가 선택한 데이터베이스 섹션에 바로 배치됩니다.",
       "documentManagementHelp": "분류를 바로 지정하거나 문서 설정을 열어 기타 항목을 변경하세요.", "saveCategory": "분류 저장", "saving": "저장 중…", "saved": "저장했습니다.", "saveFailed": "변경 사항을 저장하지 못했습니다.",
       "categoryName": "분류 이름", "categoryCreated": "분류를 만들고 업로드 양식에 추가했습니다.", "categoryRenamed": "분류 이름을 변경했습니다.", "categoryDeleted": "분류를 삭제했으며 포함 문서는 미분류 상태가 되었습니다.", "confirmDeleteCategory": "{name}을(를) 삭제할까요? 포함 문서는 미분류 상태가 됩니다.",
-      "noDescription": "설명이 없습니다.", "noRecipients": "개별 수신자가 없습니다.", "deleteDocument": "문서 삭제", "deleteDocumentHelp": "DELETE를 입력하면 웹사이트 항목을 삭제하고 Google Drive 파일 삭제도 시도합니다."
+      "noDescription": "설명이 없습니다.", "noRecipients": "개별 수신자가 없습니다.", "deleteDocument": "문서 삭제", "deleteDocumentHelp": "DELETE를 입력하면 웹사이트 항목을 삭제하고 Google Drive 파일 삭제도 시도합니다.",
+      "startFailed": "업로드를 시작하지 못했습니다.", "uploadFailedStatus": "업로드에 실패했습니다(상태 {status}).", "driveConfirmationFailed": "Google Drive에서 업로드를 확인하지 못했습니다.", "publishFailed": "문서를 게시하지 못했습니다.", "uploadFailed": "업로드에 실패했습니다."
     },
     "instrumentAdmin": {
       "title": "장비 관리",
@@ -666,7 +677,14 @@
       "required": "필요",
       "notRequired": "불필요",
       "experiment": "실험 및 시료:",
-      "noRequests": "제출된 사용 신청이 없습니다."
+      "noRequests": "제출된 사용 신청이 없습니다.",
+      "instrumentImageRequired": "장비 이미지를 선택하세요.",
+      "addError": "장비를 추가하지 못했습니다.",
+      "availabilityError": "사용 가능 상태를 변경하지 못했습니다.",
+      "deleteConfirm": "{name}을(를) 삭제할까요? 기존 신청 기록은 유지됩니다.",
+      "deleteError": "장비를 삭제하지 못했습니다.",
+      "imageProcessingError": "이미지를 처리하지 못했습니다.",
+      "imagePreviewAlt": "장비 이미지 미리보기"
     },
     "projectsAdmin": {
       "title": "현재 프로젝트 관리", "subtitle": "홈 페이지의 현재 프로젝트 영역에 표시할 연구 페이지를 만듭니다.",
@@ -744,10 +762,13 @@
     "confirmDeleteWithDetails": "이 공지사항을 삭제하시겠습니까? 배너와 세부 페이지가 모두 삭제됩니다.",
     "noAnnouncements": "아직 공지사항이 없습니다. '새 공지사항 추가'를 클릭하여 만드세요.",
     "archived": "보관됨", "archive": "보관", "unarchive": "보관 해제", "noArchived": "보관된 공지사항이 없습니다.",
-    "english": "영어", "chinese": "중국어", "korean": "한국어", "titleEnglish": "제목(영어)", "subtitleEnglish": "부제(영어)",
+    "english": "영어", "chinese": "중국어 간체", "traditionalChinese": "중국어 번체", "korean": "한국어", "titleEnglish": "제목(영어)", "subtitleEnglish": "부제(영어)",
     "titlePlaceholder": "공지 제목을 입력하세요...", "subtitlePlaceholder": "부제를 입력하세요...", "additionalLanguages": "추가 언어",
+    "titleChinesePlaceholder": "输入简体中文标题...", "subtitleChinesePlaceholder": "输入简体中文副标题...", "titleTraditionalPlaceholder": "輸入繁體中文標題...", "subtitleTraditionalPlaceholder": "輸入繁體中文副標題...", "titleKoreanPlaceholder": "한국어 제목을 입력하세요...", "subtitleKoreanPlaceholder": "한국어 부제를 입력하세요...",
     "enableDetails": "세부 페이지 사용", "urlSlug": "URL 슬러그", "slugPlaceholder": "예: summer-symposium-2024", "slugHelp": "접속 경로: /announcements/[사용할-슬러그]",
-    "details": "세부 내용", "detailsEnglish": "세부 내용(영어)", "detailsChinese": "세부 내용(중국어)", "detailsKorean": "세부 내용(한국어)", "detailsPlaceholder": "세부 내용을 입력하세요...",
-    "missingTranslations": "누락된 번역", "missingTranslationsBody": "다음 언어의 번역이 누락되었거나 비어 있습니다:", "saveAnywayQuestion": "그대로 저장할까요?", "goBack": "돌아가기", "saveAnyway": "그대로 저장", "backToHome": "홈으로 돌아가기"
+    "details": "세부 내용", "detailsEnglish": "세부 내용(영어)", "detailsChinese": "세부 내용(중국어 간체)", "detailsTraditionalChinese": "세부 내용(중국어 번체)", "detailsKorean": "세부 내용(한국어)", "detailsPlaceholder": "세부 내용을 입력하세요...",
+    "detailsChinesePlaceholder": "输入简体中文详细内容...", "detailsTraditionalPlaceholder": "輸入繁體中文詳細內容...", "detailsKoreanPlaceholder": "자세한 내용을 입력하세요...",
+    "missingTranslations": "누락된 번역", "missingTranslationsBody": "다음 언어의 번역이 누락되었거나 비어 있습니다:", "saveAnywayQuestion": "그대로 저장할까요?", "goBack": "돌아가기", "saveAnyway": "그대로 저장", "backToHome": "홈으로 돌아가기",
+    "adminSessionExpired": "관리자 세션이 만료되었습니다. 다시 로그인하세요.", "requiredFieldsError": "공지사항을 만들기 전에 이미지, 제목, 부제를 추가하세요.", "detailsUrlRequired": "공지사항 세부 페이지의 URL을 입력하세요.", "saveError": "공지사항을 저장하지 못했습니다. 페이지 URL이 고유한지 확인한 후 다시 시도하세요.", "notFoundTitle": "공지사항을 찾을 수 없음", "announcementTitle": "공지사항"
   }
 }

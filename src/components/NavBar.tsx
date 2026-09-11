@@ -75,6 +75,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const [noticeDropdownOpen, setNoticeDropdownOpen] = useState(false);
+  const [chineseMenuOpen, setChineseMenuOpen] = useState(false);
   const [announcementUnread, setAnnouncementUnread] = useState(hasUnreadAnnouncements);
   const { isEditMode, setIsEditMode, editedContent, resetContent } = useEditMode();
 
@@ -84,7 +85,12 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(preference),
     });
-    if (response.ok) router.refresh();
+    if (!response.ok) return;
+    if (preference.locale) {
+      window.location.reload();
+      return;
+    }
+    router.refresh();
   };
 
   const toggleEditMode = () => {
@@ -252,8 +258,18 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                 <button type="button" className={`nav-pref-button${currentThemeId === "light" ? " active" : ""}`} aria-label={t('lightTheme')} title={t('lightTheme')} onClick={() => updatePreference({ themePreference: "light" })}><Sun size={14} aria-hidden="true" /></button>
                 <button type="button" className={`nav-pref-button${currentThemeId === "dark" ? " active" : ""}`} aria-label={t('darkTheme')} title={t('darkTheme')} onClick={() => updatePreference({ themePreference: "dark" })}><Moon size={14} aria-hidden="true" /></button>
               </div>
-              <div className="nav-segmented" aria-label={t('languageSwitch')}>
-                {[{ code: "en", label: "EN" }, { code: "zh", label: "CN" }, { code: "ko", label: "KR" }].map(({ code, label }) => <button key={code} type="button" className={`nav-pref-button${currentLocale === code ? " active" : ""}`} aria-pressed={currentLocale === code} onClick={() => updatePreference({ locale: code })}>{label}</button>)}
+              <div className="nav-language-picker" onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setChineseMenuOpen(false);
+              }}>
+                <div className="nav-segmented" aria-label={t('languageSwitch')}>
+                  <button type="button" className={`nav-pref-button${currentLocale === "en" ? " active" : ""}`} aria-pressed={currentLocale === "en"} onClick={() => updatePreference({ locale: "en" })}>EN</button>
+                  <button type="button" className={`nav-pref-button${currentLocale.startsWith("zh") ? " active" : ""}`} aria-expanded={chineseMenuOpen} aria-label={t("chineseOptions")} title={t("chineseOptions")} onClick={() => setChineseMenuOpen((open) => !open)}>CN</button>
+                  <button type="button" className={`nav-pref-button${currentLocale === "ko" ? " active" : ""}`} aria-pressed={currentLocale === "ko"} onClick={() => updatePreference({ locale: "ko" })}>KR</button>
+                </div>
+                <div className={`nav-chinese-options${chineseMenuOpen ? " open" : ""}`} aria-hidden={!chineseMenuOpen}>
+                  <button type="button" className={`nav-pref-button${currentLocale === "zh" ? " active" : ""}`} aria-label={t("simplifiedChinese")} title={t("simplifiedChinese")} tabIndex={chineseMenuOpen ? 0 : -1} onClick={() => updatePreference({ locale: "zh" })}>简</button>
+                  <button type="button" className={`nav-pref-button${currentLocale === "zh-Hant" ? " active" : ""}`} aria-label={t("traditionalChinese")} title={t("traditionalChinese")} tabIndex={chineseMenuOpen ? 0 : -1} onClick={() => updatePreference({ locale: "zh-Hant" })}>繁</button>
+                </div>
               </div>
             </div>
             {isAuthed ? <div className="notice-menu">

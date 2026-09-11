@@ -22,6 +22,9 @@
     "lightTheme": "使用浅色主题",
     "darkTheme": "使用深色主题",
     "languageSwitch": "语言",
+    "chineseOptions": "中文字符",
+    "simplifiedChinese": "简体中文",
+    "traditionalChinese": "繁体中文",
     "newNotices": "通知，有新消息",
     "recentNotices": "最近通知",
     "latestThree": "最新3条",
@@ -129,7 +132,12 @@
     "citedBy": "被引用 {count} 次",
     "noPublications": "目前没有发表成果。",
     "publicationsUnavailable": "发表成果暂时无法更新。",
-    "seeAllPublications": "查看全部发表成果"
+    "seeAllPublications": "查看全部发表成果",
+    "defaultPiTitle": "研究生项目主任",
+    "defaultPiIntroduction": "本实验室专注于蛋白质组学，以及环境与生物系统的分子基础研究。",
+    "defaultLabTitle": "Qing X. Li 实验室",
+    "defaultLabSubtitle": "蛋白质组学核心设施",
+    "piPhotoAlt": "首席研究员"
   },
   "auth": {
     "login": "登录",
@@ -358,7 +366,6 @@
     "publications": {
       "kicker": "研究档案",
       "title": "{name} — 发表成果",
-      "subtitle": "由实验室网站直接呈现的发表成果索引，无需直接访问 Google Scholar 即可阅读。",
       "publicationList": "发表成果",
       "resultCount": "已收录 {count} 项成果",
       "pageCount": "第 {page} 页，共 {total} 页",
@@ -552,7 +559,10 @@
       "saveProfile": "保存公开个人资料",
       "previewProfile": "预览公开个人资料",
       "saved": "个人资料已保存。",
-      "newSection": "新板块"
+      "newSection": "新板块",
+      "saveError": "无法保存个人资料。",
+      "imageProcessingError": "无法处理该照片。",
+      "profilePhotoAlt": "个人资料照片"
     },
     "documentsAdmin": {
       "title": "文档分发",
@@ -636,7 +646,8 @@
       "uploadCategoryPrompt": "上传时直接选择文档分类；如有需要，以后仍可更改。", "uploadCategoryHelp": "文档将直接放入所选的数据库分区。",
       "documentManagementHelp": "可直接分配分类，或打开文档设置进行其他更改。", "saveCategory": "保存分类", "saving": "保存中…", "saved": "已保存。", "saveFailed": "无法保存更改。",
       "categoryName": "分类名称", "categoryCreated": "分类已创建并加入上传表单。", "categoryRenamed": "分类已重命名。", "categoryDeleted": "分类已删除，其中的文档现为未分类。", "confirmDeleteCategory": "删除 {name}？其中的文档将变为未分类。",
-      "noDescription": "未提供说明。", "noRecipients": "没有个人收件人。", "deleteDocument": "删除文档", "deleteDocumentHelp": "输入 DELETE 以删除网站条目，并尝试删除 Google Drive 文件。"
+      "noDescription": "未提供说明。", "noRecipients": "没有个人收件人。", "deleteDocument": "删除文档", "deleteDocumentHelp": "输入 DELETE 以删除网站条目，并尝试删除 Google Drive 文件。",
+      "startFailed": "无法开始上传。", "uploadFailedStatus": "上传失败（状态 {status}）。", "driveConfirmationFailed": "Google Drive 未确认上传。", "publishFailed": "无法发布文档。", "uploadFailed": "上传失败。"
     },
     "instrumentAdmin": {
       "title": "管理仪器",
@@ -666,7 +677,14 @@
       "required": "需要",
       "notRequired": "不需要",
       "experiment": "实验和样品：",
-      "noRequests": "尚未收到使用申请。"
+      "noRequests": "尚未收到使用申请。",
+      "instrumentImageRequired": "请选择仪器图片。",
+      "addError": "无法添加仪器。",
+      "availabilityError": "无法更新可用状态。",
+      "deleteConfirm": "删除 {name}？已有申请记录将予保留。",
+      "deleteError": "无法删除仪器。",
+      "imageProcessingError": "无法处理该图片。",
+      "imagePreviewAlt": "仪器图片预览"
     },
     "projectsAdmin": {
       "title": "管理当前项目", "subtitle": "创建显示在主页“当前项目”区域中的研究页面。",
@@ -744,10 +762,13 @@
     "confirmDeleteWithDetails": "您确定要删除此公告吗？横幅和详情页都将被删除。",
     "noAnnouncements": "暂无公告。点击「添加新公告」以创建一个。",
     "archived": "已归档", "archive": "归档", "unarchive": "取消归档", "noArchived": "暂无已归档公告。",
-    "english": "英语", "chinese": "中文", "korean": "韩语", "titleEnglish": "标题（英语）", "subtitleEnglish": "副标题（英语）",
+    "english": "英语", "chinese": "简体中文", "traditionalChinese": "繁体中文", "korean": "韩语", "titleEnglish": "标题（英语）", "subtitleEnglish": "副标题（英语）",
     "titlePlaceholder": "输入公告标题...", "subtitlePlaceholder": "输入副标题...", "additionalLanguages": "其他语言",
+    "titleChinesePlaceholder": "输入简体中文标题...", "subtitleChinesePlaceholder": "输入简体中文副标题...", "titleTraditionalPlaceholder": "輸入繁體中文標題...", "subtitleTraditionalPlaceholder": "輸入繁體中文副標題...", "titleKoreanPlaceholder": "한국어 제목을 입력하세요...", "subtitleKoreanPlaceholder": "한국어 부제를 입력하세요...",
     "enableDetails": "启用详情页", "urlSlug": "URL 标识符", "slugPlaceholder": "例如 summer-symposium-2024", "slugHelp": "访问地址：/announcements/[您的标识符]",
-    "details": "详情", "detailsEnglish": "详细内容（英语）", "detailsChinese": "详细内容（中文）", "detailsKorean": "详细内容（韩语）", "detailsPlaceholder": "输入详细内容...",
-    "missingTranslations": "缺少翻译", "missingTranslationsBody": "以下语言的翻译缺失或为空：", "saveAnywayQuestion": "仍要保存吗？", "goBack": "返回", "saveAnyway": "仍然保存", "backToHome": "返回主页"
+    "details": "详情", "detailsEnglish": "详细内容（英语）", "detailsChinese": "详细内容（简体中文）", "detailsTraditionalChinese": "详细内容（繁体中文）", "detailsKorean": "详细内容（韩语）", "detailsPlaceholder": "输入详细内容...",
+    "detailsChinesePlaceholder": "输入简体中文详细内容...", "detailsTraditionalPlaceholder": "輸入繁體中文詳細內容...", "detailsKoreanPlaceholder": "자세한 내용을 입력하세요...",
+    "missingTranslations": "缺少翻译", "missingTranslationsBody": "以下语言的翻译缺失或为空：", "saveAnywayQuestion": "仍要保存吗？", "goBack": "返回", "saveAnyway": "仍然保存", "backToHome": "返回主页",
+    "adminSessionExpired": "您的管理员会话已过期，请重新登录。", "requiredFieldsError": "创建公告前，请添加图片、标题和副标题。", "detailsUrlRequired": "请为公告详情页添加页面网址。", "saveError": "无法保存公告。请确认页面网址唯一后重试。", "notFoundTitle": "找不到公告", "announcementTitle": "公告"
   }
 }

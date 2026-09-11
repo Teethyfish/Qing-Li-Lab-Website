@@ -56,6 +56,7 @@ export default function AnnouncementsManager({
 
   // Language checkboxes
   const [enableChinese, setEnableChinese] = useState(false);
+  const [enableTraditionalChinese, setEnableTraditionalChinese] = useState(false);
   const [enableKorean, setEnableKorean] = useState(false);
 
   // Details page options
@@ -80,16 +81,19 @@ export default function AnnouncementsManager({
   const validateTranslations = (formData: FormData): { valid: boolean; missing: string[] } => {
     const missing: string[] = [];
     const enableCh = formData.get("enableChinese") === "true";
+    const enableZhHant = formData.get("enableTraditionalChinese") === "true";
     const enableKo = formData.get("enableKorean") === "true";
 
     // Check title
     const titleEn = String(formData.get("title_en") || "").trim();
     const titleZh = String(formData.get("title_zh") || "").trim();
+    const titleZhHant = String(formData.get("title_zh-Hant") || "").trim();
     const titleKo = String(formData.get("title_ko") || "").trim();
 
     // Check text
     const textEn = String(formData.get("text_en") || "").trim();
     const textZh = String(formData.get("text_zh") || "").trim();
+    const textZhHant = String(formData.get("text_zh-Hant") || "").trim();
     const textKo = String(formData.get("text_ko") || "").trim();
 
     if (!titleEn || !textEn) {
@@ -97,6 +101,9 @@ export default function AnnouncementsManager({
     }
     if (enableCh && (!titleZh || !textZh)) {
       missing.push(t('chinese'));
+    }
+    if (enableZhHant && (!titleZhHant || !textZhHant)) {
+      missing.push(t('traditionalChinese'));
     }
     if (enableKo && (!titleKo || !textKo)) {
       missing.push(t('korean'));
@@ -113,6 +120,11 @@ export default function AnnouncementsManager({
     if (formData.get("enableChinese") === "true") {
       const zh = String(formData.get("title_zh") || "").trim();
       if (zh) translations.zh = zh;
+    }
+
+    if (formData.get("enableTraditionalChinese") === "true") {
+      const zhHant = String(formData.get("title_zh-Hant") || "").trim();
+      if (zhHant) translations["zh-Hant"] = zhHant;
     }
 
     if (formData.get("enableKorean") === "true") {
@@ -133,6 +145,11 @@ export default function AnnouncementsManager({
       if (zh) translations.zh = zh;
     }
 
+    if (formData.get("enableTraditionalChinese") === "true") {
+      const zhHant = String(formData.get("text_zh-Hant") || "").trim();
+      if (zhHant) translations["zh-Hant"] = zhHant;
+    }
+
     if (formData.get("enableKorean") === "true") {
       const ko = String(formData.get("text_ko") || "").trim();
       if (ko) translations.ko = ko;
@@ -151,6 +168,11 @@ export default function AnnouncementsManager({
     if (formData.get("enableChinese") === "true") {
       const zh = String(formData.get("details_zh") || "").trim();
       if (zh) translations.zh = zh;
+    }
+
+    if (formData.get("enableTraditionalChinese") === "true") {
+      const zhHant = String(formData.get("details_zh-Hant") || "").trim();
+      if (zhHant) translations["zh-Hant"] = zhHant;
     }
 
     if (formData.get("enableKorean") === "true") {
@@ -214,6 +236,7 @@ export default function AnnouncementsManager({
       setCroppedImage(null);
       setCroppedArea(null);
       setEnableChinese(false);
+      setEnableTraditionalChinese(false);
       setEnableKorean(false);
       setHasDetailsPage(false);
     } catch {
@@ -270,6 +293,7 @@ export default function AnnouncementsManager({
     setCroppedImage(null);
     setCroppedArea(null);
     setEnableChinese(false);
+    setEnableTraditionalChinese(false);
     setEnableKorean(false);
     setHasDetailsPage(false);
   };
@@ -301,6 +325,7 @@ export default function AnnouncementsManager({
     const textTranslations = parseTranslations(announcement.text);
     setEditingId(announcement.id);
     setEnableChinese(!!textTranslations.zh || !!titleTranslations.zh);
+    setEnableTraditionalChinese(!!textTranslations["zh-Hant"] || !!titleTranslations["zh-Hant"]);
     setEnableKorean(!!textTranslations.ko || !!titleTranslations.ko);
     setHasDetailsPage(announcement.hasDetailsPage);
   };
@@ -436,15 +461,30 @@ export default function AnnouncementsManager({
                     <input
                       name="title_zh"
                       type="text"
-                      placeholder="输入中文标题..."
+                      placeholder={t("titleChinesePlaceholder")}
                       style={inputStyle}
                     />
                     <textarea
                       name="text_zh"
                       rows={2}
-                      placeholder="输入中文副标题..."
+                      placeholder={t("subtitleChinesePlaceholder")}
                       style={inputStyle}
                     />
+                  </div>
+                )}
+
+                <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={enableTraditionalChinese}
+                    onChange={(e) => setEnableTraditionalChinese(e.target.checked)}
+                  />
+                  <span>{t("traditionalChinese")} (繁體中文)</span>
+                </label>
+                {enableTraditionalChinese && (
+                  <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                    <input name="title_zh-Hant" type="text" placeholder={t("titleTraditionalPlaceholder")} style={inputStyle} />
+                    <textarea name="text_zh-Hant" rows={2} placeholder={t("subtitleTraditionalPlaceholder")} style={inputStyle} />
                   </div>
                 )}
 
@@ -462,13 +502,13 @@ export default function AnnouncementsManager({
                     <input
                       name="title_ko"
                       type="text"
-                      placeholder="한국어 제목을 입력하세요..."
+                      placeholder={t("titleKoreanPlaceholder")}
                       style={inputStyle}
                     />
                     <textarea
                       name="text_ko"
                       rows={2}
-                      placeholder="한국어 부제를 입력하세요..."
+                      placeholder={t("subtitleKoreanPlaceholder")}
                       style={inputStyle}
                     />
                   </div>
@@ -476,6 +516,7 @@ export default function AnnouncementsManager({
               </div>
 
               <input type="hidden" name="enableChinese" value={enableChinese ? "true" : "false"} />
+              <input type="hidden" name="enableTraditionalChinese" value={enableTraditionalChinese ? "true" : "false"} />
               <input type="hidden" name="enableKorean" value={enableKorean ? "true" : "false"} />
 
               {/* Details page options */}
@@ -527,9 +568,18 @@ export default function AnnouncementsManager({
                           <textarea
                             name="details_zh"
                             rows={4}
-                            placeholder="输入详细内容..."
+                            placeholder={t("detailsChinesePlaceholder")}
                             style={inputStyle}
                           />
+                        </label>
+                      </div>
+                    )}
+
+                    {enableTraditionalChinese && (
+                      <div>
+                        <label style={{ display: "grid", gap: "0.4rem" }}>
+                          <div style={{ fontWeight: 600 }}>{t("detailsTraditionalChinese")}</div>
+                          <textarea name="details_zh-Hant" rows={4} placeholder={t("detailsTraditionalPlaceholder")} style={inputStyle} />
                         </label>
                       </div>
                     )}
@@ -541,7 +591,7 @@ export default function AnnouncementsManager({
                           <textarea
                             name="details_ko"
                             rows={4}
-                            placeholder="자세한 내용을 입력하세요..."
+                            placeholder={t("detailsKoreanPlaceholder")}
                             style={inputStyle}
                           />
                         </label>
@@ -576,6 +626,7 @@ export default function AnnouncementsManager({
                     setCroppedImage(null);
                     setCroppedArea(null);
                     setEnableChinese(false);
+                    setEnableTraditionalChinese(false);
                     setEnableKorean(false);
                     setHasDetailsPage(false);
                   }}
@@ -664,16 +715,31 @@ export default function AnnouncementsManager({
                             name="title_zh"
                             type="text"
                             defaultValue={titleTranslations.zh || ""}
-                            placeholder="输入中文标题..."
+                            placeholder={t("titleChinesePlaceholder")}
                             style={inputStyle}
                           />
                           <textarea
                             name="text_zh"
                             rows={2}
                             defaultValue={textTranslations.zh || ""}
-                            placeholder="输入中文副标题..."
+                            placeholder={t("subtitleChinesePlaceholder")}
                             style={inputStyle}
                           />
+                        </div>
+                      )}
+
+                      <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={enableTraditionalChinese}
+                          onChange={(e) => setEnableTraditionalChinese(e.target.checked)}
+                        />
+                        <span>{t("traditionalChinese")} (繁體中文)</span>
+                      </label>
+                      {enableTraditionalChinese && (
+                        <div style={{ display: "grid", gap: "0.75rem", marginLeft: "1.5rem" }}>
+                          <input name="title_zh-Hant" type="text" defaultValue={titleTranslations["zh-Hant"] || ""} placeholder={t("titleTraditionalPlaceholder")} style={inputStyle} />
+                          <textarea name="text_zh-Hant" rows={2} defaultValue={textTranslations["zh-Hant"] || ""} placeholder={t("subtitleTraditionalPlaceholder")} style={inputStyle} />
                         </div>
                       )}
 
@@ -692,14 +758,14 @@ export default function AnnouncementsManager({
                             name="title_ko"
                             type="text"
                             defaultValue={titleTranslations.ko || ""}
-                            placeholder="한국어 제목을 입력하세요..."
+                            placeholder={t("titleKoreanPlaceholder")}
                             style={inputStyle}
                           />
                           <textarea
                             name="text_ko"
                             rows={2}
                             defaultValue={textTranslations.ko || ""}
-                            placeholder="한국어 부제를 입력하세요..."
+                            placeholder={t("subtitleKoreanPlaceholder")}
                             style={inputStyle}
                           />
                         </div>
@@ -707,6 +773,7 @@ export default function AnnouncementsManager({
                     </div>
 
                     <input type="hidden" name="enableChinese" value={enableChinese ? "true" : "false"} />
+                    <input type="hidden" name="enableTraditionalChinese" value={enableTraditionalChinese ? "true" : "false"} />
                     <input type="hidden" name="enableKorean" value={enableKorean ? "true" : "false"} />
 
                     {/* Details page options */}
@@ -758,7 +825,22 @@ export default function AnnouncementsManager({
                                   name="details_zh"
                                   rows={4}
                                   defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).zh : ""}
-                                  placeholder="输入详细内容..."
+                                  placeholder={t("detailsChinesePlaceholder")}
+                                  style={inputStyle}
+                                />
+                              </label>
+                            </div>
+                          )}
+
+                          {enableTraditionalChinese && (
+                            <div>
+                              <label style={{ display: "grid", gap: "0.4rem" }}>
+                                <div style={{ fontWeight: 600 }}>{t("detailsTraditionalChinese")}</div>
+                                <textarea
+                                  name="details_zh-Hant"
+                                  rows={4}
+                                  defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent)["zh-Hant"] : ""}
+                                  placeholder={t("detailsTraditionalPlaceholder")}
                                   style={inputStyle}
                                 />
                               </label>
@@ -773,7 +855,7 @@ export default function AnnouncementsManager({
                                   name="details_ko"
                                   rows={4}
                                   defaultValue={announcement.detailsContent ? parseTranslations(announcement.detailsContent).ko : ""}
-                                  placeholder="자세한 내용을 입력하세요..."
+                                  placeholder={t("detailsKoreanPlaceholder")}
                                   style={inputStyle}
                                 />
                               </label>
@@ -808,6 +890,7 @@ export default function AnnouncementsManager({
                           setCroppedImage(null);
                           setCroppedArea(null);
                           setEnableChinese(false);
+                          setEnableTraditionalChinese(false);
                           setEnableKorean(false);
                           setHasDetailsPage(false);
                         }}

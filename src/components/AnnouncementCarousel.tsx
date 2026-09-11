@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { localizedContent } from "@/lib/localized-content";
 
 type Announcement = {
   id: string;
@@ -53,15 +54,6 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
 
   if (!count) return null;
 
-  const localized = (value: string) => {
-    try {
-      const translations = JSON.parse(value) as Record<string, string>;
-      return translations[locale] || translations.en || "";
-    } catch {
-      return value;
-    }
-  };
-
   const finishMove = () => {
     if (trackIndex === 0 || trackIndex === count + 1) {
       setAnimated(false);
@@ -93,8 +85,8 @@ export default function AnnouncementCarousel({ announcements, locale }: Props) {
           <div className="announcement-slide-image" style={{ backgroundImage: `url(${announcement.imageUrl})` }} />
           <div className="announcement-slide-shade" />
           <div className="announcement-slide-copy">
-            <h2>{localized(announcement.title)}</h2>
-            <p>{localized(announcement.text)}</p>
+            <h2>{localizedContent(announcement.title, locale)}</h2>
+            <p>{localizedContent(announcement.text, locale)}</p>
           </div>
         </div>;
         return <div className="announcement-slide" style={{ width: `${100 / slides.length}%` }} key={`${announcement.id}-${index}`}>

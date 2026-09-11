@@ -92,18 +92,17 @@ export default async function HomePage() {
   const pi = piConfig || ({
       name: "Qing X. Li",
       titleLines: [
-        "Graduate Chair",
+        t("defaultPiTitle"),
       ],
       email: "",
       phone: "",
       office: "",
       imageUrl: "",
-      intro:
-        "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
+      intro: t("defaultPiIntroduction"),
   } as const);
   const welcome = welcomeConfig || t("welcomeDefault");
-  const labTitle = titleConfig || "Qing X. Li's Lab";
-  const labSubtitle = subtitleConfig || "Proteomics Core Facility";
+  const labTitle = titleConfig || t("defaultLabTitle");
+  const labSubtitle = subtitleConfig || t("defaultLabSubtitle");
   const configuredAlumni = configuredAlumniValue || [];
   const collaborators = collaboratorsValue || [];
 
@@ -211,7 +210,7 @@ export default async function HomePage() {
                 >
                   <Image
                     src={pi.imageUrl}
-                    alt={pi.name || "PI"}
+                    alt={pi.name || t("piPhotoAlt")}
                     fill
                     sizes="96px"
                     style={{ objectFit: "cover" }}

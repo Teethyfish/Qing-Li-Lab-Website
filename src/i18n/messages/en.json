@@ -22,6 +22,9 @@
     "lightTheme": "Use light theme",
     "darkTheme": "Use dark theme",
     "languageSwitch": "Language",
+    "chineseOptions": "Chinese script",
+    "simplifiedChinese": "Simplified Chinese",
+    "traditionalChinese": "Traditional Chinese",
     "newNotices": "Notifications, new notices",
     "recentNotices": "Recent notices",
     "latestThree": "Latest 3",
@@ -129,7 +132,12 @@
     "citedBy": "Cited by {count}",
     "noPublications": "No publications are listed yet.",
     "publicationsUnavailable": "Publication updates are temporarily unavailable.",
-    "seeAllPublications": "See all publications"
+    "seeAllPublications": "See all publications",
+    "defaultPiTitle": "Graduate Chair",
+    "defaultPiIntroduction": "Our lab focuses on proteomics and the molecular basis of environmental and biological systems.",
+    "defaultLabTitle": "Qing X. Li's Lab",
+    "defaultLabSubtitle": "Proteomics Core Facility",
+    "piPhotoAlt": "Principal investigator"
   },
   "auth": {
     "login": "Login",
@@ -358,7 +366,6 @@
     "publications": {
       "kicker": "Research profile",
       "title": "{name} — Publications",
-      "subtitle": "A locally rendered publication index designed to remain readable without direct access to Google Scholar.",
       "publicationList": "Publications",
       "resultCount": "{count} indexed works",
       "pageCount": "Page {page} of {total}",
@@ -552,7 +559,10 @@
       "saveProfile": "Save Public Profile",
       "previewProfile": "Preview Public Profile",
       "saved": "Profile saved.",
-      "newSection": "New Section"
+      "newSection": "New Section",
+      "saveError": "Could not save the profile.",
+      "imageProcessingError": "Could not process that photo.",
+      "profilePhotoAlt": "Profile photo"
     },
     "documentsAdmin": {
       "title": "Document distribution",
@@ -636,7 +646,8 @@
       "uploadCategoryPrompt": "Choose the document’s category while uploading. You can change it later if needed.", "uploadCategoryHelp": "This places the document directly into the selected database section.",
       "documentManagementHelp": "Assign categories directly or open a document’s settings for less common changes.", "saveCategory": "Save category", "saving": "Saving…", "saved": "Saved.", "saveFailed": "Changes could not be saved.",
       "categoryName": "Category name", "categoryCreated": "Category created and added to the upload form.", "categoryRenamed": "Category renamed.", "categoryDeleted": "Category deleted; its documents are now uncategorized.", "confirmDeleteCategory": "Delete {name}? Documents in it will become uncategorized.",
-      "noDescription": "No description provided.", "noRecipients": "No individual recipients.", "deleteDocument": "Delete document", "deleteDocumentHelp": "Type DELETE to remove the website entry and attempt to remove its Google Drive file."
+      "noDescription": "No description provided.", "noRecipients": "No individual recipients.", "deleteDocument": "Delete document", "deleteDocumentHelp": "Type DELETE to remove the website entry and attempt to remove its Google Drive file.",
+      "startFailed": "Could not start the upload.", "uploadFailedStatus": "Upload failed (status {status}).", "driveConfirmationFailed": "Google Drive did not confirm the upload.", "publishFailed": "Could not publish the document.", "uploadFailed": "The upload failed."
     },
     "instrumentAdmin": {
       "title": "Manage Instruments",
@@ -666,7 +677,14 @@
       "required": "Required",
       "notRequired": "Not required",
       "experiment": "Experiment and samples:",
-      "noRequests": "No access requests have been submitted."
+      "noRequests": "No access requests have been submitted.",
+      "instrumentImageRequired": "Choose an instrument image.",
+      "addError": "Could not add the instrument.",
+      "availabilityError": "Could not update availability.",
+      "deleteConfirm": "Delete {name}? Existing request records will be retained.",
+      "deleteError": "Could not delete the instrument.",
+      "imageProcessingError": "Could not process that image.",
+      "imagePreviewAlt": "Instrument preview"
     },
     "projectsAdmin": {
       "title": "Manage Current Projects", "subtitle": "Create the research pages shown in the Current Projects section of the home page.",
@@ -744,10 +762,13 @@
     "confirmDeleteWithDetails": "Are you sure you want to delete this announcement? This will remove both the banner and the details page.",
     "noAnnouncements": "No announcements yet. Click 'Add New Announcement' to create one.",
     "archived": "Archived", "archive": "Archive", "unarchive": "Unarchive", "noArchived": "No archived announcements.",
-    "english": "English", "chinese": "Chinese", "korean": "Korean", "titleEnglish": "Title (English)", "subtitleEnglish": "Subtitle (English)",
+    "english": "English", "chinese": "Simplified Chinese", "traditionalChinese": "Traditional Chinese", "korean": "Korean", "titleEnglish": "Title (English)", "subtitleEnglish": "Subtitle (English)",
     "titlePlaceholder": "Enter announcement title...", "subtitlePlaceholder": "Enter subtitle text...", "additionalLanguages": "Additional Languages",
+    "titleChinesePlaceholder": "输入简体中文标题...", "subtitleChinesePlaceholder": "输入简体中文副标题...", "titleTraditionalPlaceholder": "輸入繁體中文標題...", "subtitleTraditionalPlaceholder": "輸入繁體中文副標題...", "titleKoreanPlaceholder": "한국어 제목을 입력하세요...", "subtitleKoreanPlaceholder": "한국어 부제를 입력하세요...",
     "enableDetails": "Enable Details Page", "urlSlug": "URL Slug", "slugPlaceholder": "e.g., summer-symposium-2024", "slugHelp": "Will be accessible at: /announcements/[your-slug]",
-    "details": "Details", "detailsEnglish": "Details Content (English)", "detailsChinese": "Details Content (Chinese)", "detailsKorean": "Details Content (Korean)", "detailsPlaceholder": "Enter detailed content...",
-    "missingTranslations": "Missing Translations", "missingTranslationsBody": "The following language translations are missing or empty:", "saveAnywayQuestion": "Do you want to save anyway?", "goBack": "Go Back", "saveAnyway": "Save Anyway", "backToHome": "Back to home"
+    "details": "Details", "detailsEnglish": "Details Content (English)", "detailsChinese": "Details Content (Simplified Chinese)", "detailsTraditionalChinese": "Details Content (Traditional Chinese)", "detailsKorean": "Details Content (Korean)", "detailsPlaceholder": "Enter detailed content...",
+    "detailsChinesePlaceholder": "输入简体中文详细内容...", "detailsTraditionalPlaceholder": "輸入繁體中文詳細內容...", "detailsKoreanPlaceholder": "자세한 내용을 입력하세요...",
+    "missingTranslations": "Missing Translations", "missingTranslationsBody": "The following language translations are missing or empty:", "saveAnywayQuestion": "Do you want to save anyway?", "goBack": "Go Back", "saveAnyway": "Save Anyway", "backToHome": "Back to home",
+    "adminSessionExpired": "Your administrator session has expired. Sign in again.", "requiredFieldsError": "Add an image, title, and subtitle before creating the announcement.", "detailsUrlRequired": "Add a page URL for the announcement details page.", "saveError": "The announcement could not be saved. Check that its page URL is unique and try again.", "notFoundTitle": "Announcement Not Found", "announcementTitle": "Announcement"
   }
 }

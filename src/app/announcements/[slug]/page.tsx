@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { localizedContent } from "@/lib/localized-content";
 import { prisma } from "@/lib/prisma";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -27,27 +28,10 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
   const currentLocale = await getLocale();
   const t = await getTranslations('announcements');
 
-  // Parse translations
-  const parseTranslations = (jsonString: string) => {
-    try {
-      return JSON.parse(jsonString);
-    } catch {
-      return { en: jsonString };
-    }
-  };
-
-  const titleTranslations = parseTranslations(announcement.title);
-  const detailsTranslations = announcement.detailsContent
-    ? parseTranslations(announcement.detailsContent)
-    : { en: "" };
-
-  // Get localized content
-  const getLocalizedText = (translations: any) => {
-    return translations[currentLocale] || translations.en || "";
-  };
-
-  const title = getLocalizedText(titleTranslations);
-  const details = getLocalizedText(detailsTranslations);
+  const title = localizedContent(announcement.title, currentLocale);
+  const details = announcement.detailsContent
+    ? localizedContent(announcement.detailsContent, currentLocale)
+    : "";
 
   // Parse cropped area if exists
   const croppedArea = announcement.croppedArea
@@ -127,6 +111,10 @@ export default async function AnnouncementDetailsPage({ params }: Props) {
 // Generate metadata for the page
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
+  const [currentLocale, t] = await Promise.all([
+    getLocale(),
+    getTranslations("announcements"),
+  ]);
 
   const announcement = await prisma.announcement.findUnique({
     where: { detailsSlug: slug },
@@ -134,21 +122,11 @@ export async function generateMetadata({ params }: Props) {
 
   if (!announcement) {
     return {
-      title: "Announcement Not Found",
+      title: t("notFoundTitle"),
     };
   }
 
-  const parseTranslations = (jsonString: string) => {
-    try {
-      return JSON.parse(jsonString);
-    } catch {
-      return { en: jsonString };
-    }
-  };
-
-  const titleTranslations = parseTranslations(announcement.title);
-
   return {
-    title: titleTranslations.en || "Announcement",
+    title: localizedContent(announcement.title, currentLocale) || t("announcementTitle"),
   };
 }

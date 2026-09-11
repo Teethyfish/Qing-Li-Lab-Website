@@ -30,8 +30,8 @@ export default function InstrumentRequestForm({ instruments, initialInstrumentId
           website: form.get("website"), instrumentIds: selected, trainingRequired,
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || t("submitError"));
+      await response.json();
+      if (!response.ok) throw new Error(t("submitError"));
       setSuccess(true);
       event.currentTarget.reset();
       setSelected([]);

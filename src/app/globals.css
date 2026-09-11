@@ -1687,6 +1687,9 @@ button.announcement-arrow:hover { transform: translateY(-50%) scale(1.12); }
 
 .nav-preferences { display: flex; align-items: center; gap: 5px; }
 .nav-segmented { display: inline-flex; align-items: center; padding: 2px; border: 1px solid color-mix(in oklab, var(--nav-text) 18%, transparent); background: color-mix(in oklab, var(--nav-bg) 88%, transparent); }
+.nav-language-picker { position: relative; }
+.nav-chinese-options { position: absolute; top: calc(100% + 5px); left: 50%; z-index: 102; display: inline-flex; padding: 2px; border: 1px solid color-mix(in oklab, var(--nav-text) 18%, transparent); background: var(--nav-bg); box-shadow: 0 4px 12px color-mix(in oklab, var(--color-text) 14%, transparent); opacity: 0; pointer-events: none; transform: translate(-50%, -7px); transition: opacity 140ms ease, transform 140ms ease; }
+.nav-chinese-options.open { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
 button.nav-pref-button { min-width: 27px; height: 27px; padding: 0 6px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; color: var(--nav-text) !important; font-size: .68rem !important; font-weight: 650 !important; }
 button.nav-pref-button.active { background: var(--nav-text) !important; color: var(--nav-bg) !important; }
 button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }

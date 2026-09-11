@@ -44,7 +44,6 @@ export default async function PublicationsPage({ searchParams }: { searchParams:
     <header className="publications-heading">
       <p className="research-project-kicker">{t("kicker")}</p>
       <h1>{t("title", { name: profile.name })}</h1>
-      <p className="muted">{t("subtitle")}</p>
     </header>
 
     <div className="publications-layout">

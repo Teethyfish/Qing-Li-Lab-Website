@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { requireAdminUser } from "@/lib/document-access";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_THEME, getThemeCatalog, type Theme, type ThemeCategory, type ThemePreset } from "@/lib/theme";
+import { BUILT_IN_THEMES, DEFAULT_THEME, getThemeCatalog, type Theme, type ThemeCategory, type ThemePreset } from "@/lib/theme";
 import ThemeManagementActions from "./ThemeManagementActions";
 
 type Props = { searchParams: Promise<{ preset?: string; saved?: string; renamed?: string; deleted?: string; error?: string }> };
@@ -80,6 +80,11 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
     || catalog.find((preset) => preset.id === admin.themePreference)
     || catalog[0];
   const theme = { ...DEFAULT_THEME, ...selected.values };
+  const displayThemeName = (preset: ThemePreset) => {
+    const builtIn = BUILT_IN_THEMES.find((item) => item.id === preset.id);
+    return builtIn && preset.name === builtIn.name ? t(`categories.${preset.category}`) : preset.name;
+  };
+  const selectedDisplayName = displayThemeName(selected);
 
   async function savePreset(formData: FormData) {
     "use server";
@@ -185,7 +190,7 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
           {CATEGORIES.map((category) => {
             const themes = catalog.filter((preset) => preset.category === category);
             return themes.length ? <optgroup key={category} label={t(`categories.${category}`)}>
-              {themes.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+              {themes.map((preset) => <option key={preset.id} value={preset.id}>{displayThemeName(preset)}</option>)}
             </optgroup> : null;
           })}
         </select>
@@ -227,7 +232,7 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
         </div>
         <label><strong>{t('saveSettingsTo')}</strong>
           <select name="saveTarget" defaultValue={selected.id}>
-            {catalog.map((preset) => <option key={preset.id} value={preset.id}>{preset.name} — {t(`categories.${preset.category}`)}</option>)}
+            {catalog.map((preset) => <option key={preset.id} value={preset.id}>{displayThemeName(preset)} — {t(`categories.${preset.category}`)}</option>)}
             <option value="__new__">+ {t('createExtra')}</option>
           </select>
         </label>
@@ -251,15 +256,15 @@ export default async function ThemeEditorPage({ searchParams }: Props) {
         rename: t('manageTheme'),
         name: t('themeName'),
         saveName: t('renameTheme'),
-        delete: t('deleteTheme', {name: selected.name}),
-        confirmDelete: t('confirmDeleteTheme', {name: selected.name}),
+        delete: t('deleteTheme', {name: selectedDisplayName}),
+        confirmDelete: t('confirmDeleteTheme', {name: selectedDisplayName}),
         protectedTheme: t('protectedTheme'),
       }}
     />
 
     {selected.builtIn ? <form action={resetPreset}>
       <input type="hidden" name="presetId" value={selected.id} />
-      <button className="btn btn-warning">{t('resetToDefaults', {name: selected.name})}</button>
+      <button className="btn btn-warning">{t('resetToDefaults', {name: selectedDisplayName})}</button>
     </form> : null}
   </main>;
 }

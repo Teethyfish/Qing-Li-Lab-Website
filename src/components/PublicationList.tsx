@@ -11,7 +11,7 @@ function formatPublicationDate(value: string | null, locale: string) {
   if (!value) return "";
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", {
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale === "ko" ? "ko-KR" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

@@ -51,7 +51,7 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
         emailSubject: document.emailSubject,
         isPublic: document.isPublic,
         createdAt: document.createdAt.toISOString(),
-        uploadDate: new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", {
+        uploadDate: new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale === "ko" ? "ko-KR" : "en-US", {
           dateStyle: "medium",
           timeZone: "Pacific/Honolulu",
         }).format(document.createdAt),

@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { localeNames, locales } from "@/i18n/config";
 import bcrypt from "bcryptjs";
-import { getThemeCatalog } from "@/lib/theme";
+import { BUILT_IN_THEMES, getThemeCatalog } from "@/lib/theme";
 
 type SettingsPageProps = {
   searchParams: Promise<{ password?: string }>;
@@ -31,6 +31,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const t = await getTranslations('settings');
   const themeCatalog = await getThemeCatalog();
   const selectedTheme = themeCatalog.some((theme) => theme.id === user.themePreference) ? user.themePreference : "light";
+  const displayThemeName = (theme: (typeof themeCatalog)[number]) => {
+    const builtIn = BUILT_IN_THEMES.find((item) => item.id === theme.id);
+    return builtIn && theme.name === builtIn.name ? t(`themeCategories.${theme.category}`) : theme.name;
+  };
 
   // Server action to update language
   async function updateLanguage(formData: FormData) {
@@ -218,7 +222,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               <label style={{ display: "grid", gap: ".4rem", flex: "1 1 260px" }}>
                 <span className="muted" style={{ fontSize: ".82rem" }}>{t('chooseTheme')}</span>
                 <select name="themePreference" defaultValue={selectedTheme} style={inputStyle}>
-                  {themeCatalog.map((theme) => <option key={theme.id} value={theme.id}>{theme.name} — {t(`themeCategories.${theme.category}`)}</option>)}
+                  {themeCatalog.map((theme) => <option key={theme.id} value={theme.id}>{displayThemeName(theme)} — {t(`themeCategories.${theme.category}`)}</option>)}
                 </select>
               </label>
               <button className="btn btn-basic">{t('saveTheme')}</button>

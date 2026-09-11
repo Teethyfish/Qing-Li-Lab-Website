@@ -59,7 +59,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
         }),
       });
       const start = await startResponse.json();
-      if (!startResponse.ok) throw new Error(start.error || "Could not start upload.");
+      if (!startResponse.ok) throw new Error(t("startFailed"));
 
       // Keep requests below Vercel's function body limit. Chunks go through the
       // same-origin website proxy so browser CORS cannot interrupt finalization.
@@ -88,7 +88,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
           error?: string;
         } | null;
         if (!uploadResponse.ok || !uploadResult) {
-          throw new Error(uploadResult?.error || `Upload failed (${uploadResponse.status}).`);
+          throw new Error(t("uploadFailedStatus", { status: uploadResponse.status }));
         }
         if (uploadResult.complete && uploadResult.id) {
           uploaded = { id: uploadResult.id };
@@ -98,7 +98,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
         }
       }
 
-      if (!uploaded.id) throw new Error("Google Drive did not confirm the upload.");
+      if (!uploaded.id) throw new Error(t("driveConfirmationFailed"));
 
       setStatus(t("creatingNotices"));
       const completeResponse = await fetch("/api/documents/upload/complete", {
@@ -117,7 +117,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
         }),
       });
       const completed = await completeResponse.json();
-      if (!completeResponse.ok) throw new Error(completed.error || "Could not publish document.");
+      if (!completeResponse.ok) throw new Error(t("publishFailed"));
 
       if (publicOnly) {
         setStatus(t("publishedPublicOnly"));
@@ -133,7 +133,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
       setPublicOnly(false);
       router.refresh();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Upload failed.");
+      setStatus(error instanceof Error ? error.message : t("uploadFailed"));
     } finally {
       setBusy(false);
     }

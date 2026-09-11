@@ -267,11 +267,11 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, about, imageUrl: profileImage, profileContent: profile }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not save profile.");
+      await response.json();
+      if (!response.ok) throw new Error(t("saveError"));
       setStatus(t("saved"));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not save profile.");
+      setStatus(error instanceof Error ? error.message : t("saveError"));
     } finally { setSaving(false); }
   };
 
@@ -317,7 +317,7 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
           <div className="profile-dashboard-tile-heading fixed"><h2>{t("profileHeader")}</h2><span>{t("fixedPosition")}</span></div>
           <div className="profile-dashboard-tile-body">
             <ProfilePictureUpload key={profileImage ? "with-image" : "without-image"} currentImageUrl={profileImage} userName={name} onImageCropped={(image) => {
-              void compressProfilePhoto(image).then(setProfileImage).catch((error) => setStatus(error instanceof Error ? error.message : "Could not process profile photo."));
+              void compressProfilePhoto(image).then(setProfileImage).catch(() => setStatus(t("imageProcessingError")));
             }} />
             {profileImage ? <button type="button" className="btn btn-muted" onClick={() => setProfileImage(null)}>{t("removePhoto")}</button> : null}
             <label className="form-field"><strong>{t("displayName")}</strong><input value={name} maxLength={160} onChange={(event) => setName(event.target.value)} /></label>
@@ -367,8 +367,8 @@ export default function ProfileBuilder({ user, isAdminEditing }: { user: UserPro
                 try {
                   setTilePhotoCrop({ tileId: tile.id, source: await readPhoto(file), aspect: tilePhotoAspect(tile) });
                   setStatus(null);
-                } catch (error) {
-                  setStatus(error instanceof Error ? error.message : "Could not process photo.");
+                } catch {
+                  setStatus(t("imageProcessingError"));
                 }
               }} /></label>
               {tile.imageUrl ? <button type="button" className="profile-tile-crop-preview" onClick={() => setTilePhotoCrop({ tileId: tile.id, source: tile.imageUrl, aspect: tilePhotoAspect(tile) })} aria-label={t("clickToRecrop")} title={t("clickToRecrop")}>

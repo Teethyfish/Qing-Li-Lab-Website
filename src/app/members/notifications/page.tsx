@@ -4,21 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/document-access";
+import { localizedContent } from "@/lib/localized-content";
 import { prisma } from "@/lib/prisma";
 import { getLocale, getTranslations } from "next-intl/server";
 
-function localizedAnnouncementText(value: string, locale: string) {
-  try {
-    const parsed = JSON.parse(value) as Record<string, unknown>;
-    const localized = parsed[locale] ?? parsed.en ?? Object.values(parsed)[0];
-    return typeof localized === "string" ? localized : value;
-  } catch {
-    return value;
-  }
-}
-
 function noticeDate(date: Date, locale: string) {
-  const dateLocale = locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US";
+  const dateLocale = locale === "zh" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale === "ko" ? "ko-KR" : "en-US";
   return new Intl.DateTimeFormat(dateLocale, {
     dateStyle: "medium",
     timeStyle: "short",
@@ -60,8 +51,8 @@ export default async function NotificationsPage() {
     ...announcements.map((announcement) => ({
       id: announcement.id,
       kind: "announcement" as const,
-      title: localizedAnnouncementText(announcement.title, locale),
-      message: localizedAnnouncementText(announcement.text, locale),
+      title: localizedContent(announcement.title, locale),
+      message: localizedContent(announcement.text, locale),
       createdAt: announcement.createdAt,
       unread: announcement.reads.length === 0 && announcement.createdAt >= user.createdAt,
     })),

@@ -32,7 +32,7 @@ export default function LoginForm() {
       return;
     }
     setStatus("error");
-    setError(t('errorInvalidCredentials') || "Incorrect email or password.");
+    setError(t('errorInvalidCredentials'));
   }
 
   const inputStyle: React.CSSProperties = {

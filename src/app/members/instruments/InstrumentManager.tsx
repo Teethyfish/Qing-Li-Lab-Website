@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 type Instrument = {
   id: string;
@@ -52,6 +52,8 @@ function resizeImage(file: File) {
 
 export default function InstrumentManager({ instruments, requests }: { instruments: Instrument[]; requests: AccessRequest[] }) {
   const t = useTranslations("sitePages.instrumentAdmin");
+  const locale = useLocale();
+  const dateLocale = locale === "zh" ? "zh-CN" : locale === "zh-Hant" ? "zh-TW" : locale === "ko" ? "ko-KR" : "en-US";
   const router = useRouter();
   const [imageUrl, setImageUrl] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
   const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    if (!imageUrl) return setError("Choose an instrument image.");
+    if (!imageUrl) return setError(t("instrumentImageRequired"));
     setBusy("create");
     const form = new FormData(event.currentTarget);
     try {
@@ -75,13 +77,13 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
           isAvailable: form.get("isAvailable") === "on",
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not add instrument.");
+      await response.json();
+      if (!response.ok) throw new Error(t("addError"));
       event.currentTarget.reset();
       setImageUrl("");
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not add instrument.");
+      setError(caught instanceof Error ? caught.message : t("addError"));
     } finally {
       setBusy(null);
     }
@@ -96,27 +98,27 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isAvailable: !instrument.isAvailable }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not update availability.");
+      await response.json();
+      if (!response.ok) throw new Error(t("availabilityError"));
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not update availability.");
+      setError(caught instanceof Error ? caught.message : t("availabilityError"));
     } finally {
       setBusy(null);
     }
   };
 
   const remove = async (instrument: Instrument) => {
-    if (!confirm(`Delete ${instrument.name}? Existing request records will be retained.`)) return;
+    if (!confirm(t("deleteConfirm", { name: instrument.name }))) return;
     setBusy(instrument.id);
     setError(null);
     try {
       const response = await fetch(`/api/instruments/${instrument.id}`, { method: "DELETE" });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Could not delete instrument.");
+      await response.json();
+      if (!response.ok) throw new Error(t("deleteError"));
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not delete instrument.");
+      setError(caught instanceof Error ? caught.message : t("deleteError"));
     } finally {
       setBusy(null);
     }
@@ -132,9 +134,9 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
             const file = event.target.files?.[0];
             if (!file) return setImageUrl("");
             try { setImageUrl(await resizeImage(file)); setError(null); }
-            catch (caught) { setImageUrl(""); setError(caught instanceof Error ? caught.message : "Could not process image."); }
+            catch { setImageUrl(""); setError(t("imageProcessingError")); }
           }} /></label>
-          {imageUrl ? <img src={imageUrl} alt="Instrument preview" style={{ width: 240, height: 150, objectFit: "cover", border: "1px solid #d1d5db" }} /> : null}
+          {imageUrl ? <img src={imageUrl} alt={t("imagePreviewAlt")} style={{ width: 240, height: 150, objectFit: "cover", border: "1px solid #d1d5db" }} /> : null}
           <label className="form-field"><strong>{t("description")}</strong><textarea name="description" rows={5} required maxLength={5000} /></label>
           <label className="form-field"><strong>{t("location")}</strong><input name="location" required maxLength={300} /></label>
           <label style={{ display: "flex", gap: ".5rem", alignItems: "center" }}><input name="isAvailable" type="checkbox" defaultChecked /> {t("availableNow")}</label>
@@ -169,7 +171,7 @@ export default function InstrumentManager({ instruments, requests }: { instrumen
           {requests.map((request) => <article className="card" key={request.id}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
               <h3 style={{ margin: 0 }}>{request.name}</h3>
-              <time className="muted">{new Date(request.createdAt).toLocaleString()}</time>
+              <time className="muted">{new Date(request.createdAt).toLocaleString(dateLocale)}</time>
             </div>
             <p><strong>{t("email")}</strong> <a href={`mailto:${request.email}`}>{request.email}</a><br />
               <strong>{t("department")}</strong> {request.department}<br />
