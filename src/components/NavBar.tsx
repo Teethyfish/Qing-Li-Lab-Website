@@ -99,6 +99,7 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
   const items: Array<{ href: string; label: string; show: boolean }> = [
     { href: "/", label: t('home'), show: true },
     { href: "/instruments", label: t('instruments'), show: true },
+    { href: "/publications", label: t('publications'), show: true },
     { href: "/database", label: t('database'), show: true },
     { href: "/members", label: t('members'), show: isAuthed },
     { href: "/register", label: t('register'), show: !isAuthed },
