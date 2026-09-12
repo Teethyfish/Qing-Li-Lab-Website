@@ -118,6 +118,30 @@ export async function getPublications({ page = 1, perPage = 20 }: { page?: numbe
   }
 }
 
+export async function getPublicationIndex(): Promise<PublicationPage> {
+  const authorId = process.env.OPENALEX_AUTHOR_ID?.trim() || DEFAULT_AUTHOR_ID;
+  const perPage = 100;
+  const parameters = {
+    filter: `author.id:${authorId}`,
+    sort: "publication_date:desc",
+    "per-page": String(perPage),
+    select: "id,doi,title,publication_date,authorships,primary_location,best_oa_location,cited_by_count",
+  };
+  try {
+    const first = await openAlexFetch<OpenAlexWorksResponse>(apiUrl("works", { ...parameters, page: "1" }));
+    const pageCount = Math.ceil(first.meta.count / perPage);
+    const remaining = pageCount > 1
+      ? await Promise.all(Array.from({ length: pageCount - 1 }, (_, index) =>
+          openAlexFetch<OpenAlexWorksResponse>(apiUrl("works", { ...parameters, page: String(index + 2) }))))
+      : [];
+    const works = [first, ...remaining].flatMap((page) => page.results);
+    return { publications: works.map(normalizeWork), total: first.meta.count, available: true };
+  } catch (error) {
+    console.error("Could not refresh Qing X. Li publication index", error);
+    return { publications: [], total: 0, available: false };
+  }
+}
+
 export async function getPublicationAuthor(): Promise<PublicationAuthor | null> {
   const authorId = process.env.OPENALEX_AUTHOR_ID?.trim() || DEFAULT_AUTHOR_ID;
   try {

@@ -1741,7 +1741,7 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .publications-heading p { margin-bottom: 0; }
 .publications-layout { display: grid; grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .publication-profile { position: sticky; top: 88px; display: grid; gap: .75rem; padding: 1.1rem; }
-.publication-profile-monogram { display: grid; place-items: center; width: 74px; aspect-ratio: 1; background: color-mix(in oklab, var(--color-primary) 14%, var(--color-card)); border: 1px solid color-mix(in oklab, var(--color-primary) 32%, transparent); color: var(--color-primary); font-size: 1.25rem; font-weight: 800; }
+.publication-profile-monogram { display: block; width: 74px; height: 74px; object-fit: cover; object-position: center; border: 1px solid color-mix(in oklab, var(--color-primary) 32%, transparent); }
 .publication-profile h2, .publication-profile p { margin: 0; }
 .publication-profile p { color: var(--color-muted); font-size: .86rem; line-height: 1.45; }
 .publication-stats { display: grid; grid-template-columns: 1fr 1fr; margin: .25rem 0 0; border-top: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); border-left: 1px solid color-mix(in oklab, var(--color-text) 12%, transparent); }
@@ -1753,6 +1753,9 @@ button.nav-pref-button:focus-visible { outline: 2px solid var(--color-accent); o
 .publication-results-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding-bottom: .75rem; border-bottom: 1px solid color-mix(in oklab, var(--color-text) 14%, transparent); }
 .publication-results-heading h2, .publication-results-heading p, .publication-page-count { margin: 0; }
 .publication-page-count { color: var(--color-muted); font-size: .82rem; white-space: nowrap; }
+.publication-sort-controls { display: grid; grid-template-columns: minmax(170px, 1fr) minmax(130px, .65fr) auto; gap: .75rem; align-items: end; }
+.publication-sort-controls label { display: grid; gap: .35rem; color: var(--color-muted); font-size: .78rem; font-weight: 650; }
+.publication-sort-controls select { width: 100%; min-height: 38px; padding: .45rem .6rem; border: 1px solid color-mix(in oklab, var(--color-text) 18%, transparent); background: var(--color-card); color: var(--color-text); }
 .publication-message { margin: 0; }
 .publication-pagination { display: flex; justify-content: space-between; gap: 1rem; padding-top: .5rem; }
 .publication-source-note { margin: 0; font-size: .78rem; }
@@ -1834,6 +1837,8 @@ button.project-photo-remove { position: absolute; top: 4px; right: 4px; width: 2
   .publications-layout { grid-template-columns: 1fr; }
   .publication-profile { position: static; }
   .publication-results-heading { align-items: start; }
+  .publication-sort-controls { grid-template-columns: 1fr 1fr; }
+  .publication-sort-controls .btn { grid-column: 1 / -1; }
   .research-project-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-supporting-previews { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .project-admin-grid { grid-template-columns: 1fr; }

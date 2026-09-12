@@ -108,6 +108,8 @@ export default async function HomePage() {
   const collaborators = collaboratorsValue || [];
   const currentProjects = researchProjects.filter((project) => !project.isCollaboration);
   const collaborationProjects = researchProjects.filter((project) => project.isCollaboration);
+  const isQingLi = (name: string | null) => (name || "").toLowerCase().replace(/[^a-z]/g, "") === "qingxli";
+  const sortedMembers = [...members].sort((left, right) => Number(isQingLi(right.name)) - Number(isQingLi(left.name)));
 
   const alumni = [
     ...accountAlumni,
@@ -360,10 +362,10 @@ export default async function HomePage() {
             <h3 style={sectionTitle}>{t('labMembers')}</h3>
             <div style={{ height: 8 }} />
             <div style={peopleGrid}>
-              {members.length === 0 ? (
+              {sortedMembers.length === 0 ? (
                 <div className="muted">{t('noMembers')}</div>
               ) : (
-                members.map((m) => (
+                sortedMembers.map((m) => (
                   <Link
                     key={m.slug || m.name || Math.random()}
                     href={m.slug ? `/people/${m.slug}` : "#"}
