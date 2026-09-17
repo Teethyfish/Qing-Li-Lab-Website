@@ -1375,7 +1375,8 @@ button.notification-bell-button {
 
 .notice-dropdown-item:hover { background: color-mix(in oklab, var(--color-card) 92%, var(--color-text) 8%); text-decoration: none; }
 .notice-dropdown-item.unread { border-left: 3px solid #22c55e; }
-.notice-dropdown-item > span:last-child { overflow: hidden; color: var(--color-muted); font-size: .83rem; text-overflow: ellipsis; white-space: nowrap; }
+.notice-dropdown-item > .notice-message,
+.notice-dropdown-item > .notice-uploader { overflow: hidden; color: var(--color-muted); font-size: .83rem; text-overflow: ellipsis; white-space: nowrap; }
 .notice-view-all { display: block; padding: .75rem 1rem; text-align: center; font-size: .85rem; font-weight: 700; }
 .notice-empty { margin: 0; padding: 1rem; color: var(--color-muted); }
 

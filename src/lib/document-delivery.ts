@@ -18,7 +18,10 @@ export function documentAccessWhere(id: string, user: DocumentUser) {
 }
 
 export async function findAccessibleDocument(id: string, user: DocumentUser) {
-  return prisma.labDocument.findFirst({ where: documentAccessWhere(id, user) });
+  return prisma.labDocument.findFirst({
+    where: documentAccessWhere(id, user),
+    include: { createdBy: { select: { name: true, email: true } } },
+  });
 }
 
 export function documentContentDisposition(disposition: "inline" | "attachment", fileName: string) {

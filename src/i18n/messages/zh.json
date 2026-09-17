@@ -337,6 +337,8 @@
       "contactBefore": "未来的机会将在此发布。如需咨询潜在职位或科研合作，请联系首席研究员李晴："
     },
     "database": {
+      "uploadedBy": "上传者",
+      "unknownUploader": "未知上传者",
       "title": "实验室文档数据库",
       "subtitle": "公共资源对所有人开放。登录成员还可以查看直接发送给自己的文档。",
       "publicNoticeBefore": "您正在查看公共文档集。",

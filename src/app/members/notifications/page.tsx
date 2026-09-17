@@ -20,12 +20,14 @@ function noticeDate(date: Date, locale: string) {
 export default async function NotificationsPage() {
   const user = await getCurrentUser();
   const t = await getTranslations("sitePages.notifications");
+  const td = await getTranslations("sitePages.database");
   const locale = await getLocale();
   if (!user) redirect("/login");
   const [notifications, announcements] = await Promise.all([
     prisma.notification.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
+      include: { document: { select: { createdBy: { select: { name: true, email: true } } } } },
     }),
     prisma.announcement.findMany({
       where: { status: "ACTIVE" },
@@ -45,6 +47,7 @@ export default async function NotificationsPage() {
       kind: "notification" as const,
       title: notification.title,
       message: notification.message,
+      uploaderName: notification.document ? notification.document.createdBy?.name?.trim() || notification.document.createdBy?.email || td("unknownUploader") : null,
       createdAt: notification.createdAt,
       unread: !notification.readAt,
     })),
@@ -53,6 +56,7 @@ export default async function NotificationsPage() {
       kind: "announcement" as const,
       title: localizedContent(announcement.title, locale),
       message: localizedContent(announcement.text, locale),
+      uploaderName: null,
       createdAt: announcement.createdAt,
       unread: announcement.reads.length === 0 && announcement.createdAt >= user.createdAt,
     })),
@@ -108,6 +112,7 @@ export default async function NotificationsPage() {
             <p className="notice-kind" style={{ marginTop: 0 }}>{notice.kind === "announcement" ? t("announcement") : t("notification")}</p>
             <h2>{notice.title}</h2>
             <p style={{ whiteSpace: "pre-wrap" }}>{notice.message}</p>
+            {notice.uploaderName !== null ? <p className="muted">{td("uploadedBy")}: {notice.uploaderName}</p> : null}
             <p className="muted">{noticeDate(notice.createdAt, locale)}</p>
             <Link className="btn btn-basic" href={`/api/notices/open?kind=${notice.kind}&id=${encodeURIComponent(notice.id)}`}>{t("open")}</Link>
           </article>

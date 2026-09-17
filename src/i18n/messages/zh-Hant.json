@@ -337,6 +337,8 @@
       "contactBefore": "未來的機會將在此發佈。如需諮詢潛在職位或科研合作，請聯繫首席研究員李晴："
     },
     "database": {
+      "uploadedBy": "上傳者",
+      "unknownUploader": "未知上傳者",
       "title": "實驗室文檔數據庫",
       "subtitle": "公共資源對所有人開放。登錄成員還可以查看直接發送給自己的文檔。",
       "publicNoticeBefore": "您正在查看公共文檔集。",

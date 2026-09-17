@@ -8,6 +8,7 @@ type DocumentRecord = {
   id: string;
   title: string;
   description: string;
+  uploaderName: string;
   createdAt: string;
   recipients: Array<{ name: string | null; email: string }>;
 };
@@ -36,6 +37,7 @@ type Labels = {
   deleting: string;
   deleteConfirm: string;
   visibleTo: string;
+  uploadedBy: string;
 };
 
 export default function DocumentDatabaseBrowser({ groups, isAdmin, labels }: { groups: DocumentGroup[]; isAdmin: boolean; labels: Labels }) {
@@ -82,6 +84,7 @@ export default function DocumentDatabaseBrowser({ groups, isAdmin, labels }: { g
               <div className="document-database-copy">
                 <p className="document-listing-title"><strong>{document.title}</strong></p>
                 <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
+                <p className="muted">{labels.uploadedBy}: {document.uploaderName}</p>
               </div>
               <div className="document-database-actions">
                 <Link className="btn btn-basic" href={`/documents/${document.id}`}>{labels.view}</Link>

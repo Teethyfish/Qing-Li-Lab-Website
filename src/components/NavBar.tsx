@@ -14,6 +14,7 @@ type NoticeSummary = {
   kind: "notification" | "announcement";
   title: string;
   message: string;
+  uploaderName: string | null;
   unread: boolean;
   createdAt: string;
 };
@@ -69,6 +70,7 @@ function NavItem({
 
 export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImageUrl, userName, unreadNotificationCount, hasUnreadAnnouncements, recentNotices, currentLocale, currentThemeId }: Props) {
   const t = useTranslations('navigation');
+  const td = useTranslations('sitePages.database');
   const pathname = usePathname();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -295,7 +297,8 @@ export default function NavBar({ isAuthed, isAdmin, canEdit, userSlug, userImage
                   >
                     <span className="notice-kind">{notice.kind === "announcement" ? t('announcement') : t('notification')}</span>
                     <strong>{notice.title}</strong>
-                    <span>{notice.message}</span>
+                    <span className="notice-message">{notice.message}</span>
+                    {notice.uploaderName !== null ? <span className="notice-uploader">{td('uploadedBy')}: {notice.uploaderName || td('unknownUploader')}</span> : null}
                   </Link>)}
                   {!recentNotices.length ? <p className="notice-empty">{t('noNotices')}</p> : null}
                   <Link className="notice-view-all" href="/members/notifications" onClick={() => setNoticeDropdownOpen(false)}>{t('viewAllNotifications')}</Link>

@@ -36,6 +36,7 @@ export default async function DocumentViewerPage({ params }: Props) {
         <div>
           <h1 style={{ margin: 0 }}>{document.title}</h1>
           <p style={{ whiteSpace: "pre-wrap" }}>{document.description}</p>
+          <p className="muted">{td("uploadedBy")}: {document.createdBy?.name?.trim() || document.createdBy?.email || td("unknownUploader")}</p>
           <p className="muted" style={{ marginBottom: 0 }}>
             {document.fileName} · {formatBytes(document.sizeBytes)} · {document.isPublic ? td("public") : td("private")}
           </p>

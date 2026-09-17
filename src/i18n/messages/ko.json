@@ -337,6 +337,8 @@
       "contactBefore": "향후 기회는 이곳에 게시됩니다. 채용 또는 연구 협력에 관한 일반 문의는 책임연구자 Qing X. Li에게 연락해 주세요:"
     },
     "database": {
+      "uploadedBy": "업로드한 사람",
+      "unknownUploader": "알 수 없는 업로더",
       "title": "연구실 문서 데이터베이스",
       "subtitle": "공개 자료는 누구나 이용할 수 있습니다. 로그인한 구성원은 자신에게 직접 공유된 문서도 볼 수 있습니다.",
       "publicNoticeBefore": "공개 문서 모음을 보고 있습니다.",

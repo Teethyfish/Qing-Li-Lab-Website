@@ -337,6 +337,8 @@
       "contactBefore": "Future opportunities will be posted here. For general inquiries about potential positions or scientific collaboration, please contact Principal Investigator Qing X. Li at"
     },
     "database": {
+      "uploadedBy": "Uploaded by",
+      "unknownUploader": "Unknown uploader",
       "title": "Lab document database",
       "subtitle": "Public resources are available to everyone. Signed-in members also see documents sent directly to them.",
       "publicNoticeBefore": "You are viewing the public collection.",

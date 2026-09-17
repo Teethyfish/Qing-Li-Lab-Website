@@ -19,7 +19,7 @@ export default async function DocumentDatabasePage() {
           ? { OR: [{ isPublic: true }, { recipients: { some: { userId: user.id } } }] }
           : { isPublic: true },
       orderBy: { createdAt: "desc" },
-      include: { category: true, recipients: { include: { user: { select: { name: true, email: true } } } } },
+      include: { category: true, createdBy: { select: { name: true, email: true } }, recipients: { include: { user: { select: { name: true, email: true } } } } },
     }),
   ]);
   const documentGroups = [
@@ -51,6 +51,7 @@ export default async function DocumentDatabasePage() {
             id: document.id,
             title: document.title,
             description: document.description,
+            uploaderName: document.createdBy?.name?.trim() || document.createdBy?.email || t("unknownUploader"),
             createdAt: document.createdAt.toISOString(),
             recipients: document.recipients.map(({ user: recipient }) => ({ name: recipient.name, email: recipient.email })),
           })),
@@ -60,6 +61,7 @@ export default async function DocumentDatabasePage() {
           sortBy: t("sortBy"), uploadDate: t("uploadDate"), documentTitle: t("documentTitle"), sortOrder: t("sortOrder"), descending: t("descending"), ascending: t("ascending"),
           noMatchingDocuments: t("noMatchingDocuments"), view: t("view"), download: t("download"), deleteEntry: t("deleteEntry"), deleting: t("deleting"),
           deleteConfirm: t("deleteConfirm", { title: "{title}" }), visibleTo: t("visibleTo", { count: "{count}" }),
+          uploadedBy: t("uploadedBy"),
         }}
       />}
     </main>
