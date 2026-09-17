@@ -52,6 +52,7 @@ This repo includes registration → approval workflow, credential auth, email no
   - Private documents are only listed and downloaded for their recipients (plus admins)
   - Public documents are visible without an account
   - Website notifications and individual Gmail messages link back to the protected download
+  - Uncheck **Email selected recipients** to upload without email while preserving recipient access and website notifications
 
 - **Profile Pictures**
   - Upload and crop profile pictures with interactive cropper
@@ -124,3 +125,15 @@ The app requests `drive.file` and `gmail.send`, stores the refresh token
 encrypted, uploads files through the website with Drive's resumable upload flow,
 and keeps Drive files private. Website authorization is checked again on
 every download.
+
+If the Google connection expires or is revoked, use **Reconnect Google Drive
+and Gmail** on the Documents admin page, then retry the upload. Google OAuth
+apps with an external consent screen in Testing mode issue refresh tokens that
+expire after seven days for these scopes; move the consent screen to Production
+and reconnect to avoid that recurring expiration.
+
+Run the isolated upload and email regression checks with:
+
+```bash
+node --test scripts/test-document-upload.mjs
+```

@@ -21,6 +21,13 @@ type TokenResponse = {
 
 let cachedAccessToken: { token: string; expiresAt: number } | null = null;
 
+export class GoogleReconnectRequiredError extends Error {
+  constructor() {
+    super("The Google connection has expired or been revoked. Reconnect Google Drive and Gmail, then try the upload again.");
+    this.name = "GoogleReconnectRequiredError";
+  }
+}
+
 function requiredEnv(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is not configured.`);
@@ -90,6 +97,10 @@ async function tokenRequest(params: URLSearchParams) {
   });
   const data = (await response.json()) as TokenResponse;
   if (!response.ok || !data.access_token) {
+    if (data.error === "invalid_grant" && params.get("grant_type") === "refresh_token") {
+      cachedAccessToken = null;
+      throw new GoogleReconnectRequiredError();
+    }
     throw new Error(data.error_description || data.error || "Google token exchange failed.");
   }
   return data;
@@ -183,7 +194,8 @@ export async function startResumableDriveUpload(args: {
   );
   const sessionUrl = response.headers.get("location");
   if (!response.ok || !sessionUrl) {
-    const detail = await response.text().catch(() => "");
+    const result = await response.json().catch(() => null) as { error?: { message?: string } } | null;
+    const detail = result?.error?.message || response.statusText;
     throw new Error(`Could not start Google Drive upload (${response.status}): ${detail}`);
   }
   return sessionUrl;

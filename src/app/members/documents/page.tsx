@@ -36,7 +36,7 @@ export default async function AdminDocumentsPage({ searchParams }: Props) {
 
     <section className="tile document-connection-panel" data-edit-ignore="true">
       <h2>{t("googleConnection")}</h2>
-      {connection ? <p>{t("connectedAs")} <strong>{connection.email}</strong>. {t("connectedDetail")}</p>
+      {connection ? <div><p>{t("connectedAs")} <strong>{connection.email}</strong>. {t("connectedDetail")}</p><a className="btn btn-muted" href="/api/google/connect">{t("reconnectButton")}</a><p className="muted">{t("reconnectHelp")}</p></div>
         : googleOAuthConfigured ? <div><p className="muted">{t("connectPrompt")}</p><a className="btn btn-basic" href="/api/google/connect">{t("connectButton")}</a></div>
         : <p className="muted">{t("configMissing")}</p>}
       {params.google && params.google !== "connected" ? <p role="alert" className="document-error">{t("connectionFailed", { reason: params.google })}</p> : null}

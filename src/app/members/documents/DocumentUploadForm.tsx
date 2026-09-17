@@ -22,6 +22,8 @@ export default function DocumentUploadForm({ users, categories }: Props) {
   const [title, setTitle] = useState("");
   const [autoTitle, setAutoTitle] = useState("");
   const [publicOnly, setPublicOnly] = useState(false);
+  const [sendEmail, setSendEmail] = useState(true);
+  const [reconnectRequired, setReconnectRequired] = useState(false);
 
   function titleFromFileName(fileName: string) {
     const withoutExtension = fileName.replace(/\.[^.]+$/, "");
@@ -47,6 +49,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
     }
 
     setBusy(true);
+    setReconnectRequired(false);
     setStatus(t("starting"));
     try {
       const startResponse = await fetch("/api/documents/upload/start", {
@@ -58,8 +61,11 @@ export default function DocumentUploadForm({ users, categories }: Props) {
           sizeBytes: file.size,
         }),
       });
-      const start = await startResponse.json();
-      if (!startResponse.ok) throw new Error(t("startFailed"));
+      const start = await startResponse.json().catch(() => null);
+      if (!startResponse.ok || !start?.sessionUrl) {
+        setReconnectRequired(start?.reconnectRequired === true);
+        throw new Error(start?.reconnectRequired ? t("reconnectRequired") : start?.error || t("startFailed"));
+      }
 
       // Keep requests below Vercel's function body limit. Chunks go through the
       // same-origin website proxy so browser CORS cannot interrupt finalization.
@@ -88,7 +94,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
           error?: string;
         } | null;
         if (!uploadResponse.ok || !uploadResult) {
-          throw new Error(t("uploadFailedStatus", { status: uploadResponse.status }));
+          throw new Error(uploadResult?.error || t("uploadFailedStatus", { status: uploadResponse.status }));
         }
         if (uploadResult.complete && uploadResult.id) {
           uploaded = { id: uploadResult.id };
@@ -100,7 +106,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
 
       if (!uploaded.id) throw new Error(t("driveConfirmationFailed"));
 
-      setStatus(t("creatingNotices"));
+      setStatus(t(publicOnly ? "publishing" : sendEmail ? "creatingNotices" : "publishingWithoutEmail"));
       const completeResponse = await fetch("/api/documents/upload/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,18 +117,19 @@ export default function DocumentUploadForm({ users, categories }: Props) {
           emailSubject: data.get("emailSubject"),
           isPublic: publicOnly || data.get("isPublic") === "on",
           publicOnly,
+          sendEmail: !publicOnly && sendEmail,
           categoryId: data.get("categoryId"),
           groups: data.getAll("groups"),
           userIds: data.getAll("userIds"),
         }),
       });
-      const completed = await completeResponse.json();
-      if (!completeResponse.ok) throw new Error(t("publishFailed"));
+      const completed = await completeResponse.json().catch(() => null);
+      if (!completeResponse.ok || !completed) throw new Error(completed?.error || t("publishFailed"));
 
       if (publicOnly) {
         setStatus(t("publishedPublicOnly"));
       } else {
-        const emailNote = completed.emailFailureCount
+        const emailNote = !sendEmail ? t("noEmailsSent") : completed.emailFailureCount
           ? t("emailFailures", { count: completed.emailFailureCount })
           : t("emailsSent");
         setStatus(`${t("published", { count: completed.recipientCount })} ${emailNote}`);
@@ -131,6 +138,7 @@ export default function DocumentUploadForm({ users, categories }: Props) {
       setTitle("");
       setAutoTitle("");
       setPublicOnly(false);
+      setSendEmail(true);
       router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : t("uploadFailed"));
@@ -184,15 +192,21 @@ export default function DocumentUploadForm({ users, categories }: Props) {
       </label>
 
       <label className="document-public-only-option" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-        <input type="checkbox" checked={publicOnly} onChange={(event) => setPublicOnly(event.target.checked)} />
+        <input type="checkbox" checked={publicOnly} disabled={busy} onChange={(event) => setPublicOnly(event.target.checked)} />
         <span><strong>{t("publicOnly")}</strong><small className="muted" style={{ display: "block" }}>{t("publicOnlyHelp")}</small></span>
       </label>
 
       {!publicOnly ? <>
+        <label style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <input type="checkbox" name="sendEmail" checked={sendEmail} disabled={busy} onChange={(event) => setSendEmail(event.target.checked)} />
+          <span><strong>{t("sendEmail")}</strong><small className="muted" style={{ display: "block" }}>{t("sendEmailHelp")}</small></span>
+        </label>
+
+        {sendEmail ?
         <label style={{ display: "grid", gap: 6 }}>
           <strong>{t("emailTitle")}</strong>
           <input name="emailSubject" required style={inputStyle} />
-        </label>
+        </label> : null}
 
       <fieldset style={{ border: "1px solid color-mix(in oklab, var(--color-text) 18%, transparent)", padding: "1rem" }}>
         <legend style={{ padding: "0 0.35rem", fontWeight: 700 }}>{t("audienceGroups")}</legend>
@@ -245,10 +259,11 @@ export default function DocumentUploadForm({ users, categories }: Props) {
 
       <div>
         <button type="submit" className="btn btn-basic" disabled={busy}>
-          {busy ? t("publishing") : publicOnly ? t("uploadPublicOnly") : t("uploadNotify")}
+          {busy ? t("publishing") : publicOnly ? t("uploadPublicOnly") : sendEmail ? t("uploadNotify") : t("uploadWithoutEmail")}
         </button>
       </div>
       {status ? <p role="status" style={{ margin: 0 }}>{status}</p> : null}
+      {reconnectRequired ? <a className="btn btn-muted" href="/api/google/connect">{t("reconnectButton")}</a> : null}
     </form>
   );
 }

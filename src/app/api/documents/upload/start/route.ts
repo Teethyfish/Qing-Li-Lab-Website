@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/document-access";
-import { startResumableDriveUpload } from "@/lib/google";
+import { GoogleReconnectRequiredError, startResumableDriveUpload } from "@/lib/google";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ sessionUrl });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not start upload.";
-    const status = message === "Forbidden" ? 403 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const reconnectRequired = error instanceof GoogleReconnectRequiredError;
+    const status = message === "Forbidden" ? 403 : reconnectRequired ? 409 : 500;
+    return NextResponse.json({ error: message, reconnectRequired }, { status });
   }
 }

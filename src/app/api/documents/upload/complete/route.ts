@@ -108,12 +108,17 @@ export async function POST(request: NextRequest) {
       groups?: string[];
       userIds?: string[];
       publicOnly?: boolean;
+      sendEmail?: boolean;
       categoryId?: string;
     };
     const title = body.title?.trim();
     const description = body.description?.trim();
     const publicOnly = body.publicOnly === true;
-    const emailSubject = body.emailSubject?.trim() || (publicOnly ? title : undefined);
+    if (body.sendEmail !== undefined && typeof body.sendEmail !== "boolean") {
+      return NextResponse.json({ error: "Invalid email preference." }, { status: 400 });
+    }
+    const sendEmail = !publicOnly && body.sendEmail !== false;
+    const emailSubject = body.emailSubject?.trim() || (!sendEmail ? title : undefined);
     const driveFileId = body.driveFileId?.trim();
     if (!title || !description || !emailSubject || !driveFileId) {
       return NextResponse.json({ error: "Title, description, email title, and file are required." }, { status: 400 });
@@ -175,7 +180,7 @@ export async function POST(request: NextRequest) {
     const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin).replace(/\/$/, "");
     const documentUrl = `${siteUrl}/documents/${encodeURIComponent(document.id)}`;
     const emailResults = await Promise.allSettled(
-      recipients.map(async (recipient) => {
+      (sendEmail ? recipients : []).map(async (recipient) => {
         await sendGoogleMail({
           to: recipient.email,
           subject: emailSubject,
@@ -206,7 +211,7 @@ export async function POST(request: NextRequest) {
       id: document.id,
       recipientCount: recipients.length,
       emailCount: notifiedUserIds.length,
-      emailFailureCount: recipients.length - notifiedUserIds.length,
+      emailFailureCount: sendEmail ? recipients.length - notifiedUserIds.length : 0,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not finish upload.";
